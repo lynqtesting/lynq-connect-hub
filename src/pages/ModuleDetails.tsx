@@ -68,17 +68,29 @@ const ModuleDetails = () => {
               Download PDF Report
             </Button>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate(`/request/new/${moduleId}`)}
+            >
               <MessageSquare className="mr-2 h-4 w-4" />
               Request New Module
             </Button>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => navigate(`/request/adapt/${moduleId}`)}
+            >
               <Edit className="mr-2 h-4 w-4" />
               Adapt This Module
             </Button>
 
-            <Button variant="outline" className="w-full justify-start">
+            <Button 
+              variant="outline" 
+              className="w-full justify-start"
+              onClick={() => window.open('https://calendly.com/your-username', '_blank')}
+            >
               <Calendar className="mr-2 h-4 w-4" />
               Book a Call
             </Button>

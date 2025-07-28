@@ -8,6 +8,7 @@ import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
 import ModuleDetails from "./pages/ModuleDetails";
+import RequestForm from "./pages/RequestForm";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,8 @@ const App = () => (
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/module/:moduleId" element={<ModuleDetails />} />
+          <Route path="/request/new/:moduleId" element={<RequestForm type="new" />} />
+          <Route path="/request/adapt/:moduleId" element={<RequestForm type="adapt" />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
