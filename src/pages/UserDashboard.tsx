@@ -26,7 +26,11 @@ const UserDashboard = () => {
           <h3 className="text-xl font-semibold mb-4">Your Modules:</h3>
           
           {userModules.map((module) => (
-            <Card key={module.id} className="cursor-pointer hover:shadow-md transition-shadow">
+            <Card 
+              key={module.id} 
+              className="cursor-pointer hover:shadow-md transition-shadow"
+              onClick={() => navigate(`/module/${module.id}`)}
+            >
               <CardContent className="p-4">
                 <h4 className="font-medium">{module.name}</h4>
               </CardContent>
