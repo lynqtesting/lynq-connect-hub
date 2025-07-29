@@ -77,6 +77,8 @@ const RequestForm = ({ type }: RequestFormProps) => {
       }
 
       const userData = JSON.parse(currentUser);
+      console.log('User data:', userData);
+      console.log('Form data:', formData);
 
       const requestData = {
         user_id: userData.id,
@@ -88,11 +90,19 @@ const RequestForm = ({ type }: RequestFormProps) => {
         duration: parseInt(formData.duration)
       };
 
-      const { error } = await supabase
-        .from('requests')
-        .insert(requestData);
+      console.log('Request data to be inserted:', requestData);
 
-      if (error) throw error;
+      const { error, data } = await supabase
+        .from('requests')
+        .insert(requestData)
+        .select();
+
+      console.log('Supabase response:', { error, data });
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
 
       showToast({
         title: "Success",
@@ -101,9 +111,10 @@ const RequestForm = ({ type }: RequestFormProps) => {
       
       navigate('/user-dashboard');
     } catch (error) {
+      console.error('Full error:', error);
       showToast({
         title: "Error",
-        description: "Failed to submit request",
+        description: `Failed to submit request: ${error.message || 'Unknown error'}`,
         variant: "destructive"
       });
     }
