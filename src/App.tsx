@@ -33,8 +33,8 @@ const App = () => (
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/module/:moduleId" element={<ModuleDetails />} />
-          <Route path="/request/new/:moduleId" element={<RequestForm type="new" />} />
-          <Route path="/request/adapt/:moduleId" element={<RequestForm type="adapt" />} />
+          <Route path="/request-form/new" element={<RequestForm type="new" />} />
+          <Route path="/request-form/adapt/:moduleId" element={<RequestForm type="adapt" />} />
           <Route path="/view-modules" element={<ViewModules />} />
           <Route path="/upload-module" element={<UploadModule />} />
           <Route path="/create-user" element={<CreateUser />} />

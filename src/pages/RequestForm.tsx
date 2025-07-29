@@ -109,17 +109,17 @@ const RequestForm = ({ type }: RequestFormProps) => {
           </Button>
         </div>
 
-        {/* Recommended Lynqs Section - Prominent like Amazon */}
-        {recommendations.length > 0 && (
-          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-xl font-bold text-primary flex items-center gap-2">
-                🌟 Recommended for You
-              </CardTitle>
-              <p className="text-sm text-muted-foreground">Based on your learning journey</p>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recommendations.map((recommendation) => (
+        {/* Recommended Lynqs Section - Always show with content */}
+        <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+          <CardHeader className="pb-3">
+            <CardTitle className="text-xl font-bold text-primary flex items-center gap-2">
+              🌟 Recommended for You
+            </CardTitle>
+            <p className="text-sm text-muted-foreground">Based on your learning journey</p>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            {recommendations.length > 0 ? (
+              recommendations.map((recommendation) => (
                 <div key={recommendation.id} className="p-4 bg-card rounded-lg border border-primary/10 hover:border-primary/30 transition-colors shadow-sm">
                   <p className="font-medium text-sm mb-2 text-foreground">{recommendation.content}</p>
                   <div className="flex justify-between items-center">
@@ -131,10 +131,30 @@ const RequestForm = ({ type }: RequestFormProps) => {
                     </Button>
                   </div>
                 </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
+              ))
+            ) : (
+              <div className="p-4 bg-card rounded-lg border border-primary/10">
+                <div className="space-y-3">
+                  <div className="p-3 bg-primary/5 rounded-md">
+                    <p className="font-medium text-sm mb-1 text-foreground">Enhance Your Insurance Knowledge</p>
+                    <p className="text-xs text-muted-foreground mb-2">Master advanced sales techniques and product insights</p>
+                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
+                  </div>
+                  <div className="p-3 bg-secondary/5 rounded-md">
+                    <p className="font-medium text-sm mb-1 text-foreground">Customer Relationship Mastery</p>
+                    <p className="text-xs text-muted-foreground mb-2">Build stronger connections with your clients</p>
+                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
+                  </div>
+                  <div className="p-3 bg-accent/5 rounded-md">
+                    <p className="font-medium text-sm mb-1 text-foreground">Digital Marketing for Insurance</p>
+                    <p className="text-xs text-muted-foreground mb-2">Leverage digital tools to reach more prospects</p>
+                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
 
         <Card>
           <CardHeader>
