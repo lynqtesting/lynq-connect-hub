@@ -12,6 +12,7 @@ const AdminDashboard = () => {
     { icon: Upload, label: 'Upload New Module', action: () => navigate('/upload-module') },
     { icon: Eye, label: 'View All Modules', action: () => navigate('/view-modules') },
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
+    { icon: Eye, label: 'View All Users', action: () => navigate('/view-users') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
     { icon: FileText, label: 'See Requests', action: () => navigate('/view-requests') },
     { icon: Settings, label: 'Write Recommendations', action: () => navigate('/write-recommendations') },

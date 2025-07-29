@@ -13,6 +13,7 @@ import NotFound from "./pages/NotFound";
 import UploadModule from "./pages/UploadModule";
 import ViewModules from "./pages/ViewModules";
 import CreateUser from "./pages/CreateUser";
+import ViewUsers from "./pages/ViewUsers";
 import AssignModules from "./pages/AssignModules";
 import ViewRequests from "./pages/ViewRequests";
 import WriteRecommendations from "./pages/WriteRecommendations";
@@ -36,6 +37,7 @@ const App = () => (
           <Route path="/view-modules" element={<ViewModules />} />
           <Route path="/upload-module" element={<UploadModule />} />
           <Route path="/create-user" element={<CreateUser />} />
+          <Route path="/view-users" element={<ViewUsers />} />
           <Route path="/assign-modules" element={<AssignModules />} />
           <Route path="/view-requests" element={<ViewRequests />} />
           <Route path="/write-recommendations" element={<WriteRecommendations />} />
