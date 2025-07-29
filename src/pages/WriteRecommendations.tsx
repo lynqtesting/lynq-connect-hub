@@ -58,20 +58,49 @@ const WriteRecommendations = () => {
 
     setSubmitting(true);
     try {
-      const { error } = await supabase
-        .from('recommendations')
-        .insert({
-          user_id: '00000000-0000-0000-0000-000000000000', // Placeholder admin ID
-          module_id: formData.moduleId,
-          content: formData.content
+      // First, get all users who have this module assigned
+      const { data: assignments, error: assignmentError } = await supabase
+        .from('user_module_assignments')
+        .select('user_id')
+        .eq('module_id', formData.moduleId);
+
+      if (assignmentError) throw assignmentError;
+
+      // Create recommendations for each user who has this module
+      const recommendationsToInsert = assignments.map(assignment => ({
+        user_id: assignment.user_id,
+        module_id: formData.moduleId,
+        content: formData.content
+      }));
+
+      if (recommendationsToInsert.length > 0) {
+        const { error } = await supabase
+          .from('recommendations')
+          .insert(recommendationsToInsert);
+
+        if (error) throw error;
+
+        toast({
+          title: "Success",
+          description: `Recommendation saved for ${recommendationsToInsert.length} user(s)`
         });
+      } else {
+        toast({
+          title: "Info",
+          description: "No users assigned to this module yet. Recommendation saved for future assignments."
+        });
+        
+        // Still save one record for future user assignments
+        const { error } = await supabase
+          .from('recommendations')
+          .insert({
+            user_id: '00000000-0000-0000-0000-000000000000', // Template for future users
+            module_id: formData.moduleId,
+            content: formData.content
+          });
 
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: "Recommendation saved successfully"
-      });
+        if (error) throw error;
+      }
 
       setFormData({ moduleId: '', content: '' });
     } catch (error) {
