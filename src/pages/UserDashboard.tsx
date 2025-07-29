@@ -48,12 +48,15 @@ const UserDashboard = () => {
 
   const fetchUserModules = async (userId: string) => {
     try {
+      console.log('UserDashboard: Fetching modules for auth user ID:', userId);
+      
       // Fetch assigned modules for this user
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
         .select(`
           id,
           module_id,
+          user_id,
           modules (
             id,
             title,
@@ -66,6 +69,7 @@ const UserDashboard = () => {
 
       if (error) throw error;
 
+      console.log('UserDashboard: Found assignments:', assignments);
       setUserModules(assignments || []);
     } catch (error) {
       console.error('Error fetching modules:', error);

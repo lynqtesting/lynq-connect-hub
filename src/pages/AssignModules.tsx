@@ -46,7 +46,7 @@ const AssignModules = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('*')
+        .select('user_id, username, id')
         .order('username');
 
       if (error) throw error;
@@ -106,6 +106,9 @@ const AssignModules = () => {
           });
         }
       }
+
+      console.log('AssignModules: Creating assignments with user IDs:', selectedUsers);
+      console.log('AssignModules: Assignment data:', assignments);
 
       const { error } = await supabase
         .from('user_module_assignments')
@@ -207,17 +210,17 @@ const AssignModules = () => {
                   <div>
                     <h3 className="font-medium mb-3">Select Users:</h3>
                     <div className="space-y-3">
-                      {users.map((user) => (
-                        <div key={user.id} className="flex items-center space-x-3">
-                          <Checkbox
-                            checked={selectedUsers.includes(user.id)}
-                            onCheckedChange={() => handleUserToggle(user.id)}
-                          />
-                          <div className="flex-1">
-                            <p className="font-medium">{user.username}</p>
-                          </div>
-                        </div>
-                      ))}
+                       {users.map((user) => (
+                         <div key={user.user_id} className="flex items-center space-x-3">
+                           <Checkbox
+                             checked={selectedUsers.includes(user.user_id)}
+                             onCheckedChange={() => handleUserToggle(user.user_id)}
+                           />
+                           <div className="flex-1">
+                             <p className="font-medium">{user.username}</p>
+                           </div>
+                         </div>
+                       ))}
                     </div>
                   </div>
                 </div>
