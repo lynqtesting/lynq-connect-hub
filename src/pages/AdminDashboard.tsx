@@ -3,13 +3,14 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
-import { Upload, Users, FileText, Calendar, Settings } from 'lucide-react';
+import { Upload, Users, FileText, Calendar, Settings, Eye } from 'lucide-react';
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
 
   const adminActions = [
     { icon: Upload, label: 'Upload New Module', action: () => navigate('/upload-module') },
+    { icon: Eye, label: 'View All Modules', action: () => navigate('/view-modules') },
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
     { icon: FileText, label: 'See Requests', action: () => navigate('/view-requests') },
