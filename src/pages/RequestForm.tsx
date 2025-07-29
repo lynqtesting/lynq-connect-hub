@@ -4,6 +4,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { toast } from "sonner";
@@ -22,7 +23,8 @@ const RequestForm = ({ type }: RequestFormProps) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    reason: ''
+    reason: '',
+    duration: '1'
   });
 
   useEffect(() => {
@@ -53,7 +55,8 @@ const RequestForm = ({ type }: RequestFormProps) => {
     setFormData({
       title: `Request: ${recommendation.content.split('\n')[0] || 'New Lynq'}`,
       description: recommendation.content,
-      reason: 'Based on admin recommendation'
+      reason: 'Based on admin recommendation',
+      duration: '1'
     });
     // Scroll to form
     window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -157,6 +160,26 @@ const RequestForm = ({ type }: RequestFormProps) => {
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                   placeholder="Additional details..."
                 />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="duration">Lynq Duration (minutes)</Label>
+                <Select value={formData.duration} onValueChange={(value) => setFormData({ ...formData, duration: value })}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select duration" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 minute</SelectItem>
+                    <SelectItem value="2">2 minutes</SelectItem>
+                    <SelectItem value="3">3 minutes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="p-3 bg-muted/50 rounded-md">
+                <p className="text-xs text-muted-foreground">
+                  ⏱️ <strong>Timeline:</strong> Each Lynq creation takes 5 working days post approval
+                </p>
               </div>
 
               <Button type="submit" className="w-full">
