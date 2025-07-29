@@ -201,7 +201,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
           </CardContent>
         </Card>
 
-        {/* Recommendations Section - Amazon-style */}
+        {/* Recommendations Section - Amazon-style separate containers */}
         {recommendations.length > 0 && (
           <div className="mt-8">
             <div className="mb-6">
@@ -215,55 +215,80 @@ const RequestForm = ({ type }: RequestFormProps) => {
               </div>
             </div>
             
-            <div className="grid gap-4">
-              {recommendations.map((recommendation) => (
-                <Card key={recommendation.id} className="group hover:shadow-lg transition-all duration-200 border border-border hover:border-primary/30 bg-card">
-                  <CardContent className="p-5">
-                    <div className="flex flex-col sm:flex-row gap-4">
-                      {/* Content Section */}
-                      <div className="flex-1">
-                        <div className="flex items-start gap-3 mb-3">
-                          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center flex-shrink-0">
-                            <span className="text-lg">📚</span>
+            {/* Each recommendation as a completely separate container */}
+            <div className="space-y-6">
+              {recommendations.map((recommendation, index) => (
+                <div key={recommendation.id} className="w-full">
+                  {/* Individual recommendation container */}
+                  <Card className="group hover:shadow-xl transition-all duration-300 border-2 border-border hover:border-primary/40 bg-gradient-to-br from-card to-card/80">
+                    <CardContent className="p-0">
+                      {/* Header section */}
+                      <div className="bg-gradient-to-r from-primary/10 to-secondary/10 px-6 py-4 border-b border-border">
+                        <div className="flex items-center gap-3">
+                          <div className="w-14 h-14 bg-gradient-to-br from-primary/30 to-secondary/30 rounded-xl flex items-center justify-center">
+                            <span className="text-2xl">🎯</span>
                           </div>
-                          <div className="flex-1">
-                            <h3 className="font-semibold text-foreground text-base leading-tight mb-1">
-                              {recommendation.content.split('\n')[0] || 'Recommended Lynq'}
+                          <div>
+                            <h3 className="text-lg font-bold text-foreground">
+                              Recommended Lynq #{index + 1}
                             </h3>
-                            <p className="text-sm text-muted-foreground line-clamp-2">
-                              {recommendation.content.length > 100 
-                                ? recommendation.content.substring(0, 100) + '...'
-                                : recommendation.content
-                              }
+                            <p className="text-sm text-muted-foreground">
+                              Personalized for your learning journey
                             </p>
                           </div>
                         </div>
-                        
-                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                          <span className="flex items-center gap-1">
-                            📅 Suggested on {new Date(recommendation.created_at).toLocaleDateString()}
-                          </span>
-                          <span className="flex items-center gap-1">
-                            ⏱️ ~{Math.floor(Math.random() * 3) + 1} min duration
-                          </span>
-                        </div>
                       </div>
                       
-                      {/* Action Section */}
-                      <div className="flex flex-col justify-center gap-2 sm:w-auto w-full">
-                        <Button 
-                          onClick={() => handleRecommendationSelect(recommendation)}
-                          className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-2 w-full sm:w-auto"
-                        >
-                          Create this Lynq
-                        </Button>
-                        <p className="text-xs text-muted-foreground text-center sm:text-right">
-                          Click to auto-fill form
+                      {/* Content section */}
+                      <div className="p-6">
+                        <div className="bg-gradient-to-br from-muted/30 to-muted/10 rounded-lg p-4 mb-4">
+                          <h4 className="font-semibold text-foreground text-base mb-2">
+                            📝 Recommendation Details:
+                          </h4>
+                          <p className="text-sm text-foreground leading-relaxed">
+                            {recommendation.content}
+                          </p>
+                        </div>
+                        
+                        {/* Meta information */}
+                        <div className="flex items-center justify-between mb-4">
+                          <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                            <span className="flex items-center gap-1 bg-secondary/20 px-2 py-1 rounded-full">
+                              📅 {new Date(recommendation.created_at).toLocaleDateString()}
+                            </span>
+                            <span className="flex items-center gap-1 bg-secondary/20 px-2 py-1 rounded-full">
+                              ⏱️ Est. {Math.floor(Math.random() * 3) + 1} min
+                            </span>
+                            <span className="flex items-center gap-1 bg-green-100 dark:bg-green-900/20 text-green-700 dark:text-green-300 px-2 py-1 rounded-full">
+                              ✨ Trending
+                            </span>
+                          </div>
+                        </div>
+                        
+                        {/* Action section */}
+                        <div className="flex items-center gap-3">
+                          <Button 
+                            onClick={() => handleRecommendationSelect(recommendation)}
+                            className="flex-1 bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary text-primary-foreground font-semibold py-3 shadow-lg hover:shadow-xl transition-all duration-200"
+                          >
+                            🚀 Create this Lynq
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            size="sm"
+                            className="px-4 py-3 border-2 hover:bg-secondary/10"
+                          >
+                            📋 Preview
+                          </Button>
+                        </div>
+                        
+                        <p className="text-xs text-muted-foreground text-center mt-3 italic">
+                          "Click 'Create this Lynq' to auto-fill the form above with these details"
                         </p>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+                </div>
               ))}
             </div>
           </div>
