@@ -50,6 +50,33 @@ export type Database = {
         }
         Relationships: []
       }
+      profiles: {
+        Row: {
+          created_at: string
+          id: string
+          is_admin: boolean | null
+          updated_at: string
+          user_id: string
+          username: string | null
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean | null
+          updated_at?: string
+          user_id: string
+          username?: string | null
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_admin?: boolean | null
+          updated_at?: string
+          user_id?: string
+          username?: string | null
+        }
+        Relationships: []
+      }
       recommendations: {
         Row: {
           content: string
@@ -164,22 +191,22 @@ export type Database = {
       users: {
         Row: {
           created_at: string
+          email: string | null
           id: string
-          password: string
           updated_at: string
           username: string
         }
         Insert: {
           created_at?: string
+          email?: string | null
           id?: string
-          password: string
           updated_at?: string
           username: string
         }
         Update: {
           created_at?: string
+          email?: string | null
           id?: string
-          password?: string
           updated_at?: string
           username?: string
         }
