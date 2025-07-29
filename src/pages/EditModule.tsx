@@ -9,6 +9,7 @@ import { ArrowLeft, Upload, Image as ImageIcon } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
+// Edit Module Component for Lynqs
 const EditModule = () => {
   const navigate = useNavigate();
   const { moduleId } = useParams();
