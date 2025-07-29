@@ -134,7 +134,7 @@ const ModuleDetails = () => {
           {/* Screenshot Section */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-medium mb-3">Performance Screenshot</h3>
+              <h3 className="font-medium mb-3">Live Data Insights</h3>
               {moduleData?.screenshot_url ? (
                 (() => {
                   console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
@@ -143,7 +143,7 @@ const ModuleDetails = () => {
                     <div className="aspect-video rounded-md overflow-hidden">
                       <img 
                         src={moduleData.screenshot_url} 
-                        alt="Performance Screenshot"
+                        alt="Live Data Insights"
                         className="w-full h-full object-cover"
                         onLoad={() => console.log('Screenshot loaded successfully')}
                         onError={(e) => console.error('Screenshot failed to load:', e)}
@@ -153,7 +153,7 @@ const ModuleDetails = () => {
                 })()
               ) : (
                 <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">No screenshot available</p>
+                  <p className="text-muted-foreground">No insights available</p>
                 </div>
               )}
             </CardContent>
@@ -172,7 +172,7 @@ const ModuleDetails = () => {
               onClick={() => navigate(`/request/new/${moduleId}`)}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
-              Request New Module
+              Request New Lynq
             </Button>
 
             <Button 
@@ -181,7 +181,7 @@ const ModuleDetails = () => {
               onClick={() => navigate(`/request/adapt/${moduleId}`)}
             >
               <Edit className="mr-2 h-4 w-4" />
-              Adapt This Module
+              Adapt This Lynq
             </Button>
 
             <Button 

@@ -109,21 +109,48 @@ const RequestForm = ({ type }: RequestFormProps) => {
           </Button>
         </div>
 
+        {/* Recommended Lynqs Section - Prominent like Amazon */}
+        {recommendations.length > 0 && (
+          <Card className="mb-6 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-xl font-bold text-primary flex items-center gap-2">
+                🌟 Recommended for You
+              </CardTitle>
+              <p className="text-sm text-muted-foreground">Based on your learning journey</p>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              {recommendations.map((recommendation) => (
+                <div key={recommendation.id} className="p-4 bg-card rounded-lg border border-primary/10 hover:border-primary/30 transition-colors shadow-sm">
+                  <p className="font-medium text-sm mb-2 text-foreground">{recommendation.content}</p>
+                  <div className="flex justify-between items-center">
+                    <p className="text-xs text-muted-foreground">
+                      Suggested on {new Date(recommendation.created_at).toLocaleDateString()}
+                    </p>
+                    <Button variant="outline" size="sm" className="text-xs">
+                      Learn More
+                    </Button>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
+
         <Card>
           <CardHeader>
             <CardTitle>
-              {type === 'new' ? 'Request New Module' : 'Adapt This Module'}
+              {type === 'new' ? 'Request New Lynq' : 'Adapt This Lynq'}
             </CardTitle>
           </CardHeader>
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="title">Module Title</Label>
+                <Label htmlFor="title">Lynq Title</Label>
                 <Input
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
-                  placeholder={type === 'adapt' ? `Adaptation for Module ${moduleId}` : 'Enter module title'}
+                  placeholder={type === 'adapt' ? `Adaptation for Lynq ${moduleId}` : 'Enter lynq title'}
                   required
                 />
               </div>
@@ -155,25 +182,6 @@ const RequestForm = ({ type }: RequestFormProps) => {
             </form>
           </CardContent>
         </Card>
-
-        {/* Recommendations Section */}
-        {recommendations.length > 0 && (
-          <Card className="mt-6">
-            <CardHeader>
-              <CardTitle className="text-lg">Personalized Recommendations</CardTitle>
-            </CardHeader>
-            <CardContent className="space-y-3">
-              {recommendations.map((recommendation) => (
-                <div key={recommendation.id} className="p-3 bg-muted rounded-lg">
-                  <p className="text-sm leading-relaxed">{recommendation.content}</p>
-                  <p className="text-xs text-muted-foreground mt-2">
-                    {new Date(recommendation.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </CardContent>
-          </Card>
-        )}
       </div>
     </div>
   );
