@@ -49,6 +49,16 @@ const RequestForm = ({ type }: RequestFormProps) => {
     }
   };
 
+  const handleRecommendationSelect = (recommendation: any) => {
+    setFormData({
+      title: `Request: ${recommendation.content.split('\n')[0] || 'New Lynq'}`,
+      description: recommendation.content,
+      reason: 'Based on admin recommendation'
+    });
+    // Scroll to form
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
@@ -173,31 +183,22 @@ const RequestForm = ({ type }: RequestFormProps) => {
                     <p className="text-xs text-muted-foreground">
                       Suggested on {new Date(recommendation.created_at).toLocaleDateString()}
                     </p>
-                    <Button variant="outline" size="sm" className="text-xs">
-                      Learn More
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-xs"
+                      onClick={() => handleRecommendationSelect(recommendation)}
+                    >
+                      Create the Lynq
                     </Button>
                   </div>
                 </div>
               ))
             ) : (
               <div className="p-4 bg-card rounded-lg border border-primary/10">
-                <div className="space-y-3">
-                  <div className="p-3 bg-primary/5 rounded-md">
-                    <p className="font-medium text-sm mb-1 text-foreground">Profit Claims Process</p>
-                    <p className="text-xs text-muted-foreground mb-2">Learn how to streamline claims processing for better profit margins</p>
-                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
-                  </div>
-                  <div className="p-3 bg-secondary/5 rounded-md">
-                    <p className="font-medium text-sm mb-1 text-foreground">Advanced Sales Analytics</p>
-                    <p className="text-xs text-muted-foreground mb-2">Master data-driven insights for Pro-fit Lynq performance</p>
-                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
-                  </div>
-                  <div className="p-3 bg-accent/5 rounded-md">
-                    <p className="font-medium text-sm mb-1 text-foreground">Customer Retention Strategies</p>
-                    <p className="text-xs text-muted-foreground mb-2">Enhance client relationships for sustained profitability</p>
-                    <Button variant="outline" size="sm" className="text-xs">Learn More</Button>
-                  </div>
-                </div>
+                <p className="text-sm text-muted-foreground text-center py-4">
+                  No recommendations available yet. Check back later for personalized suggestions!
+                </p>
               </div>
             )}
           </CardContent>
