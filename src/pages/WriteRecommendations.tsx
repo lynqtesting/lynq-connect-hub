@@ -7,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Settings } from 'lucide-react';
+import { ArrowLeft, Settings, Trash2 } from 'lucide-react';
 
 const WriteRecommendations = () => {
   const navigate = useNavigate();
@@ -150,6 +150,33 @@ const WriteRecommendations = () => {
     }
   };
 
+  const handleDelete = async (moduleId: string, content: string) => {
+    try {
+      // Delete all recommendations with the same module_id and content
+      const { error } = await supabase
+        .from('recommendations')
+        .delete()
+        .eq('module_id', moduleId)
+        .eq('content', content);
+
+      if (error) throw error;
+
+      toast({
+        title: "Success",
+        description: "Recommendation deleted successfully."
+      });
+
+      // Refresh the recommendations list
+      fetchRecommendations();
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to delete recommendation",
+        variant: "destructive"
+      });
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background p-4">
@@ -250,6 +277,14 @@ const WriteRecommendations = () => {
                         {recommendation.content}
                       </p>
                     </div>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() => handleDelete(recommendation.module_id, recommendation.content)}
+                      className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                    >
+                      <Trash2 className="h-4 w-4" />
+                    </Button>
                   </div>
                 </div>
               ))}
