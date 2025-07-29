@@ -27,8 +27,11 @@ const ModuleDetails = () => {
         .single();
 
       if (error) throw error;
+      
+      console.log('Module data fetched:', data); // Debug log
       setModuleData(data);
     } catch (error) {
+      console.error('Error fetching module:', error); // Debug log
       toast({
         title: "Error",
         description: "Failed to load module data",
@@ -42,9 +45,14 @@ const ModuleDetails = () => {
   const getYouTubeEmbedUrl = (url: string) => {
     if (!url) return '';
     
+    console.log('Processing YouTube URL:', url); // Debug log
+    
     // Handle different YouTube URL formats
     const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)?.[1];
-    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+    
+    console.log('Generated embed URL:', embedUrl); // Debug log
+    return embedUrl;
   };
 
   if (loading) {
@@ -90,16 +98,27 @@ const ModuleDetails = () => {
           <Card>
             <CardContent className="p-4">
               <h3 className="font-medium mb-3">Training Video</h3>
-              {moduleData.file_url && getYouTubeEmbedUrl(moduleData.file_url) ? (
-                <div className="aspect-video rounded-md overflow-hidden">
-                  <iframe
-                    src={getYouTubeEmbedUrl(moduleData.file_url)}
-                    title="Training Video"
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
-                </div>
+              {moduleData?.file_url ? (
+                (() => {
+                  const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
+                  console.log('Rendering video with URL:', embedUrl); // Debug log
+                  
+                  return embedUrl ? (
+                    <div className="aspect-video rounded-md overflow-hidden">
+                      <iframe
+                        src={embedUrl}
+                        title="Training Video"
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  ) : (
+                    <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                      <p className="text-muted-foreground">Invalid video URL format</p>
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
                   <p className="text-muted-foreground">No video available</p>
@@ -116,14 +135,22 @@ const ModuleDetails = () => {
           <Card>
             <CardContent className="p-4">
               <h3 className="font-medium mb-3">Performance Screenshot</h3>
-              {moduleData.screenshot_url ? (
-                <div className="aspect-video rounded-md overflow-hidden">
-                  <img 
-                    src={moduleData.screenshot_url} 
-                    alt="Performance Screenshot"
-                    className="w-full h-full object-cover"
-                  />
-                </div>
+              {moduleData?.screenshot_url ? (
+                (() => {
+                  console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
+                  
+                  return (
+                    <div className="aspect-video rounded-md overflow-hidden">
+                      <img 
+                        src={moduleData.screenshot_url} 
+                        alt="Performance Screenshot"
+                        className="w-full h-full object-cover"
+                        onLoad={() => console.log('Screenshot loaded successfully')}
+                        onError={(e) => console.error('Screenshot failed to load:', e)}
+                      />
+                    </div>
+                  );
+                })()
               ) : (
                 <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
                   <p className="text-muted-foreground">No screenshot available</p>
