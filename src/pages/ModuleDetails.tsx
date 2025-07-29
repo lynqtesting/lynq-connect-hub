@@ -163,13 +163,35 @@ const ModuleDetails = () => {
           <div className="space-y-3">
             <Button 
               className="w-full justify-start"
-              onClick={() => {
+              onClick={async () => {
                 if (moduleData?.pdf_report_url) {
-                  // If PDF report exists, download it
-                  const link = document.createElement('a');
-                  link.href = moduleData.pdf_report_url;
-                  link.download = `${moduleData.title}-report.pdf`;
-                  link.click();
+                  try {
+                    // Fetch the PDF as a blob to avoid Chrome blocking
+                    const response = await fetch(moduleData.pdf_report_url);
+                    if (!response.ok) throw new Error('Failed to fetch PDF');
+                    
+                    const blob = await response.blob();
+                    const url = window.URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = `${moduleData.title}-report.pdf`;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    window.URL.revokeObjectURL(url);
+                    
+                    toast({
+                      title: "Success",
+                      description: "PDF report downloaded successfully"
+                    });
+                  } catch (error) {
+                    console.error('Error downloading PDF:', error);
+                    toast({
+                      title: "Download Failed",
+                      description: "Could not download PDF report. Please try again.",
+                      variant: "destructive"
+                    });
+                  }
                 } else {
                   toast({
                     title: "No Report Available",
