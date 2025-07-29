@@ -10,6 +10,10 @@ import AdminDashboard from "./pages/AdminDashboard";
 import ModuleDetails from "./pages/ModuleDetails";
 import RequestForm from "./pages/RequestForm";
 import NotFound from "./pages/NotFound";
+import UploadModule from "./pages/UploadModule";
+import AssignModules from "./pages/AssignModules";
+import ViewRequests from "./pages/ViewRequests";
+import WriteRecommendations from "./pages/WriteRecommendations";
 
 const queryClient = new QueryClient();
 
@@ -27,6 +31,10 @@ const App = () => (
           <Route path="/module/:moduleId" element={<ModuleDetails />} />
           <Route path="/request/new/:moduleId" element={<RequestForm type="new" />} />
           <Route path="/request/adapt/:moduleId" element={<RequestForm type="adapt" />} />
+          <Route path="/upload-module" element={<UploadModule />} />
+          <Route path="/assign-modules" element={<AssignModules />} />
+          <Route path="/view-requests" element={<ViewRequests />} />
+          <Route path="/write-recommendations" element={<WriteRecommendations />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
