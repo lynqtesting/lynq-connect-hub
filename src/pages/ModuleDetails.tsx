@@ -91,13 +91,13 @@ const ModuleDetails = () => {
           <Logo />
         </div>
 
-        <h2 className="text-xl font-semibold mb-6">Module: {moduleData.title}</h2>
+        <h2 className="text-xl font-semibold mb-6">Lynq: {moduleData.title}</h2>
 
         <div className="space-y-4">
           {/* Video Player Section */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-medium mb-3">Training Video</h3>
+              <h3 className="font-medium mb-3">LIVE DATA</h3>
               {moduleData?.file_url ? (
                 (() => {
                   const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
@@ -107,7 +107,7 @@ const ModuleDetails = () => {
                     <div className="aspect-video rounded-md overflow-hidden">
                       <iframe
                         src={embedUrl}
-                        title="Training Video"
+                        title="LIVE DATA"
                         className="w-full h-full"
                         allowFullScreen
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
@@ -161,7 +161,16 @@ const ModuleDetails = () => {
 
           {/* Actions Section */}
           <div className="space-y-3">
-            <Button className="w-full justify-start">
+            <Button 
+              className="w-full justify-start"
+              onClick={() => {
+                // Create a sample PDF download (replace with actual PDF generation)
+                const link = document.createElement('a');
+                link.href = '/api/generate-pdf-report/' + moduleId;
+                link.download = `${moduleData.title}-report.pdf`;
+                link.click();
+              }}
+            >
               <Download className="mr-2 h-4 w-4" />
               Download PDF Report
             </Button>
@@ -169,7 +178,7 @@ const ModuleDetails = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => navigate(`/request/new/${moduleId}`)}
+              onClick={() => navigate(`/request-form/new`)}
             >
               <MessageSquare className="mr-2 h-4 w-4" />
               Request New Lynq
@@ -178,7 +187,7 @@ const ModuleDetails = () => {
             <Button 
               variant="outline" 
               className="w-full justify-start"
-              onClick={() => navigate(`/request/adapt/${moduleId}`)}
+              onClick={() => navigate(`/request-form/adapt/${moduleId}`)}
             >
               <Edit className="mr-2 h-4 w-4" />
               Adapt This Lynq

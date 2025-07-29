@@ -19,7 +19,8 @@ const UploadModule = () => {
     contentType: 'youtube' as 'youtube' | 'file',
     youtubeUrl: '',
     file: null as File | null,
-    screenshot: null as File | null
+    screenshot: null as File | null,
+    pdfReport: null as File | null
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -33,6 +34,13 @@ const UploadModule = () => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, screenshot: file }));
+    }
+  };
+
+  const handlePdfReportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, pdfReport: file }));
     }
   };
 
@@ -95,6 +103,25 @@ const UploadModule = () => {
         screenshotUrl = screenshotPublicUrl;
       }
 
+      // Upload PDF report if provided
+      let pdfReportUrl = null;
+      if (formData.pdfReport) {
+        const pdfExt = formData.pdfReport.name.split('.').pop();
+        const pdfFileName = `report_${Date.now()}.${pdfExt}`;
+        
+        const { error: pdfUploadError } = await supabase.storage
+          .from('reports')
+          .upload(pdfFileName, formData.pdfReport);
+
+        if (pdfUploadError) throw pdfUploadError;
+
+        const { data: { publicUrl: pdfPublicUrl } } = supabase.storage
+          .from('reports')
+          .getPublicUrl(pdfFileName);
+        
+        pdfReportUrl = pdfPublicUrl;
+      }
+
       // Create module record
       const { error: dbError } = await supabase
         .from('modules')
@@ -110,14 +137,14 @@ const UploadModule = () => {
 
       toast({
         title: "Success",
-        description: "Module uploaded successfully"
+        description: "Lynq uploaded successfully"
       });
 
       navigate('/admin-dashboard');
     } catch (error) {
       toast({
         title: "Error",
-        description: "Failed to upload module",
+        description: "Failed to upload lynq",
         variant: "destructive"
       });
     } finally {
@@ -141,7 +168,7 @@ const UploadModule = () => {
           <CardHeader>
             <CardTitle className="flex items-center">
               <Upload className="mr-2 h-5 w-5" />
-              Upload New Module
+              Upload New Lynq
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -152,7 +179,7 @@ const UploadModule = () => {
                   id="title"
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-                  placeholder="Module title"
+                  placeholder="Lynq title"
                 />
               </div>
 
@@ -162,7 +189,7 @@ const UploadModule = () => {
                   id="description"
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                  placeholder="Module description"
+                  placeholder="Lynq description"
                 />
               </div>
 
@@ -214,7 +241,7 @@ const UploadModule = () => {
               )}
 
               <div>
-                <Label htmlFor="screenshot">Performance Screenshot</Label>
+                <Label htmlFor="screenshot">Live Data Insights</Label>
                 <Input
                   id="screenshot"
                   type="file"
@@ -223,8 +250,18 @@ const UploadModule = () => {
                 />
               </div>
 
+              <div>
+                <Label htmlFor="pdfReport">PDF Report (Connect to User)</Label>
+                <Input
+                  id="pdfReport"
+                  type="file"
+                  onChange={handlePdfReportChange}
+                  accept=".pdf"
+                />
+              </div>
+
               <Button type="submit" className="w-full" disabled={loading}>
-                {loading ? 'Uploading...' : 'Upload Module'}
+                {loading ? 'Uploading...' : 'Upload Lynq'}
               </Button>
             </form>
           </CardContent>

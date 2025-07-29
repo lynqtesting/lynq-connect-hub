@@ -127,7 +127,7 @@ const ViewRequests = () => {
                         
                         {request.modules && (
                           <p className="text-sm text-muted-foreground">
-                            Module: {request.modules.title}
+                            Lynq: {request.modules.title}
                           </p>
                         )}
                         
