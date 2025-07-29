@@ -45,7 +45,7 @@ const AssignModules = () => {
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
+        .from('profiles')
         .select('*')
         .order('username');
 
