@@ -130,6 +130,7 @@ const UploadModule = () => {
           description: formData.description,
           file_url: publicUrl,
           screenshot_url: screenshotUrl,
+          pdf_report_url: pdfReportUrl,
           file_type: fileType
         });
 

@@ -164,11 +164,19 @@ const ModuleDetails = () => {
             <Button 
               className="w-full justify-start"
               onClick={() => {
-                // Create a sample PDF download (replace with actual PDF generation)
-                const link = document.createElement('a');
-                link.href = '/api/generate-pdf-report/' + moduleId;
-                link.download = `${moduleData.title}-report.pdf`;
-                link.click();
+                if (moduleData?.pdf_report_url) {
+                  // If PDF report exists, download it
+                  const link = document.createElement('a');
+                  link.href = moduleData.pdf_report_url;
+                  link.download = `${moduleData.title}-report.pdf`;
+                  link.click();
+                } else {
+                  toast({
+                    title: "No Report Available",
+                    description: "PDF report has not been uploaded for this lynq",
+                    variant: "destructive"
+                  });
+                }
               }}
             >
               <Download className="mr-2 h-4 w-4" />
