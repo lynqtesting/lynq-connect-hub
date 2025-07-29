@@ -130,7 +130,6 @@ const Login = () => {
       <Card className="w-full max-w-md">
         <CardHeader className="text-center pb-4">
           <Logo className="mx-auto mb-4" />
-          <CardTitle>Welcome to SkillOpp</CardTitle>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="login" className="w-full">
