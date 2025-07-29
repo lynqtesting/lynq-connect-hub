@@ -13,6 +13,7 @@ const WriteRecommendations = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [modules, setModules] = useState([]);
+  const [recommendations, setRecommendations] = useState([]);
   const [loading, setLoading] = useState(true);
   const [submitting, setSubmitting] = useState(false);
   const [formData, setFormData] = useState({
@@ -22,7 +23,40 @@ const WriteRecommendations = () => {
 
   useEffect(() => {
     fetchModules();
+    fetchRecommendations();
   }, []);
+
+  const fetchRecommendations = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('recommendations')
+        .select(`
+          *,
+          modules (
+            title
+          )
+        `)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      // Group recommendations by module and content to avoid duplicates in display
+      const uniqueRecommendations = [];
+      const seen = new Set();
+      
+      data?.forEach(rec => {
+        const key = `${rec.module_id}-${rec.content}`;
+        if (!seen.has(key)) {
+          seen.add(key);
+          uniqueRecommendations.push(rec);
+        }
+      });
+      
+      setRecommendations(uniqueRecommendations || []);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
 
   const fetchModules = async () => {
     try {
@@ -103,6 +137,8 @@ const WriteRecommendations = () => {
       }
 
       setFormData({ moduleId: '', content: '' });
+      // Refresh the recommendations list
+      fetchRecommendations();
     } catch (error) {
       toast({
         title: "Error",
@@ -181,6 +217,45 @@ const WriteRecommendations = () => {
             </form>
           </CardContent>
         </Card>
+
+        {/* Existing Recommendations Section */}
+        {recommendations.length > 0 && (
+          <Card className="mt-6">
+            <CardHeader>
+              <CardTitle className="text-lg">📋 Your Recommendations</CardTitle>
+              <p className="text-sm text-muted-foreground">
+                Previously written recommendations that appear to users
+              </p>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {recommendations.map((recommendation) => (
+                <div 
+                  key={recommendation.id} 
+                  className="p-4 border border-border rounded-lg bg-card hover:bg-accent/5 transition-colors"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm">📚</span>
+                    </div>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-2">
+                        <h4 className="font-medium text-foreground">
+                          {recommendation.modules?.title || 'Unknown Module'}
+                        </h4>
+                        <span className="text-xs bg-secondary text-secondary-foreground px-2 py-1 rounded">
+                          {new Date(recommendation.created_at).toLocaleDateString()}
+                        </span>
+                      </div>
+                      <p className="text-sm text-muted-foreground leading-relaxed">
+                        {recommendation.content}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </CardContent>
+          </Card>
+        )}
       </div>
     </div>
   );
