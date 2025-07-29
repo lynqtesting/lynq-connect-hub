@@ -1,22 +1,71 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Logo from "@/components/Logo";
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, MessageSquare, Edit, Calendar } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const ModuleDetails = () => {
   const navigate = useNavigate();
   const { moduleId } = useParams();
+  const { toast } = useToast();
+  const [moduleData, setModuleData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data - will be replaced with Supabase data
-  const moduleData = {
-    id: moduleId,
-    name: `Axis Bank Module ${moduleId}`,
-    videoUrl: '', // Will be populated from Supabase
-    screenshotUrl: '', // Will be populated from Supabase
-    pdfUrl: '', // Will be populated from Supabase
+  useEffect(() => {
+    fetchModuleData();
+  }, [moduleId]);
+
+  const fetchModuleData = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('modules')
+        .select('*')
+        .eq('id', moduleId)
+        .single();
+
+      if (error) throw error;
+      setModuleData(data);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load module data",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
   };
+
+  const getYouTubeEmbedUrl = (url: string) => {
+    if (!url) return '';
+    
+    // Handle different YouTube URL formats
+    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)?.[1];
+    return videoId ? `https://www.youtube.com/embed/${videoId}` : '';
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-4 max-w-md mx-auto">
+          <div className="text-center py-8">Loading module...</div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!moduleData) {
+    return (
+      <div className="min-h-screen bg-background">
+        <div className="p-4 max-w-md mx-auto">
+          <div className="text-center py-8">Module not found</div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background">
@@ -34,16 +83,28 @@ const ModuleDetails = () => {
           <Logo />
         </div>
 
-        <h2 className="text-xl font-semibold mb-6">Module: {moduleData.name}</h2>
+        <h2 className="text-xl font-semibold mb-6">Module: {moduleData.title}</h2>
 
         <div className="space-y-4">
           {/* Video Player Section */}
           <Card>
             <CardContent className="p-4">
               <h3 className="font-medium mb-3">Training Video</h3>
-              <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                <p className="text-muted-foreground">Video player will be here</p>
-              </div>
+              {moduleData.file_url && getYouTubeEmbedUrl(moduleData.file_url) ? (
+                <div className="aspect-video rounded-md overflow-hidden">
+                  <iframe
+                    src={getYouTubeEmbedUrl(moduleData.file_url)}
+                    title="Training Video"
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
+              ) : (
+                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                  <p className="text-muted-foreground">No video available</p>
+                </div>
+              )}
               <div className="flex gap-2 mt-3">
                 <Button variant="outline" size="sm">Hindi</Button>
                 <Button variant="outline" size="sm">English</Button>
@@ -55,9 +116,19 @@ const ModuleDetails = () => {
           <Card>
             <CardContent className="p-4">
               <h3 className="font-medium mb-3">Performance Screenshot</h3>
-              <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                <p className="text-muted-foreground">Screenshot will be displayed here</p>
-              </div>
+              {moduleData.screenshot_url ? (
+                <div className="aspect-video rounded-md overflow-hidden">
+                  <img 
+                    src={moduleData.screenshot_url} 
+                    alt="Performance Screenshot"
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+              ) : (
+                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                  <p className="text-muted-foreground">No screenshot available</p>
+                </div>
+              )}
             </CardContent>
           </Card>
 
