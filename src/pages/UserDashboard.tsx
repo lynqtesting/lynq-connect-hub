@@ -8,10 +8,12 @@ import { supabase } from "@/integrations/supabase/client";
 const UserDashboard = () => {
   const navigate = useNavigate();
   const [userModules, setUserModules] = useState<any[]>([]);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     fetchUserModules();
+    fetchRecommendations();
   }, []);
 
   const fetchUserModules = async () => {
@@ -51,6 +53,27 @@ const UserDashboard = () => {
     }
   };
 
+  const fetchRecommendations = async () => {
+    try {
+      const currentUser = localStorage.getItem('currentUser');
+      if (!currentUser) return;
+
+      const userData = JSON.parse(currentUser);
+      
+      const { data, error } = await supabase
+        .from('recommendations')
+        .select('*')
+        .eq('user_id', userData.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      setRecommendations(data || []);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       <div className="p-4 max-w-md mx-auto">
@@ -85,6 +108,28 @@ const UserDashboard = () => {
                 </CardContent>
               </Card>
             ))
+          )}
+
+          {/* Recommendations Section */}
+          {recommendations.length > 0 && (
+            <div className="mt-8">
+              <h3 className="text-xl font-semibold mb-4">Recommendations for New Modules:</h3>
+              {recommendations.map((recommendation) => (
+                <Card key={recommendation.id} className="mb-4">
+                  <CardHeader>
+                    <CardTitle className="text-sm font-medium text-primary">
+                      Module Recommendation
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <p className="text-sm leading-relaxed">{recommendation.content}</p>
+                    <p className="text-xs text-muted-foreground mt-2">
+                      {new Date(recommendation.created_at).toLocaleDateString()}
+                    </p>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
           
           <Button 
