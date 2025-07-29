@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { ArrowLeft, Eye, FileText, Video, Image } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, Video, Image, Edit } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 
 interface Module {
@@ -74,19 +74,19 @@ const ViewModules = () => {
         </Button>
 
         <div className="mb-6">
-          <h1 className="text-2xl font-bold">All Modules</h1>
-          <p className="text-muted-foreground">Total: {modules.length} modules</p>
+          <h1 className="text-2xl font-bold">All Lynqs</h1>
+          <p className="text-muted-foreground">Total: {modules.length} lynqs</p>
         </div>
 
         {modules.length === 0 ? (
           <Card>
             <CardContent className="p-6 text-center">
-              <p className="text-muted-foreground">No modules uploaded yet.</p>
+              <p className="text-muted-foreground">No lynqs uploaded yet.</p>
               <Button 
                 onClick={() => navigate('/upload-module')}
                 className="mt-4"
               >
-                Upload First Module
+                Upload First Lynq
               </Button>
             </CardContent>
           </Card>
@@ -137,6 +137,15 @@ const ViewModules = () => {
                           View Screenshot
                         </Button>
                       )}
+                      
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => navigate(`/edit-module/${module.id}`)}
+                      >
+                        <Edit className="mr-2 h-4 w-4" />
+                        Edit
+                      </Button>
                     </div>
 
                     <div className="text-xs text-muted-foreground">
