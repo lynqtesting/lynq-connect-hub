@@ -84,7 +84,8 @@ const RequestForm = ({ type }: RequestFormProps) => {
         request_type: type,
         title: formData.title,
         description: formData.description + (formData.reason ? `\n\nReason: ${formData.reason}` : ''),
-        status: 'pending'
+        status: 'pending',
+        duration: parseInt(formData.duration)
       };
 
       const { error } = await supabase
