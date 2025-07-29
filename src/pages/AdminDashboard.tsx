@@ -4,9 +4,29 @@ import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
 import { Upload, Users, FileText, Calendar, Settings, Eye } from 'lucide-react';
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({
+        title: "Success",
+        description: "Logged out successfully"
+      });
+      navigate('/login');
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to log out",
+        variant: "destructive"
+      });
+    }
+  };
 
   const adminActions = [
     { icon: Upload, label: 'Upload New Module', action: () => navigate('/upload-module') },
@@ -49,7 +69,7 @@ const AdminDashboard = () => {
           <Button 
             variant="outline" 
             className="w-full mt-6"
-            onClick={() => navigate('/login')}
+            onClick={handleLogout}
           >
             Logout
           </Button>
