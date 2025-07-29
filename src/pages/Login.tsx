@@ -5,19 +5,35 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import Logo from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
+import { supabase } from "@/integrations/supabase/client";
 
 const Login = () => {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = (e: React.FormEvent) => {
+  const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
-    // TODO: Implement Supabase authentication
-    // For now, simple demo logic
+    
+    // Simple authentication logic
     if (username === 'admin') {
+      localStorage.setItem('currentUser', JSON.stringify({ id: 'admin', username: 'admin', isAdmin: true }));
       navigate('/admin-dashboard');
     } else {
+      // Check if user exists in database
+      const { data: users, error } = await supabase
+        .from('users')
+        .select('*')
+        .eq('username', username)
+        .eq('password', password);
+
+      if (error || !users || users.length === 0) {
+        alert('Invalid username or password');
+        return;
+      }
+
+      const user = users[0];
+      localStorage.setItem('currentUser', JSON.stringify(user));
       navigate('/user-dashboard');
     }
   };

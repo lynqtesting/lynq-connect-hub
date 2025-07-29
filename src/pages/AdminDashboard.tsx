@@ -10,6 +10,7 @@ const AdminDashboard = () => {
 
   const adminActions = [
     { icon: Upload, label: 'Upload New Module', action: () => navigate('/upload-module') },
+    { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
     { icon: FileText, label: 'See Requests', action: () => navigate('/view-requests') },
     { icon: Settings, label: 'Write Recommendations', action: () => navigate('/write-recommendations') },

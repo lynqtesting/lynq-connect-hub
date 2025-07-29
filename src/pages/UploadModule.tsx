@@ -16,13 +16,21 @@ const UploadModule = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    file: null as File | null
+    file: null as File | null,
+    screenshot: null as File | null
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, file }));
+    }
+  };
+
+  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, screenshot: file }));
     }
   };
 
@@ -54,6 +62,25 @@ const UploadModule = () => {
         .from('modules')
         .getPublicUrl(fileName);
 
+      // Upload screenshot if provided
+      let screenshotUrl = null;
+      if (formData.screenshot) {
+        const screenshotExt = formData.screenshot.name.split('.').pop();
+        const screenshotFileName = `screenshot_${Date.now()}.${screenshotExt}`;
+        
+        const { error: screenshotUploadError } = await supabase.storage
+          .from('screenshots')
+          .upload(screenshotFileName, formData.screenshot);
+
+        if (screenshotUploadError) throw screenshotUploadError;
+
+        const { data: { publicUrl: screenshotPublicUrl } } = supabase.storage
+          .from('screenshots')
+          .getPublicUrl(screenshotFileName);
+        
+        screenshotUrl = screenshotPublicUrl;
+      }
+
       // Create module record
       const { error: dbError } = await supabase
         .from('modules')
@@ -61,6 +88,7 @@ const UploadModule = () => {
           title: formData.title,
           description: formData.description,
           file_url: publicUrl,
+          screenshot_url: screenshotUrl,
           file_type: formData.file.type.includes('video') ? 'video' : 
                     formData.file.type.includes('image') ? 'image' : 'document'
         });
@@ -132,6 +160,16 @@ const UploadModule = () => {
                   type="file"
                   onChange={handleFileChange}
                   accept="video/*,image/*,.pdf,.doc,.docx"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="screenshot">Performance Screenshot</Label>
+                <Input
+                  id="screenshot"
+                  type="file"
+                  onChange={handleScreenshotChange}
+                  accept="image/*"
                 />
               </div>
 
