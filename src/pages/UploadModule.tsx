@@ -16,6 +16,8 @@ const UploadModule = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
+    contentType: 'youtube' as 'youtube' | 'file',
+    youtubeUrl: '',
     file: null as File | null,
     screenshot: null as File | null
   });
@@ -36,7 +38,7 @@ const UploadModule = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || !formData.file) {
+    if (!formData.title || (formData.contentType === 'file' && !formData.file) || (formData.contentType === 'youtube' && !formData.youtubeUrl)) {
       toast({
         title: "Error",
         description: "Please fill in all required fields",
@@ -47,20 +49,32 @@ const UploadModule = () => {
 
     setLoading(true);
     try {
-      // Upload file to storage
-      const fileExt = formData.file.name.split('.').pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('modules')
-        .upload(fileName, formData.file);
+      let publicUrl = '';
+      let fileType = 'video';
 
-      if (uploadError) throw uploadError;
+      if (formData.contentType === 'youtube') {
+        publicUrl = formData.youtubeUrl;
+        fileType = 'video';
+      } else if (formData.file) {
+        // Upload file to storage
+        const fileExt = formData.file.name.split('.').pop();
+        const fileName = `${Date.now()}.${fileExt}`;
+        
+        const { error: uploadError } = await supabase.storage
+          .from('modules')
+          .upload(fileName, formData.file);
 
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from('modules')
-        .getPublicUrl(fileName);
+        if (uploadError) throw uploadError;
+
+        // Get public URL
+        const { data: { publicUrl: filePublicUrl } } = supabase.storage
+          .from('modules')
+          .getPublicUrl(fileName);
+        
+        publicUrl = filePublicUrl;
+        fileType = formData.file.type.includes('video') ? 'video' : 
+                  formData.file.type.includes('image') ? 'image' : 'document';
+      }
 
       // Upload screenshot if provided
       let screenshotUrl = null;
@@ -89,8 +103,7 @@ const UploadModule = () => {
           description: formData.description,
           file_url: publicUrl,
           screenshot_url: screenshotUrl,
-          file_type: formData.file.type.includes('video') ? 'video' : 
-                    formData.file.type.includes('image') ? 'image' : 'document'
+          file_type: fileType
         });
 
       if (dbError) throw dbError;
@@ -154,14 +167,51 @@ const UploadModule = () => {
               </div>
 
               <div>
-                <Label htmlFor="file">File *</Label>
-                <Input
-                  id="file"
-                  type="file"
-                  onChange={handleFileChange}
-                  accept="video/*,image/*,.pdf,.doc,.docx"
-                />
+                <Label>Content Type *</Label>
+                <div className="flex gap-4 mt-2">
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="contentType"
+                      checked={formData.contentType === 'youtube'}
+                      onChange={() => setFormData(prev => ({ ...prev, contentType: 'youtube' }))}
+                    />
+                    <span>YouTube Video</span>
+                  </label>
+                  <label className="flex items-center space-x-2">
+                    <input
+                      type="radio"
+                      name="contentType"
+                      checked={formData.contentType === 'file'}
+                      onChange={() => setFormData(prev => ({ ...prev, contentType: 'file' }))}
+                    />
+                    <span>File Upload</span>
+                  </label>
+                </div>
               </div>
+
+              {formData.contentType === 'youtube' ? (
+                <div>
+                  <Label htmlFor="youtubeUrl">YouTube URL *</Label>
+                  <Input
+                    id="youtubeUrl"
+                    type="url"
+                    value={formData.youtubeUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
+                </div>
+              ) : (
+                <div>
+                  <Label htmlFor="file">File *</Label>
+                  <Input
+                    id="file"
+                    type="file"
+                    onChange={handleFileChange}
+                    accept="video/*,image/*,.pdf,.doc,.docx"
+                  />
+                </div>
+              )}
 
               <div>
                 <Label htmlFor="screenshot">Performance Screenshot</Label>
