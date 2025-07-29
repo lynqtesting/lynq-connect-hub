@@ -11,12 +11,15 @@ const AssignModules = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [modules, setModules] = useState([]);
+  const [users, setUsers] = useState([]);
   const [selectedModules, setSelectedModules] = useState([]);
+  const [selectedUsers, setSelectedUsers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [assigning, setAssigning] = useState(false);
 
   useEffect(() => {
     fetchModules();
+    fetchUsers();
   }, []);
 
   const fetchModules = async () => {
@@ -39,6 +42,24 @@ const AssignModules = () => {
     }
   };
 
+  const fetchUsers = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('users')
+        .select('*')
+        .order('username');
+
+      if (error) throw error;
+      setUsers(data || []);
+    } catch (error) {
+      toast({
+        title: "Error",
+        description: "Failed to fetch users",
+        variant: "destructive"
+      });
+    }
+  };
+
   const handleModuleToggle = (moduleId: string) => {
     setSelectedModules(prev => 
       prev.includes(moduleId) 
@@ -47,7 +68,15 @@ const AssignModules = () => {
     );
   };
 
-  const handleAssignToAll = async () => {
+  const handleUserToggle = (userId: string) => {
+    setSelectedUsers(prev => 
+      prev.includes(userId) 
+        ? prev.filter(id => id !== userId)
+        : [...prev, userId]
+    );
+  };
+
+  const handleAssignModules = async () => {
     if (selectedModules.length === 0) {
       toast({
         title: "Error",
@@ -57,27 +86,50 @@ const AssignModules = () => {
       return;
     }
 
+    if (selectedUsers.length === 0) {
+      toast({
+        title: "Error",
+        description: "Please select at least one user",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setAssigning(true);
     try {
-      // For demo purposes, we'll create a placeholder user assignment
-      // In a real app, you'd have a user selection interface
-      const assignments = selectedModules.map(moduleId => ({
-        user_id: '00000000-0000-0000-0000-000000000000', // Placeholder
-        module_id: moduleId
-      }));
+      const assignments = [];
+      for (const userId of selectedUsers) {
+        for (const moduleId of selectedModules) {
+          assignments.push({
+            user_id: userId,
+            module_id: moduleId
+          });
+        }
+      }
 
       const { error } = await supabase
         .from('user_module_assignments')
         .insert(assignments);
 
-      if (error) throw error;
-
-      toast({
-        title: "Success",
-        description: `Assigned ${selectedModules.length} modules to users`
-      });
+      if (error) {
+        if (error.message.includes('duplicate key value')) {
+          toast({
+            title: "Warning",
+            description: "Some assignments already exist and were skipped",
+            variant: "default"
+          });
+        } else {
+          throw error;
+        }
+      } else {
+        toast({
+          title: "Success",
+          description: `Assigned ${selectedModules.length} modules to ${selectedUsers.length} users`
+        });
+      }
 
       setSelectedModules([]);
+      setSelectedUsers([]);
     } catch (error) {
       toast({
         title: "Error",
@@ -118,38 +170,64 @@ const AssignModules = () => {
               Assign Modules to Users
             </CardTitle>
           </CardHeader>
-          <CardContent className="space-y-4">
+          <CardContent className="space-y-6">
             {modules.length === 0 ? (
               <p className="text-muted-foreground text-center">
                 No modules available. Upload some modules first.
               </p>
+            ) : users.length === 0 ? (
+              <p className="text-muted-foreground text-center">
+                No users available. Create some users first.
+              </p>
             ) : (
               <>
-                <div className="space-y-3">
-                  {modules.map((module) => (
-                    <div key={module.id} className="flex items-center space-x-3">
-                      <Checkbox
-                        checked={selectedModules.includes(module.id)}
-                        onCheckedChange={() => handleModuleToggle(module.id)}
-                      />
-                      <div className="flex-1">
-                        <p className="font-medium">{module.title}</p>
-                        {module.description && (
-                          <p className="text-sm text-muted-foreground">
-                            {module.description}
-                          </p>
-                        )}
-                      </div>
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-medium mb-3">Select Modules:</h3>
+                    <div className="space-y-3">
+                      {modules.map((module) => (
+                        <div key={module.id} className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={selectedModules.includes(module.id)}
+                            onCheckedChange={() => handleModuleToggle(module.id)}
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium">{module.title}</p>
+                            {module.description && (
+                              <p className="text-sm text-muted-foreground">
+                                {module.description}
+                              </p>
+                            )}
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                  ))}
+                  </div>
+
+                  <div>
+                    <h3 className="font-medium mb-3">Select Users:</h3>
+                    <div className="space-y-3">
+                      {users.map((user) => (
+                        <div key={user.id} className="flex items-center space-x-3">
+                          <Checkbox
+                            checked={selectedUsers.includes(user.id)}
+                            onCheckedChange={() => handleUserToggle(user.id)}
+                          />
+                          <div className="flex-1">
+                            <p className="font-medium">{user.username}</p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
                 </div>
 
                 <Button 
-                  onClick={handleAssignToAll}
+                  onClick={handleAssignModules}
                   className="w-full"
-                  disabled={assigning || selectedModules.length === 0}
+                  disabled={assigning || selectedModules.length === 0 || selectedUsers.length === 0}
                 >
-                  {assigning ? 'Assigning...' : `Assign Selected (${selectedModules.length})`}
+                  {assigning ? 'Assigning...' : `Assign ${selectedModules.length} modules to ${selectedUsers.length} users`}
                 </Button>
               </>
             )}
