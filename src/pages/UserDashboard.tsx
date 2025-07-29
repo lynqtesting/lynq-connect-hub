@@ -4,29 +4,50 @@ import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/components/ui/use-toast";
+import type { User, Session } from '@supabase/supabase-js';
 
 const UserDashboard = () => {
   const navigate = useNavigate();
+  const { toast } = useToast();
   const [userModules, setUserModules] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
 
   useEffect(() => {
-    fetchUserModules();
-    fetchRecommendations();
-  }, []);
+    // Set up auth state listener
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (!session?.user) {
+          navigate('/login');
+        }
+      }
+    );
 
-  const fetchUserModules = async () => {
-    try {
-      // Get current user from localStorage (simple auth)
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) {
+    // Check for existing session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      
+      if (!session?.user) {
         navigate('/login');
         return;
       }
-
-      const userData = JSON.parse(currentUser);
       
+      fetchUserModules(session.user.id);
+      fetchRecommendations(session.user.id);
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  const fetchUserModules = async (userId: string) => {
+    try {
       // Fetch assigned modules for this user
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
@@ -41,7 +62,7 @@ const UserDashboard = () => {
             screenshot_url
           )
         `)
-        .eq('user_id', userData.id);
+        .eq('user_id', userId);
 
       if (error) throw error;
 
@@ -53,17 +74,12 @@ const UserDashboard = () => {
     }
   };
 
-  const fetchRecommendations = async () => {
+  const fetchRecommendations = async (userId: string) => {
     try {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) return;
-
-      const userData = JSON.parse(currentUser);
-      
       const { data, error } = await supabase
         .from('recommendations')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -71,6 +87,29 @@ const UserDashboard = () => {
       setRecommendations(data || []);
     } catch (error) {
       console.error('Error fetching recommendations:', error);
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Clear local state
+      setUser(null);
+      setSession(null);
+      setUserModules([]);
+      setRecommendations([]);
+      
+      // Navigate to login
+      navigate('/login');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast({
+        title: "Logout Failed",
+        description: "Could not log out. Please try again.",
+        variant: "destructive",
+      });
     }
   };
 
@@ -135,7 +174,7 @@ const UserDashboard = () => {
           <Button 
             variant="outline" 
             className="w-full mt-6"
-            onClick={() => navigate('/login')}
+            onClick={handleLogout}
           >
             Logout
           </Button>
