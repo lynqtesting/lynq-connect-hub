@@ -201,43 +201,73 @@ const RequestForm = ({ type }: RequestFormProps) => {
           </CardContent>
         </Card>
 
-        {/* Recommended Lynqs Section - Placed below the form */}
-        <Card className="mt-6 border-primary/20 bg-gradient-to-r from-primary/5 to-secondary/5">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-xl font-bold text-primary flex items-center gap-2">
-              🌟 Recommended for You
-            </CardTitle>
-            <p className="text-sm text-muted-foreground">Based on your learning journey</p>
-          </CardHeader>
-          <CardContent className="space-y-3">
-            {recommendations.length > 0 ? (
-              recommendations.map((recommendation) => (
-                <div key={recommendation.id} className="p-4 bg-card rounded-lg border border-primary/10 hover:border-primary/30 transition-colors shadow-sm">
-                  <p className="font-medium text-sm mb-2 text-foreground">{recommendation.content}</p>
-                  <div className="flex justify-between items-center">
-                    <p className="text-xs text-muted-foreground">
-                      Suggested on {new Date(recommendation.created_at).toLocaleDateString()}
-                    </p>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="text-xs"
-                      onClick={() => handleRecommendationSelect(recommendation)}
-                    >
-                      Create the Lynq
-                    </Button>
-                  </div>
-                </div>
-              ))
-            ) : (
-              <div className="p-4 bg-card rounded-lg border border-primary/10">
-                <p className="text-sm text-muted-foreground text-center py-4">
-                  No recommendations available yet. Check back later for personalized suggestions!
+        {/* Recommendations Section - Amazon-style */}
+        {recommendations.length > 0 && (
+          <div className="mt-8">
+            <div className="mb-6">
+              <h2 className="text-lg font-semibold text-foreground mb-2">
+                Based on the feedback coming from your audience, we would recommend these lynqs
+              </h2>
+              <div className="p-3 bg-amber-50 dark:bg-amber-950/20 border border-amber-200 dark:border-amber-800 rounded-lg">
+                <p className="text-sm text-amber-800 dark:text-amber-200">
+                  ⚠️ Kindly note that creation of a lynq takes 5 working days post approval
                 </p>
               </div>
-            )}
-          </CardContent>
-        </Card>
+            </div>
+            
+            <div className="grid gap-4">
+              {recommendations.map((recommendation) => (
+                <Card key={recommendation.id} className="group hover:shadow-lg transition-all duration-200 border border-border hover:border-primary/30 bg-card">
+                  <CardContent className="p-5">
+                    <div className="flex flex-col sm:flex-row gap-4">
+                      {/* Content Section */}
+                      <div className="flex-1">
+                        <div className="flex items-start gap-3 mb-3">
+                          <div className="w-12 h-12 bg-gradient-to-br from-primary/20 to-secondary/20 rounded-lg flex items-center justify-center flex-shrink-0">
+                            <span className="text-lg">📚</span>
+                          </div>
+                          <div className="flex-1">
+                            <h3 className="font-semibold text-foreground text-base leading-tight mb-1">
+                              {recommendation.content.split('\n')[0] || 'Recommended Lynq'}
+                            </h3>
+                            <p className="text-sm text-muted-foreground line-clamp-2">
+                              {recommendation.content.length > 100 
+                                ? recommendation.content.substring(0, 100) + '...'
+                                : recommendation.content
+                              }
+                            </p>
+                          </div>
+                        </div>
+                        
+                        <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                          <span className="flex items-center gap-1">
+                            📅 Suggested on {new Date(recommendation.created_at).toLocaleDateString()}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            ⏱️ ~{Math.floor(Math.random() * 3) + 1} min duration
+                          </span>
+                        </div>
+                      </div>
+                      
+                      {/* Action Section */}
+                      <div className="flex flex-col justify-center gap-2 sm:w-auto w-full">
+                        <Button 
+                          onClick={() => handleRecommendationSelect(recommendation)}
+                          className="bg-primary hover:bg-primary/90 text-primary-foreground font-medium px-6 py-2 w-full sm:w-auto"
+                        >
+                          Create this Lynq
+                        </Button>
+                        <p className="text-xs text-muted-foreground text-center sm:text-right">
+                          Click to auto-fill form
+                        </p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
