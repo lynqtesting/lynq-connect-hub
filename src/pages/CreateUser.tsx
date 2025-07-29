@@ -13,16 +13,17 @@ const CreateUser = () => {
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
+    email: '',
     username: '',
     password: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.username || !formData.password) {
+    if (!formData.email || !formData.password) {
       toast({
         title: "Error",
-        description: "Please fill in all fields",
+        description: "Please fill in email and password",
         variant: "destructive"
       });
       return;
@@ -30,25 +31,33 @@ const CreateUser = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
-        .from('users')
-        .insert({
-          username: formData.username,
-          password: formData.password
-        });
+      // Create user using Supabase Auth
+      const { data, error } = await supabase.auth.signUp({
+        email: formData.email,
+        password: formData.password,
+        options: {
+          data: {
+            username: formData.username || formData.email.split('@')[0]
+          }
+        }
+      });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: "User created successfully"
+        description: "User created successfully. They will receive a confirmation email."
       });
 
+      // Reset form
+      setFormData({ email: '', username: '', password: '' });
+      
+      // Navigate back to admin dashboard
       navigate('/admin-dashboard');
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Error",
-        description: "Failed to create user",
+        description: error.message || "Failed to create user",
         variant: "destructive"
       });
     } finally {
@@ -78,12 +87,24 @@ const CreateUser = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="username">Username</Label>
+                <Label htmlFor="email">Email</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
+                  placeholder="Enter email address"
+                  required
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="username">Username (Optional)</Label>
                 <Input
                   id="username"
                   value={formData.username}
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Enter username"
+                  placeholder="Enter username (will use email if empty)"
                 />
               </div>
 
@@ -95,6 +116,7 @@ const CreateUser = () => {
                   value={formData.password}
                   onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
                   placeholder="Enter password"
+                  required
                 />
               </div>
 
