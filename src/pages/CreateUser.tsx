@@ -12,6 +12,7 @@ const CreateUser = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
+  const [createdUser, setCreatedUser] = useState(null);
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -40,17 +41,21 @@ const CreateUser = () => {
 
       if (error) throw error;
 
-      toast({
-        title: "Success",
-        description: `User created successfully! Email: ${formData.email}, Password: ${formData.password}`,
-        duration: 10000 // Show for 10 seconds so admin can copy credentials
+      // Store created user credentials to display
+      setCreatedUser({
+        email: formData.email,
+        password: formData.password,
+        username: formData.username || formData.email.split('@')[0]
       });
 
-      // Reset form
+      toast({
+        title: "Success",
+        description: "User created successfully! Credentials are displayed below.",
+        duration: 5000
+      });
+
+      // Reset form but keep showing credentials
       setFormData({ email: '', username: '', password: '' });
-      
-      // Navigate back to admin dashboard
-      navigate('/admin-dashboard');
     } catch (error: any) {
       toast({
         title: "Error",
@@ -121,6 +126,37 @@ const CreateUser = () => {
                 {loading ? 'Creating...' : 'Create User'}
               </Button>
             </form>
+
+            {createdUser && (
+              <div className="mt-6 p-4 bg-green-50 border border-green-200 rounded-lg">
+                <h3 className="font-semibold text-green-800 mb-2">User Created Successfully!</h3>
+                <div className="space-y-2 text-sm">
+                  <div>
+                    <span className="font-medium">Email:</span> 
+                    <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{createdUser.email}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Username:</span> 
+                    <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{createdUser.username}</span>
+                  </div>
+                  <div>
+                    <span className="font-medium">Password:</span> 
+                    <span className="ml-2 font-mono bg-white px-2 py-1 rounded border">{createdUser.password}</span>
+                  </div>
+                </div>
+                <p className="text-xs text-green-700 mt-2">
+                  ⚠️ Copy these credentials now - they cannot be retrieved later!
+                </p>
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  className="mt-3"
+                  onClick={() => setCreatedUser(null)}
+                >
+                  Clear Credentials
+                </Button>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>
