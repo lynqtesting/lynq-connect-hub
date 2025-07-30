@@ -19,13 +19,14 @@ const ViewUsers = () => {
   const fetchUsers = async () => {
     try {
       const { data, error } = await supabase
-        .from('users')
-        .select('*')
+        .from('profiles')
+        .select('user_id, username, created_at, is_admin')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setUsers(data || []);
     } catch (error) {
+      console.error('Error fetching users:', error);
       toast({
         title: "Error",
         description: "Failed to fetch users",
@@ -73,13 +74,16 @@ const ViewUsers = () => {
             ) : (
               <div className="space-y-3">
                 {users.map((user) => (
-                  <div key={user.id} className="flex items-center space-x-3 p-3 border rounded-lg">
+                  <div key={user.user_id} className="flex items-center space-x-3 p-3 border rounded-lg">
                     <User className="h-5 w-5 text-muted-foreground" />
                     <div className="flex-1">
                       <p className="font-medium">{user.username}</p>
                       <p className="text-sm text-muted-foreground">
                         Created: {new Date(user.created_at).toLocaleDateString()}
                       </p>
+                      {user.is_admin && (
+                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Admin</span>
+                      )}
                     </div>
                   </div>
                 ))}
