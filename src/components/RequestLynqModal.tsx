@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,6 +22,44 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
     request_type: 'new'
   });
   const [loading, setLoading] = useState(false);
+  const [recommendations, setRecommendations] = useState<any[]>([]);
+
+  const fetchRecommendations = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('recommendations')
+        .select(`
+          *,
+          modules (
+            id,
+            title
+          )
+        `)
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      setRecommendations(data || []);
+    } catch (error) {
+      console.error('Error fetching recommendations:', error);
+    }
+  };
+
+  const handleRecommendationSelect = (recommendation: any) => {
+    setFormData(prev => ({
+      ...prev,
+      title: recommendation.content,
+      description: `Based on recommendation for: ${recommendation.modules?.title || 'Unknown Module'}`
+    }));
+  };
+
+  useEffect(() => {
+    if (open) {
+      fetchRecommendations();
+    }
+  }, [open]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,6 +140,31 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
               </SelectContent>
             </Select>
           </div>
+
+          {recommendations.length > 0 && (
+            <div className="space-y-3">
+              <Label>Recommendations</Label>
+              <div className="space-y-2 max-h-32 overflow-y-auto">
+                {recommendations.map((recommendation) => (
+                  <div
+                    key={recommendation.id}
+                    className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
+                    onClick={() => handleRecommendationSelect(recommendation)}
+                  >
+                    <div className="text-sm font-medium">
+                      {recommendation.modules?.title || 'General Recommendation'}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1">
+                      {recommendation.content}
+                    </div>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Click on a recommendation to use it as your lynq request
+              </p>
+            </div>
+          )}
 
           <div className="flex gap-2 pt-4">
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
