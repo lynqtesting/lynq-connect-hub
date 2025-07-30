@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import Logo from "@/components/Logo";
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, MessageSquare, Edit, Calendar } from 'lucide-react';
+import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -13,6 +14,7 @@ const ModuleDetails = () => {
   const { toast } = useToast();
   const [moduleData, setModuleData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [videoModalOpen, setVideoModalOpen] = useState(false);
 
   useEffect(() => {
     fetchModuleData();
@@ -97,14 +99,29 @@ const ModuleDetails = () => {
           {/* Video Player Section */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-medium mb-3">LIVE DATA</h3>
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-medium">LIVE DATA</h3>
+                {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setVideoModalOpen(true)}
+                    className="p-1 h-8 w-8"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
               {moduleData?.file_url ? (
                 (() => {
                   const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
                   console.log('Rendering video with URL:', embedUrl); // Debug log
                   
                   return embedUrl ? (
-                    <div className="aspect-video rounded-md overflow-hidden">
+                    <div 
+                      className="aspect-video rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setVideoModalOpen(true)}
+                    >
                       <iframe
                         src={embedUrl}
                         title="LIVE DATA"
@@ -233,6 +250,28 @@ const ModuleDetails = () => {
             </Button>
           </div>
         </div>
+
+        {/* Video Modal */}
+        <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
+          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
+            <DialogHeader className="p-4 pb-2">
+              <DialogTitle>Lynq: {moduleData?.title}</DialogTitle>
+            </DialogHeader>
+            <div className="px-4 pb-4">
+              {moduleData?.file_url && (
+                <div className="aspect-video rounded-md overflow-hidden">
+                  <iframe
+                    src={getYouTubeEmbedUrl(moduleData.file_url)}
+                    title="LIVE DATA - Full Size"
+                    className="w-full h-full"
+                    allowFullScreen
+                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                  />
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
       </div>
     </div>
   );
