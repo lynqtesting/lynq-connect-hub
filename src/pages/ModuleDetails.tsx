@@ -259,7 +259,7 @@ const ModuleDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Screenshot Section - Larger */}
+          {/* Screenshot Section - Taller for better visibility */}
           <Card>
             <CardContent className="p-4">
               <h3 className="font-semibold mb-3">Live Data Insights</h3>
@@ -268,7 +268,7 @@ const ModuleDetails = () => {
                   console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
                   
                   return (
-                    <div className="h-80 rounded-lg overflow-hidden border">
+                    <div className="h-96 rounded-lg overflow-hidden border">
                       <img 
                         src={moduleData.screenshot_url} 
                         alt="Live Data Insights"
@@ -280,7 +280,7 @@ const ModuleDetails = () => {
                   );
                 })()
               ) : (
-                <div className="bg-muted h-80 rounded-lg flex items-center justify-center border">
+                <div className="bg-muted h-96 rounded-lg flex items-center justify-center border">
                   <p className="text-muted-foreground">No insights available</p>
                 </div>
               )}
