@@ -4,6 +4,8 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Logo from "@/components/Logo";
+import RequestLynqModal from "@/components/RequestLynqModal";
+import AdaptLynqModal from "@/components/AdaptLynqModal";
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -16,6 +18,8 @@ const ModuleDetails = () => {
   const [moduleData, setModuleData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [videoModalOpen, setVideoModalOpen] = useState(false);
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [adaptModalOpen, setAdaptModalOpen] = useState(false);
 
   useEffect(() => {
     fetchModuleData();
@@ -96,103 +100,11 @@ const ModuleDetails = () => {
 
         <h2 className="text-2xl font-bold mb-6">Lynq: {moduleData.title}</h2>
 
-        <div className="space-y-6">
-          {/* Video Player Section */}
+        <div className="space-y-4">
+          {/* Quick Actions Section - Move to Top */}
           <Card>
-            <CardContent className="p-6">
-              <div className="flex items-center justify-between mb-4">
-                <h3 className="text-lg font-semibold">LIVE DATA</h3>
-                {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setVideoModalOpen(true)}
-                    className="p-1 h-8 w-8"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                )}
-              </div>
-              {moduleData?.file_url ? (
-                (() => {
-                  const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
-                  console.log('Rendering video with URL:', embedUrl); // Debug log
-                  
-                  return embedUrl ? (
-                    <div 
-                      className="aspect-video rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => setVideoModalOpen(true)}
-                    >
-                      <iframe
-                        src={embedUrl}
-                        title="LIVE DATA"
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    </div>
-                  ) : (
-                    <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                      <p className="text-muted-foreground">Invalid video URL format</p>
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">No video available</p>
-                </div>
-              )}
-              <div className="flex gap-2 mt-3">
-                <Button variant="outline" size="sm">Hindi</Button>
-                <Button variant="outline" size="sm">English</Button>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Screenshot Section */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">Live Data Insights</h3>
-              {moduleData?.screenshot_url ? (
-                (() => {
-                  console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
-                  
-                  return (
-                    <div className="aspect-video rounded-lg overflow-hidden border">
-                      <img 
-                        src={moduleData.screenshot_url} 
-                        alt="Live Data Insights"
-                        className="w-full h-full object-cover"
-                        onLoad={() => console.log('Screenshot loaded successfully')}
-                        onError={(e) => console.error('Screenshot failed to load:', e)}
-                      />
-                    </div>
-                  );
-                })()
-              ) : (
-                <div className="bg-muted aspect-video rounded-lg flex items-center justify-center border">
-                  <p className="text-muted-foreground text-lg">No insights available</p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Recommendations Section */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
-              <div className="bg-muted rounded-lg p-6 border">
-                <p className="text-base text-muted-foreground">
-                  Based on your learning progress and interests, we recommend exploring advanced analytics modules and data visualization techniques to enhance your skills further.
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Actions Section - Horizontal Icons */}
-          <Card>
-            <CardContent className="p-6">
-              <h3 className="text-lg font-semibold mb-6">Quick Actions</h3>
+            <CardContent className="p-4">
+              <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
               <TooltipProvider>
                 <div className="flex justify-around items-center">
                   <Tooltip>
@@ -249,7 +161,7 @@ const ModuleDetails = () => {
                         variant="outline"
                         size="lg"
                         className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={() => navigate(`/request-form/new`)}
+                        onClick={() => setRequestModalOpen(true)}
                       >
                         <MessageSquare className="h-6 w-6" />
                       </Button>
@@ -265,7 +177,7 @@ const ModuleDetails = () => {
                         variant="outline"
                         size="lg"
                         className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={() => navigate(`/request-form/adapt/${moduleId}`)}
+                        onClick={() => setAdaptModalOpen(true)}
                       >
                         <Edit className="h-6 w-6" />
                       </Button>
@@ -294,6 +206,86 @@ const ModuleDetails = () => {
               </TooltipProvider>
             </CardContent>
           </Card>
+
+          {/* Video Player Section - Compact */}
+          <Card>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between mb-3">
+                <h3 className="font-semibold">LIVE DATA</h3>
+                {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setVideoModalOpen(true)}
+                    className="p-1 h-8 w-8"
+                  >
+                    <Maximize2 className="h-4 w-4" />
+                  </Button>
+                )}
+              </div>
+              {moduleData?.file_url ? (
+                (() => {
+                  const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
+                  console.log('Rendering video with URL:', embedUrl); // Debug log
+                  
+                  return embedUrl ? (
+                    <div 
+                      className="aspect-video rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
+                      onClick={() => setVideoModalOpen(true)}
+                    >
+                      <iframe
+                        src={embedUrl}
+                        title="LIVE DATA"
+                        className="w-full h-full"
+                        allowFullScreen
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                      />
+                    </div>
+                  ) : (
+                    <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                      <p className="text-muted-foreground">Invalid video URL format</p>
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
+                  <p className="text-muted-foreground">No video available</p>
+                </div>
+              )}
+              <div className="flex gap-2 mt-3">
+                <Button variant="outline" size="sm">Hindi</Button>
+                <Button variant="outline" size="sm">English</Button>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Screenshot Section - Compact */}
+          <Card>
+            <CardContent className="p-4">
+              <h3 className="font-semibold mb-3">Live Data Insights</h3>
+              {moduleData?.screenshot_url ? (
+                (() => {
+                  console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
+                  
+                  return (
+                    <div className="aspect-video rounded-lg overflow-hidden border">
+                      <img 
+                        src={moduleData.screenshot_url} 
+                        alt="Live Data Insights"
+                        className="w-full h-full object-cover"
+                        onLoad={() => console.log('Screenshot loaded successfully')}
+                        onError={(e) => console.error('Screenshot failed to load:', e)}
+                      />
+                    </div>
+                  );
+                })()
+              ) : (
+                <div className="bg-muted aspect-video rounded-lg flex items-center justify-center border">
+                  <p className="text-muted-foreground">No insights available</p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
         </div>
 
         {/* Video Modal */}
@@ -317,6 +309,20 @@ const ModuleDetails = () => {
             </div>
           </DialogContent>
         </Dialog>
+
+        {/* Request New Lynq Modal */}
+        <RequestLynqModal 
+          open={requestModalOpen} 
+          onOpenChange={setRequestModalOpen}
+        />
+
+        {/* Adapt Lynq Modal */}
+        <AdaptLynqModal 
+          open={adaptModalOpen} 
+          onOpenChange={setAdaptModalOpen}
+          moduleId={moduleId || ''}
+          moduleTitle={moduleData?.title || ''}
+        />
       </div>
     </div>
   );
