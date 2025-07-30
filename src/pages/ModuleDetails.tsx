@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import Logo from "@/components/Logo";
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2 } from 'lucide-react';
@@ -93,14 +94,14 @@ const ModuleDetails = () => {
           <Logo />
         </div>
 
-        <h2 className="text-xl font-semibold mb-6">Lynq: {moduleData.title}</h2>
+        <h2 className="text-2xl font-bold mb-6">Lynq: {moduleData.title}</h2>
 
-        <div className="space-y-4">
+        <div className="space-y-6">
           {/* Video Player Section */}
           <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
-                <h3 className="font-medium">LIVE DATA</h3>
+            <CardContent className="p-6">
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">LIVE DATA</h3>
                 {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
                   <Button
                     variant="ghost"
@@ -150,14 +151,14 @@ const ModuleDetails = () => {
 
           {/* Screenshot Section */}
           <Card>
-            <CardContent className="p-4">
-              <h3 className="font-medium mb-3">Live Data Insights</h3>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">Live Data Insights</h3>
               {moduleData?.screenshot_url ? (
                 (() => {
                   console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
                   
                   return (
-                    <div className="aspect-video rounded-md overflow-hidden">
+                    <div className="aspect-video rounded-lg overflow-hidden border">
                       <img 
                         src={moduleData.screenshot_url} 
                         alt="Live Data Insights"
@@ -169,86 +170,130 @@ const ModuleDetails = () => {
                   );
                 })()
               ) : (
-                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">No insights available</p>
+                <div className="bg-muted aspect-video rounded-lg flex items-center justify-center border">
+                  <p className="text-muted-foreground text-lg">No insights available</p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* Actions Section */}
-          <div className="space-y-3">
-            <Button 
-              className="w-full justify-start"
-              onClick={async () => {
-                if (moduleData?.pdf_report_url) {
-                  try {
-                    // Fetch the PDF as a blob to avoid Chrome blocking
-                    const response = await fetch(moduleData.pdf_report_url);
-                    if (!response.ok) throw new Error('Failed to fetch PDF');
-                    
-                    const blob = await response.blob();
-                    const url = window.URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.href = url;
-                    link.download = `${moduleData.title}-report.pdf`;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    window.URL.revokeObjectURL(url);
-                    
-                    toast({
-                      title: "Success",
-                      description: "PDF report downloaded successfully"
-                    });
-                  } catch (error) {
-                    console.error('Error downloading PDF:', error);
-                    toast({
-                      title: "Download Failed",
-                      description: "Could not download PDF report. Please try again.",
-                      variant: "destructive"
-                    });
-                  }
-                } else {
-                  toast({
-                    title: "No Report Available",
-                    description: "PDF report has not been uploaded for this lynq",
-                    variant: "destructive"
-                  });
-                }
-              }}
-            >
-              <Download className="mr-2 h-4 w-4" />
-              Download PDF Report
-            </Button>
+          {/* Recommendations Section */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-4">AI Recommendations</h3>
+              <div className="bg-muted rounded-lg p-6 border">
+                <p className="text-base text-muted-foreground">
+                  Based on your learning progress and interests, we recommend exploring advanced analytics modules and data visualization techniques to enhance your skills further.
+                </p>
+              </div>
+            </CardContent>
+          </Card>
 
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate(`/request-form/new`)}
-            >
-              <MessageSquare className="mr-2 h-4 w-4" />
-              Request New Lynq
-            </Button>
+          {/* Actions Section - Horizontal Icons */}
+          <Card>
+            <CardContent className="p-6">
+              <h3 className="text-lg font-semibold mb-6">Quick Actions</h3>
+              <TooltipProvider>
+                <div className="flex justify-around items-center">
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
+                        onClick={async () => {
+                          if (moduleData?.pdf_report_url) {
+                            try {
+                              // Direct download approach
+                              const link = document.createElement('a');
+                              link.href = moduleData.pdf_report_url;
+                              link.download = `${moduleData.title}-report.pdf`;
+                              link.target = '_blank';
+                              document.body.appendChild(link);
+                              link.click();
+                              document.body.removeChild(link);
+                              
+                              toast({
+                                title: "Success",
+                                description: "PDF report download started"
+                              });
+                            } catch (error) {
+                              console.error('Error downloading PDF:', error);
+                              // Fallback - open in new tab
+                              window.open(moduleData.pdf_report_url, '_blank');
+                              toast({
+                                title: "Opening PDF",
+                                description: "PDF opened in new tab"
+                              });
+                            }
+                          } else {
+                            toast({
+                              title: "No Report Available",
+                              description: "PDF report has not been uploaded for this lynq",
+                              variant: "destructive"
+                            });
+                          }
+                        }}
+                      >
+                        <Download className="h-6 w-6" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm font-medium">Download PDF Report</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => navigate(`/request-form/adapt/${moduleId}`)}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Adapt This Lynq
-            </Button>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
+                        onClick={() => navigate(`/request-form/new`)}
+                      >
+                        <MessageSquare className="h-6 w-6" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm font-medium">Request New Lynq</p>
+                    </TooltipContent>
+                  </Tooltip>
 
-            <Button 
-              variant="outline" 
-              className="w-full justify-start"
-              onClick={() => window.open('https://calendly.com/your-username', '_blank')}
-            >
-              <Calendar className="mr-2 h-4 w-4" />
-              Book a Call
-            </Button>
-          </div>
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
+                        onClick={() => navigate(`/request-form/adapt/${moduleId}`)}
+                      >
+                        <Edit className="h-6 w-6" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm font-medium">Adapt This Lynq</p>
+                    </TooltipContent>
+                  </Tooltip>
+
+                  <Tooltip>
+                    <TooltipTrigger asChild>
+                      <Button 
+                        variant="outline"
+                        size="lg"
+                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
+                        onClick={() => window.open('https://calendly.com/your-username', '_blank')}
+                      >
+                        <Calendar className="h-6 w-6" />
+                      </Button>
+                    </TooltipTrigger>
+                    <TooltipContent>
+                      <p className="text-sm font-medium">Book a Call</p>
+                    </TooltipContent>
+                  </Tooltip>
+                </div>
+              </TooltipProvider>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Video Modal */}
