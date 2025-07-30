@@ -31,13 +31,15 @@ const CreateUser = () => {
 
     setLoading(true);
     try {
-      // Create user using Supabase Auth
+      // Create user using Supabase Auth with auto-confirmation
       const { data, error } = await supabase.auth.signUp({
         email: formData.email,
         password: formData.password,
         options: {
+          emailRedirectTo: undefined, // Skip email verification
           data: {
-            username: formData.username || formData.email.split('@')[0]
+            username: formData.username || formData.email.split('@')[0],
+            email_confirm: true // Auto-confirm email
           }
         }
       });
@@ -46,7 +48,7 @@ const CreateUser = () => {
 
       toast({
         title: "Success",
-        description: "User created successfully. They will receive a confirmation email."
+        description: `User created successfully! Email: ${formData.email}, Password: ${formData.password}`
       });
 
       // Reset form
