@@ -268,7 +268,7 @@ const ModuleDetails = () => {
                   console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
                   
                   return (
-                    <div className="h-96 rounded-lg overflow-hidden border">
+                    <div className="aspect-[4/3] rounded-lg overflow-hidden border">
                       <img 
                         src={moduleData.screenshot_url} 
                         alt="Live Data Insights"
@@ -280,7 +280,7 @@ const ModuleDetails = () => {
                   );
                 })()
               ) : (
-                <div className="bg-muted h-96 rounded-lg flex items-center justify-center border">
+                <div className="bg-muted aspect-[4/3] rounded-lg flex items-center justify-center border">
                   <p className="text-muted-foreground">No insights available</p>
                 </div>
               )}
