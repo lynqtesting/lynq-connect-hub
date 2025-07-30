@@ -21,7 +21,8 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
     title: `Adapted: ${moduleTitle}`,
     description: '',
     duration: 1,
-    request_type: 'adapt'
+    request_type: 'adapt',
+    quantity: 1
   });
   const [loading, setLoading] = useState(false);
 
@@ -53,7 +54,8 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
         title: `Adapted: ${moduleTitle}`, 
         description: '', 
         duration: 1, 
-        request_type: 'adapt' 
+        request_type: 'adapt',
+        quantity: 1
       });
       onOpenChange(false);
     } catch (error) {
@@ -111,6 +113,22 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
                 <SelectItem value="1">1 minute</SelectItem>
                 <SelectItem value="2">2 minutes</SelectItem>
                 <SelectItem value="3">3 minutes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="adapt-quantity">Number of Lynqs</Label>
+            <Select value={formData.quantity.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, quantity: parseInt(value) }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 lynq</SelectItem>
+                <SelectItem value="2">2 lynqs</SelectItem>
+                <SelectItem value="3">3 lynqs</SelectItem>
+                <SelectItem value="4">4 lynqs</SelectItem>
+                <SelectItem value="5">5 lynqs</SelectItem>
               </SelectContent>
             </Select>
           </div>

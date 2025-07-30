@@ -19,7 +19,8 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
     title: '',
     description: '',
     duration: 1,
-    request_type: 'new'
+    request_type: 'new',
+    quantity: 1
   });
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
@@ -96,7 +97,7 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
       });
 
       // Reset form and close modal
-      setFormData({ title: '', description: '', duration: 1, request_type: 'new' });
+      setFormData({ title: '', description: '', duration: 1, request_type: 'new', quantity: 1 });
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting request:', error);
@@ -147,6 +148,22 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
                 <SelectItem value="1">1 minute</SelectItem>
                 <SelectItem value="2">2 minutes</SelectItem>
                 <SelectItem value="3">3 minutes</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div>
+            <Label htmlFor="quantity">Number of Lynqs</Label>
+            <Select value={formData.quantity.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, quantity: parseInt(value) }))}>
+              <SelectTrigger>
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1">1 lynq</SelectItem>
+                <SelectItem value="2">2 lynqs</SelectItem>
+                <SelectItem value="3">3 lynqs</SelectItem>
+                <SelectItem value="4">4 lynqs</SelectItem>
+                <SelectItem value="5">5 lynqs</SelectItem>
               </SelectContent>
             </Select>
           </div>
