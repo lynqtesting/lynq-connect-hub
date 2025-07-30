@@ -102,17 +102,15 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
           </div>
 
           <div>
-            <Label htmlFor="adapt-duration">Duration (days)</Label>
+            <Label htmlFor="adapt-duration">Duration (minutes)</Label>
             <Select value={formData.duration.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, duration: parseInt(value) }))}>
               <SelectTrigger>
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="1">1 day</SelectItem>
-                <SelectItem value="3">3 days</SelectItem>
-                <SelectItem value="7">1 week</SelectItem>
-                <SelectItem value="14">2 weeks</SelectItem>
-                <SelectItem value="30">1 month</SelectItem>
+                <SelectItem value="1">1 minute</SelectItem>
+                <SelectItem value="2">2 minutes</SelectItem>
+                <SelectItem value="3">3 minutes</SelectItem>
               </SelectContent>
             </Select>
           </div>
