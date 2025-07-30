@@ -31,24 +31,19 @@ const CreateUser = () => {
 
     setLoading(true);
     try {
-      // Create user using Supabase Auth with auto-confirmation
-      const { data, error } = await supabase.auth.signUp({
-        email: formData.email,
-        password: formData.password,
-        options: {
-          emailRedirectTo: undefined, // Skip email verification
-          data: {
-            username: formData.username || formData.email.split('@')[0],
-            email_confirm: true // Auto-confirm email
-          }
-        }
+      // Use admin function to create user without email verification
+      const { data, error } = await supabase.rpc('create_user_admin', {
+        user_email: formData.email,
+        user_password: formData.password,
+        user_username: formData.username || formData.email.split('@')[0]
       });
 
       if (error) throw error;
 
       toast({
         title: "Success",
-        description: `User created successfully! Email: ${formData.email}, Password: ${formData.password}`
+        description: `User created successfully! Email: ${formData.email}, Password: ${formData.password}`,
+        duration: 10000 // Show for 10 seconds so admin can copy credentials
       });
 
       // Reset form

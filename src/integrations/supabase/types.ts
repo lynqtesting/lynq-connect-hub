@@ -217,6 +217,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      create_user_admin: {
+        Args: {
+          user_email: string
+          user_password: string
+          user_username?: string
+        }
+        Returns: Json
+      }
       is_admin_user: {
         Args: { user_uuid?: string }
         Returns: boolean
