@@ -119,6 +119,7 @@ export type Database = {
           duration: number | null
           id: string
           module_id: string | null
+          quantity: number | null
           request_type: string
           status: string
           title: string
@@ -131,6 +132,7 @@ export type Database = {
           duration?: number | null
           id?: string
           module_id?: string | null
+          quantity?: number | null
           request_type: string
           status?: string
           title: string
@@ -143,6 +145,7 @@ export type Database = {
           duration?: number | null
           id?: string
           module_id?: string | null
+          quantity?: number | null
           request_type?: string
           status?: string
           title?: string
