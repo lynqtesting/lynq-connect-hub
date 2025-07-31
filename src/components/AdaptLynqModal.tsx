@@ -72,7 +72,7 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-[90vw]">
+      <DialogContent className="max-w-md w-[90vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Adapt This Lynq</DialogTitle>
         </DialogHeader>
