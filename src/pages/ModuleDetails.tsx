@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import Logo from "@/components/Logo";
 import RequestLynqModal from "@/components/RequestLynqModal";
 import AdaptLynqModal from "@/components/AdaptLynqModal";
@@ -115,13 +115,13 @@ const ModuleDetails = () => {
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-4">
                 <h3 className="text-lg font-semibold">Quick Actions</h3>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
                       <Info className="h-4 w-4 text-blue-500" />
                     </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent side="left" className="w-64 bg-blue-50 border-blue-200">
+                  </PopoverTrigger>
+                  <PopoverContent side="left" className="w-64 bg-blue-50 border-blue-200 z-50">
                     <div className="space-y-2">
                       <p className="text-sm font-medium text-blue-900">Quick Actions Help</p>
                       <div className="text-xs text-blue-700 space-y-1">
@@ -130,8 +130,8 @@ const ModuleDetails = () => {
                         <p><strong>Book a call:</strong> Book an interpretation call to understand your lynqs better.</p>
                       </div>
                     </div>
-                  </HoverCardContent>
-                </HoverCard>
+                  </PopoverContent>
+                </Popover>
               </div>
               <TooltipProvider>
                 <div className="grid grid-cols-2 gap-4 sm:flex sm:justify-around sm:items-center">
@@ -253,21 +253,21 @@ const ModuleDetails = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">LIVE DATA</h3>
-                   <HoverCard>
-                     <HoverCardTrigger asChild>
-                       <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                   <Popover>
+                     <PopoverTrigger asChild>
+                       <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
                          <Info className="h-4 w-4 text-blue-500" />
                        </Button>
-                     </HoverCardTrigger>
-                     <HoverCardContent side="top" className="w-64 bg-blue-50 border-blue-200">
+                     </PopoverTrigger>
+                     <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
                        <div className="space-y-2">
                          <p className="text-sm font-medium text-blue-900">Live Data</p>
                          <p className="text-xs text-blue-700">
                            This is the data being deduced qualitatively from the data that is being tracked in real time via the lynqs.
                          </p>
                        </div>
-                     </HoverCardContent>
-                   </HoverCard>
+                     </PopoverContent>
+                   </Popover>
                 </div>
                 {getCurrentVideoUrl() && getYouTubeEmbedUrl(getCurrentVideoUrl()) && (
                   <Button
@@ -334,21 +334,21 @@ const ModuleDetails = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="font-semibold">Data Performance</h3>
-                 <HoverCard>
-                   <HoverCardTrigger asChild>
-                     <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                 <Popover>
+                   <PopoverTrigger asChild>
+                     <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
                        <Info className="h-4 w-4 text-blue-500" />
                      </Button>
-                   </HoverCardTrigger>
-                   <HoverCardContent side="top" className="w-64 bg-blue-50 border-blue-200">
+                   </PopoverTrigger>
+                   <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
                      <div className="space-y-2">
                        <p className="text-sm font-medium text-blue-900">Data Performance</p>
                        <p className="text-xs text-blue-700">
                          This is the live data metrics of your lynqs coming from your sales force.
                        </p>
                      </div>
-                   </HoverCardContent>
-                 </HoverCard>
+                   </PopoverContent>
+                 </Popover>
               </div>
               {moduleData?.screenshot_url ? (
                 (() => {
