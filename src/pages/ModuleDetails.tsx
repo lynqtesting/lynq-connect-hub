@@ -3,11 +3,12 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { HoverCard, HoverCardContent, HoverCardTrigger } from "@/components/ui/hover-card";
 import Logo from "@/components/Logo";
 import RequestLynqModal from "@/components/RequestLynqModal";
 import AdaptLynqModal from "@/components/AdaptLynqModal";
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2 } from 'lucide-react';
+import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2, Info } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -104,16 +105,37 @@ const ModuleDetails = () => {
           {/* Quick Actions Section - Move to Top */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="text-lg font-semibold">Quick Actions</h3>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent side="left" className="w-72">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Quick Actions Help</p>
+                      <div className="text-xs text-muted-foreground space-y-1">
+                        <p><strong>Download:</strong> Get the PDF report for this module</p>
+                        <p><strong>Request:</strong> Ask for a new Lynq module</p>
+                        <p><strong>Adapt:</strong> Modify this existing Lynq</p>
+                        <p><strong>Book Call:</strong> Schedule a consultation</p>
+                      </div>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
               <TooltipProvider>
-                <div className="flex justify-around items-center">
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline"
-                        size="lg"
-                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={async () => {
+                <div className="grid grid-cols-2 gap-4 sm:flex sm:justify-around sm:items-center">
+                  <div className="flex flex-col items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="lg"
+                          className="h-16 w-16 rounded-full flex-col gap-1 p-2 touch-manipulation"
+                          onClick={async () => {
                           if (moduleData?.pdf_report_url) {
                             try {
                               // Direct download approach
@@ -147,61 +169,72 @@ const ModuleDetails = () => {
                           }
                         }}
                       >
-                        <Download className="h-6 w-6" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-sm font-medium">Download PDF Report</p>
-                    </TooltipContent>
-                  </Tooltip>
+                          <Download className="h-6 w-6" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-medium">Download PDF Report</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-xs text-center font-medium">Download</span>
+                  </div>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline"
-                        size="lg"
-                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={() => setRequestModalOpen(true)}
-                      >
-                        <MessageSquare className="h-6 w-6" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-sm font-medium">Request New Lynq</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex flex-col items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="lg"
+                          className="h-16 w-16 rounded-full flex-col gap-1 p-2 touch-manipulation"
+                          onClick={() => setRequestModalOpen(true)}
+                        >
+                          <MessageSquare className="h-6 w-6" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-medium">Request New Lynq</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-xs text-center font-medium">Request</span>
+                  </div>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline"
-                        size="lg"
-                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={() => setAdaptModalOpen(true)}
-                      >
-                        <Edit className="h-6 w-6" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-sm font-medium">Adapt This Lynq</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex flex-col items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="lg"
+                          className="h-16 w-16 rounded-full flex-col gap-1 p-2 touch-manipulation"
+                          onClick={() => setAdaptModalOpen(true)}
+                        >
+                          <Edit className="h-6 w-6" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-medium">Adapt This Lynq</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-xs text-center font-medium">Adapt</span>
+                  </div>
 
-                  <Tooltip>
-                    <TooltipTrigger asChild>
-                      <Button 
-                        variant="outline"
-                        size="lg"
-                        className="h-16 w-16 rounded-full flex-col gap-2 p-2"
-                        onClick={() => window.open('https://calendly.com/your-username', '_blank')}
-                      >
-                        <Calendar className="h-6 w-6" />
-                      </Button>
-                    </TooltipTrigger>
-                    <TooltipContent>
-                      <p className="text-sm font-medium">Book a Call</p>
-                    </TooltipContent>
-                  </Tooltip>
+                  <div className="flex flex-col items-center gap-2">
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button 
+                          variant="outline"
+                          size="lg"
+                          className="h-16 w-16 rounded-full flex-col gap-1 p-2 touch-manipulation"
+                          onClick={() => window.open('https://calendly.com/your-username', '_blank')}
+                        >
+                          <Calendar className="h-6 w-6" />
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="text-sm font-medium">Book a Call</p>
+                      </TooltipContent>
+                    </Tooltip>
+                    <span className="text-xs text-center font-medium">Book Call</span>
+                  </div>
                 </div>
               </TooltipProvider>
             </CardContent>
@@ -211,7 +244,25 @@ const ModuleDetails = () => {
           <Card>
             <CardContent className="p-4">
               <div className="flex items-center justify-between mb-3">
-                <h3 className="font-semibold">LIVE DATA</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-semibold">LIVE DATA</h3>
+                  <HoverCard>
+                    <HoverCardTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                        <Info className="h-4 w-4" />
+                      </Button>
+                    </HoverCardTrigger>
+                    <HoverCardContent side="top" className="w-80">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium">Live Data Metrics</p>
+                        <p className="text-xs text-muted-foreground">
+                          This is the live data metrics getting tracked, coming from your employees 
+                          after the lynqs are distributed in your organisation.
+                        </p>
+                      </div>
+                    </HoverCardContent>
+                  </HoverCard>
+                </div>
                 {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
                   <Button
                     variant="ghost"
@@ -262,27 +313,45 @@ const ModuleDetails = () => {
           {/* Screenshot Section - Taller for better visibility */}
           <Card>
             <CardContent className="p-4">
-              <h3 className="font-semibold mb-3">Live Data Insights</h3>
+              <div className="flex items-center gap-2 mb-3">
+                <h3 className="font-semibold">Data Performance</h3>
+                <HoverCard>
+                  <HoverCardTrigger asChild>
+                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                      <Info className="h-4 w-4" />
+                    </Button>
+                  </HoverCardTrigger>
+                  <HoverCardContent side="top" className="w-80">
+                    <div className="space-y-2">
+                      <p className="text-sm font-medium">Data Performance Insights</p>
+                      <p className="text-xs text-muted-foreground">
+                        The data being interpreted and deduced to showcase product perceptions 
+                        and consumer insights on your product through your employees.
+                      </p>
+                    </div>
+                  </HoverCardContent>
+                </HoverCard>
+              </div>
               {moduleData?.screenshot_url ? (
                 (() => {
                   console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
                   
                   return (
-                    <div className="aspect-[16/9] rounded-lg overflow-hidden border">
-                      <img 
-                        src={moduleData.screenshot_url} 
-                        alt="Live Data Insights"
-                        className="w-full h-full object-cover"
-                        onLoad={() => console.log('Screenshot loaded successfully')}
-                        onError={(e) => console.error('Screenshot failed to load:', e)}
-                      />
-                    </div>
+                     <div className="aspect-[16/9] rounded-lg overflow-hidden border">
+                       <img 
+                         src={moduleData.screenshot_url} 
+                         alt="Data Performance Insights"
+                         className="w-full h-full object-cover"
+                         onLoad={() => console.log('Screenshot loaded successfully')}
+                         onError={(e) => console.error('Screenshot failed to load:', e)}
+                       />
+                     </div>
                   );
                 })()
               ) : (
-                <div className="bg-muted aspect-[16/9] rounded-lg flex items-center justify-center border">
-                  <p className="text-muted-foreground">No insights available</p>
-                </div>
+                 <div className="bg-muted aspect-[16/9] rounded-lg flex items-center justify-center border">
+                   <p className="text-muted-foreground">No performance data available</p>
+                 </div>
               )}
             </CardContent>
           </Card>

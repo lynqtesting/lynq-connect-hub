@@ -4,7 +4,7 @@ import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
 
 const UserDashboard = () => {
