@@ -18,6 +18,7 @@ const UploadModule = () => {
     description: '',
     contentType: 'youtube' as 'youtube' | 'file',
     youtubeUrl: '',
+    englishYoutubeUrl: '',
     file: null as File | null,
     screenshot: null as File | null,
     pdfReport: null as File | null
@@ -129,6 +130,7 @@ const UploadModule = () => {
           title: formData.title,
           description: formData.description,
           file_url: publicUrl,
+          english_video_url: formData.englishYoutubeUrl || null,
           screenshot_url: screenshotUrl,
           pdf_report_url: pdfReportUrl,
           file_type: fileType
@@ -219,15 +221,27 @@ const UploadModule = () => {
               </div>
 
               {formData.contentType === 'youtube' ? (
-                <div>
-                  <Label htmlFor="youtubeUrl">YouTube URL *</Label>
-                  <Input
-                    id="youtubeUrl"
-                    type="url"
-                    value={formData.youtubeUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                  />
+                <div className="space-y-4">
+                  <div>
+                    <Label htmlFor="youtubeUrl">Hindi YouTube URL *</Label>
+                    <Input
+                      id="youtubeUrl"
+                      type="url"
+                      value={formData.youtubeUrl}
+                      onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
+                  <div>
+                    <Label htmlFor="englishYoutubeUrl">English YouTube URL</Label>
+                    <Input
+                      id="englishYoutubeUrl"
+                      type="url"
+                      value={formData.englishYoutubeUrl}
+                      onChange={(e) => setFormData(prev => ({ ...prev, englishYoutubeUrl: e.target.value }))}
+                      placeholder="https://www.youtube.com/watch?v=..."
+                    />
+                  </div>
                 </div>
               ) : (
                 <div>

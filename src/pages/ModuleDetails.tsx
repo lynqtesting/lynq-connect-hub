@@ -21,6 +21,7 @@ const ModuleDetails = () => {
   const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [adaptModalOpen, setAdaptModalOpen] = useState(false);
+  const [selectedLanguage, setSelectedLanguage] = useState<'hindi' | 'english'>('hindi');
 
   useEffect(() => {
     fetchModuleData();
@@ -61,6 +62,13 @@ const ModuleDetails = () => {
     
     console.log('Generated embed URL:', embedUrl); // Debug log
     return embedUrl;
+  };
+
+  const getCurrentVideoUrl = () => {
+    if (selectedLanguage === 'english' && moduleData?.english_video_url) {
+      return moduleData.english_video_url;
+    }
+    return moduleData?.file_url || '';
   };
 
   if (loading) {
@@ -261,7 +269,7 @@ const ModuleDetails = () => {
                      </HoverCardContent>
                    </HoverCard>
                 </div>
-                {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
+                {getCurrentVideoUrl() && getYouTubeEmbedUrl(getCurrentVideoUrl()) && (
                   <Button
                     variant="ghost"
                     size="sm"
@@ -272,9 +280,9 @@ const ModuleDetails = () => {
                   </Button>
                 )}
               </div>
-              {moduleData?.file_url ? (
+              {getCurrentVideoUrl() ? (
                 (() => {
-                  const embedUrl = getYouTubeEmbedUrl(moduleData.file_url);
+                  const embedUrl = getYouTubeEmbedUrl(getCurrentVideoUrl());
                   console.log('Rendering video with URL:', embedUrl); // Debug log
                   
                   return embedUrl ? (
@@ -302,8 +310,21 @@ const ModuleDetails = () => {
                 </div>
               )}
               <div className="flex gap-2 mt-3">
-                <Button variant="outline" size="sm">Hindi</Button>
-                <Button variant="outline" size="sm">English</Button>
+                <Button 
+                  variant={selectedLanguage === 'hindi' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setSelectedLanguage('hindi')}
+                >
+                  Hindi
+                </Button>
+                <Button 
+                  variant={selectedLanguage === 'english' ? 'default' : 'outline'} 
+                  size="sm"
+                  onClick={() => setSelectedLanguage('english')}
+                  disabled={!moduleData?.english_video_url}
+                >
+                  English
+                </Button>
               </div>
             </CardContent>
           </Card>
@@ -361,10 +382,10 @@ const ModuleDetails = () => {
               <DialogTitle>Lynq: {moduleData?.title}</DialogTitle>
             </DialogHeader>
             <div className="px-4 pb-4">
-              {moduleData?.file_url && (
+              {getCurrentVideoUrl() && (
                 <div className="aspect-video rounded-md overflow-hidden">
                   <iframe
-                    src={getYouTubeEmbedUrl(moduleData.file_url)}
+                    src={getYouTubeEmbedUrl(getCurrentVideoUrl())}
                     title="LIVE DATA - Full Size"
                     className="w-full h-full"
                     allowFullScreen

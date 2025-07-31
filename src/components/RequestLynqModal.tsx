@@ -113,7 +113,7 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-[90vw]">
+      <DialogContent className="max-w-md w-[90vw] max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Request New Lynq</DialogTitle>
         </DialogHeader>
