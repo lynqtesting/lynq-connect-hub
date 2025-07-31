@@ -223,7 +223,7 @@ const ModuleDetails = () => {
                           variant="outline"
                           size="lg"
                           className="h-16 w-16 rounded-full flex-col gap-1 p-2 touch-manipulation"
-                          onClick={() => window.open('https://calendly.com/your-username', '_blank')}
+                          onClick={() => window.open('https://calendly.com/ishanibehl-kea/30min', '_blank')}
                         >
                           <Calendar className="h-6 w-6" />
                         </Button>
