@@ -110,17 +110,16 @@ const ModuleDetails = () => {
                 <HoverCard>
                   <HoverCardTrigger asChild>
                     <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                      <Info className="h-4 w-4" />
+                      <Info className="h-4 w-4 text-blue-500" />
                     </Button>
                   </HoverCardTrigger>
-                  <HoverCardContent side="left" className="w-72">
+                  <HoverCardContent side="left" className="w-64 bg-blue-50 border-blue-200">
                     <div className="space-y-2">
-                      <p className="text-sm font-medium">Quick Actions Help</p>
-                      <div className="text-xs text-muted-foreground space-y-1">
-                        <p><strong>Download:</strong> Get the PDF report for this module</p>
-                        <p><strong>Request:</strong> Ask for a new Lynq module</p>
-                        <p><strong>Adapt:</strong> Modify this existing Lynq</p>
-                        <p><strong>Book Call:</strong> Schedule a consultation</p>
+                      <p className="text-sm font-medium text-blue-900">Quick Actions Help</p>
+                      <div className="text-xs text-blue-700 space-y-1">
+                        <p><strong>Request:</strong> Generating a new lynq based on the previous feedback.</p>
+                        <p><strong>Adapt:</strong> You can adapt the data coming from the lynqs by asking follow up questions to your sales force on the Lynqs.</p>
+                        <p><strong>Book a call:</strong> Book an interpretation call to understand your lynqs better.</p>
                       </div>
                     </div>
                   </HoverCardContent>
@@ -246,22 +245,21 @@ const ModuleDetails = () => {
               <div className="flex items-center justify-between mb-3">
                 <div className="flex items-center gap-2">
                   <h3 className="font-semibold">LIVE DATA</h3>
-                  <HoverCard>
-                    <HoverCardTrigger asChild>
-                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                        <Info className="h-4 w-4" />
-                      </Button>
-                    </HoverCardTrigger>
-                    <HoverCardContent side="top" className="w-80">
-                      <div className="space-y-2">
-                        <p className="text-sm font-medium">Live Data Metrics</p>
-                        <p className="text-xs text-muted-foreground">
-                          This is the live data metrics getting tracked, coming from your employees 
-                          after the lynqs are distributed in your organisation.
-                        </p>
-                      </div>
-                    </HoverCardContent>
-                  </HoverCard>
+                   <HoverCard>
+                     <HoverCardTrigger asChild>
+                       <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                         <Info className="h-4 w-4 text-blue-500" />
+                       </Button>
+                     </HoverCardTrigger>
+                     <HoverCardContent side="top" className="w-64 bg-blue-50 border-blue-200">
+                       <div className="space-y-2">
+                         <p className="text-sm font-medium text-blue-900">Live Data</p>
+                         <p className="text-xs text-blue-700">
+                           This is the data being deduced qualitatively from the data that is being tracked in real time via the lynqs.
+                         </p>
+                       </div>
+                     </HoverCardContent>
+                   </HoverCard>
                 </div>
                 {moduleData?.file_url && getYouTubeEmbedUrl(moduleData.file_url) && (
                   <Button
@@ -315,22 +313,21 @@ const ModuleDetails = () => {
             <CardContent className="p-4">
               <div className="flex items-center gap-2 mb-3">
                 <h3 className="font-semibold">Data Performance</h3>
-                <HoverCard>
-                  <HoverCardTrigger asChild>
-                    <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
-                      <Info className="h-4 w-4" />
-                    </Button>
-                  </HoverCardTrigger>
-                  <HoverCardContent side="top" className="w-80">
-                    <div className="space-y-2">
-                      <p className="text-sm font-medium">Data Performance Insights</p>
-                      <p className="text-xs text-muted-foreground">
-                        The data being interpreted and deduced to showcase product perceptions 
-                        and consumer insights on your product through your employees.
-                      </p>
-                    </div>
-                  </HoverCardContent>
-                </HoverCard>
+                 <HoverCard>
+                   <HoverCardTrigger asChild>
+                     <Button variant="ghost" size="sm" className="p-1 h-6 w-6">
+                       <Info className="h-4 w-4 text-blue-500" />
+                     </Button>
+                   </HoverCardTrigger>
+                   <HoverCardContent side="top" className="w-64 bg-blue-50 border-blue-200">
+                     <div className="space-y-2">
+                       <p className="text-sm font-medium text-blue-900">Data Performance</p>
+                       <p className="text-xs text-blue-700">
+                         This is the live data metrics of your lynqs coming from your sales force.
+                       </p>
+                     </div>
+                   </HoverCardContent>
+                 </HoverCard>
               </div>
               {moduleData?.screenshot_url ? (
                 (() => {
