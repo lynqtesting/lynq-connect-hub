@@ -117,7 +117,7 @@ const ModuleDetails = () => {
             size="lg"
           >
             <ExternalLink className="h-5 w-5 mr-2" />
-            View Module
+            View Lynq
           </Button>
         )}
 
