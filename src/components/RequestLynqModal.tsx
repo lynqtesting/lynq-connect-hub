@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Upload, X } from "lucide-react";
 
 interface RequestLynqModalProps {
   open: boolean;
@@ -20,10 +21,13 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
     description: '',
     duration: 1,
     request_type: 'new',
-    quantity: 1
+    quantity: 1,
+    category: 'Product'
   });
   const [loading, setLoading] = useState(false);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
+  const [uploading, setUploading] = useState(false);
 
   const fetchRecommendations = async () => {
     try {
@@ -68,6 +72,43 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
     }));
   };
 
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    setAttachedFiles(prev => [...prev, ...files]);
+  };
+
+  const removeFile = (index: number) => {
+    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
+  };
+
+  const uploadFiles = async (userId: string) => {
+    const uploadedFiles = [];
+    
+    for (const file of attachedFiles) {
+      const fileExt = file.name.split('.').pop();
+      const fileName = `${userId}/${Date.now()}_${file.name}`;
+      
+      const { error: uploadError } = await supabase.storage
+        .from('recommendation-files')
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from('recommendation-files')
+        .getPublicUrl(fileName);
+
+      uploadedFiles.push({
+        file_name: file.name,
+        file_url: publicUrl,
+        file_size: file.size,
+        file_type: file.type
+      });
+    }
+    
+    return uploadedFiles;
+  };
+
   useEffect(() => {
     if (open) {
       fetchRecommendations();
@@ -77,19 +118,52 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setUploading(true);
 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      // First create the request
+      const { data: requestData, error: requestError } = await supabase
         .from('requests')
         .insert([{
           ...formData,
           user_id: user.id
-        }]);
+        }])
+        .select()
+        .single();
 
-      if (error) throw error;
+      if (requestError) throw requestError;
+
+      // Create a recommendation with the request details and category
+      const { data: recommendationData, error: recommendationError } = await supabase
+        .from('recommendations')
+        .insert({
+          content: `Category: ${formData.category}\n\nRequest: ${formData.title}\n\nDescription: ${formData.description}`,
+          user_id: user.id
+        })
+        .select()
+        .single();
+
+      if (recommendationError) throw recommendationError;
+
+      // Upload files if any
+      if (attachedFiles.length > 0) {
+        const uploadedFiles = await uploadFiles(user.id);
+        
+        // Save file records
+        for (const fileData of uploadedFiles) {
+          const { error: fileError } = await supabase
+            .from('recommendation_files')
+            .insert({
+              recommendation_id: recommendationData.id,
+              ...fileData
+            });
+          
+          if (fileError) throw fileError;
+        }
+      }
 
       toast({
         title: "Success",
@@ -97,7 +171,8 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
       });
 
       // Reset form and close modal
-      setFormData({ title: '', description: '', duration: 1, request_type: 'new', quantity: 1 });
+      setFormData({ title: '', description: '', duration: 1, request_type: 'new', quantity: 1, category: 'Product' });
+      setAttachedFiles([]);
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting request:', error);
@@ -108,6 +183,7 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
       });
     } finally {
       setLoading(false);
+      setUploading(false);
     }
   };
 
@@ -168,6 +244,64 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
             </Select>
           </div>
 
+          {/* Category Selection */}
+          <div>
+            <Label htmlFor="category">Category *</Label>
+            <Select 
+              value={formData.category} 
+              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Select category" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="Product">Product</SelectItem>
+                <SelectItem value="Compliance">Compliance</SelectItem>
+                <SelectItem value="Customer Awareness">Customer Awareness</SelectItem>
+                <SelectItem value="Soft Skills">Soft Skills</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* File Upload */}
+          <div>
+            <Label htmlFor="files">Attach Files (optional)</Label>
+            <div className="space-y-2">
+              <Input
+                id="files"
+                type="file"
+                onChange={handleFileChange}
+                multiple
+                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
+                className="cursor-pointer"
+              />
+              {attachedFiles.length > 0 && (
+                <div className="space-y-1">
+                  {attachedFiles.map((file, index) => (
+                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
+                      <div className="flex items-center space-x-2">
+                        <Upload className="h-4 w-4" />
+                        <span className="text-sm font-medium">{file.name}</span>
+                        <span className="text-xs text-muted-foreground">
+                          ({(file.size / 1024).toFixed(1)} KB)
+                        </span>
+                      </div>
+                      <Button
+                        type="button"
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => removeFile(index)}
+                        className="h-6 w-6 p-0"
+                      >
+                        <X className="h-3 w-3" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+
           {recommendations.length > 0 && (
             <div className="space-y-3">
               <Label>Recommendations</Label>
@@ -194,11 +328,21 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
           )}
 
           <div className="flex gap-2 pt-4">
-            <Button type="button" variant="outline" onClick={() => onOpenChange(false)} className="flex-1">
+            <Button 
+              type="button" 
+              variant="outline" 
+              onClick={() => onOpenChange(false)} 
+              className="flex-1"
+              disabled={uploading}
+            >
               Cancel
             </Button>
-            <Button type="submit" disabled={loading} className="flex-1">
-              {loading ? "Submitting..." : "Submit Request"}
+            <Button 
+              type="submit" 
+              disabled={loading || uploading} 
+              className="flex-1"
+            >
+              {uploading ? "Submitting..." : "Submit Request"}
             </Button>
           </div>
         </form>

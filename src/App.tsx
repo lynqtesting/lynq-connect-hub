@@ -18,6 +18,7 @@ import AssignModules from "./pages/AssignModules";
 import ViewRequests from "./pages/ViewRequests";
 import WriteRecommendations from "./pages/WriteRecommendations";
 import EditModule from "./pages/EditModule";
+import LynqLibrary from "./pages/LynqLibrary";
 
 const queryClient = new QueryClient();
 
@@ -30,6 +31,7 @@ const App = () => (
         <Routes>
           <Route path="/" element={<Login />} />
           <Route path="/login" element={<Login />} />
+          <Route path="/lynq-library" element={<LynqLibrary />} />
           <Route path="/user-dashboard" element={<UserDashboard />} />
           <Route path="/admin-dashboard" element={<AdminDashboard />} />
           <Route path="/module/:moduleId" element={<ModuleDetails />} />

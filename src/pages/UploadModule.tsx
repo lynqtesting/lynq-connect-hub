@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -21,7 +22,8 @@ const UploadModule = () => {
     englishYoutubeUrl: '',
     file: null as File | null,
     screenshot: null as File | null,
-    pdfReport: null as File | null
+    pdfReport: null as File | null,
+    category: 'Product'
   });
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -133,7 +135,8 @@ const UploadModule = () => {
           english_video_url: formData.englishYoutubeUrl || null,
           screenshot_url: screenshotUrl,
           pdf_report_url: pdfReportUrl,
-          file_type: fileType
+          file_type: fileType,
+          category: formData.category
         });
 
       if (dbError) throw dbError;
@@ -273,6 +276,35 @@ const UploadModule = () => {
                   onChange={handlePdfReportChange}
                   accept=".pdf"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="category">Category *</Label>
+                <Select 
+                  value={formData.category} 
+                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="Product">Product</SelectItem>
+                    <SelectItem value="Compliance">Compliance</SelectItem>
+                    <SelectItem value="Customer Awareness">Customer Awareness</SelectItem>
+                    <SelectItem value="Soft Skills">Soft Skills</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="pt-2">
+                <Button 
+                  type="button"
+                  variant="outline" 
+                  onClick={() => navigate('/view-modules')}
+                  className="w-full mb-2"
+                >
+                  View All Modules
+                </Button>
               </div>
 
               <Button type="submit" className="w-full" disabled={loading}>

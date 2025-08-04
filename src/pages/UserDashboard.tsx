@@ -173,15 +173,24 @@ const UserDashboard = () => {
                 </Card>
               ))}
             </div>
-          )}
-          
-          <Button 
-            variant="outline" 
-            className="w-full mt-6"
-            onClick={handleLogout}
-          >
-            Logout
-          </Button>
+           )}
+           
+           <div className="mt-6 space-y-2">
+             <Button 
+               variant="outline" 
+               className="w-full"
+               onClick={() => navigate('/lynq-library')}
+             >
+               Browse LYNQ Library
+             </Button>
+             <Button 
+               variant="outline" 
+               className="w-full"
+               onClick={handleLogout}
+             >
+               Logout
+             </Button>
+           </div>
         </div>
       </div>
     </div>

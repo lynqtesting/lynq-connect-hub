@@ -39,7 +39,7 @@ const Login = () => {
             if (profile?.is_admin) {
               navigate('/admin-dashboard');
             } else {
-              navigate('/user-dashboard');
+              navigate('/lynq-library');
             }
           }, 0);
         }
@@ -63,7 +63,7 @@ const Login = () => {
           if (profile?.is_admin) {
             navigate('/admin-dashboard');
           } else {
-            navigate('/user-dashboard');
+            navigate('/lynq-library');
           }
         }, 0);
       }
