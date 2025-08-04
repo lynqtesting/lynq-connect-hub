@@ -19,6 +19,7 @@ const EditModule = () => {
     title: '',
     description: '',
     fileUrl: '',
+    moduleLink: '',
     fileType: 'video'
   });
   
@@ -47,6 +48,7 @@ const EditModule = () => {
         title: data.title || '',
         description: data.description || '',
         fileUrl: data.file_url || '',
+        moduleLink: data.module_link || '',
         fileType: data.file_type || 'video'
       });
     } catch (error) {
@@ -122,6 +124,7 @@ const EditModule = () => {
         title: formData.title,
         description: formData.description,
         file_url: formData.fileUrl,
+        module_link: formData.moduleLink || null,
         file_type: formData.fileType,
         updated_at: new Date().toISOString()
       };
@@ -222,6 +225,21 @@ const EditModule = () => {
                   placeholder="https://youtube.com/watch?v=..."
                   required
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="moduleLink">Module Link</Label>
+                <Input
+                  id="moduleLink"
+                  name="moduleLink"
+                  type="url"
+                  value={formData.moduleLink}
+                  onChange={handleInputChange}
+                  placeholder="https://courses.skillopp.com/example"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Direct link to the module content for users to access
+                </p>
               </div>
 
               <div>
