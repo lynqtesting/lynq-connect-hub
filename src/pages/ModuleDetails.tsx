@@ -8,7 +8,7 @@ import Logo from "@/components/Logo";
 import RequestLynqModal from "@/components/RequestLynqModal";
 import AdaptLynqModal from "@/components/AdaptLynqModal";
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2, Info } from 'lucide-react';
+import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2, Info, ExternalLink } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -107,7 +107,19 @@ const ModuleDetails = () => {
           <Logo />
         </div>
 
-        <h2 className="text-2xl font-bold mb-6">Lynq: {moduleData.title}</h2>
+        <h2 className="text-2xl font-bold mb-4">Lynq: {moduleData.title}</h2>
+
+        {/* View Module Button */}
+        {moduleData?.module_link && (
+          <Button
+            onClick={() => window.open(moduleData.module_link, '_blank')}
+            className="w-full mb-6 bg-primary hover:bg-primary/90"
+            size="lg"
+          >
+            <ExternalLink className="h-5 w-5 mr-2" />
+            View Module
+          </Button>
+        )}
 
         <div className="space-y-4">
           {/* Quick Actions Section - Move to Top */}

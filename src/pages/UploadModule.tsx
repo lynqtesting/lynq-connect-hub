@@ -20,6 +20,7 @@ const UploadModule = () => {
     contentType: 'youtube' as 'youtube' | 'file',
     youtubeUrl: '',
     englishYoutubeUrl: '',
+    moduleLink: '',
     file: null as File | null,
     screenshot: null as File | null,
     pdfReport: null as File | null,
@@ -136,7 +137,8 @@ const UploadModule = () => {
           screenshot_url: screenshotUrl,
           pdf_report_url: pdfReportUrl,
           file_type: fileType,
-          category: formData.category
+          category: formData.category,
+          module_link: formData.moduleLink || null
         });
 
       if (dbError) throw dbError;
@@ -276,6 +278,20 @@ const UploadModule = () => {
                   onChange={handlePdfReportChange}
                   accept=".pdf"
                 />
+              </div>
+
+              <div>
+                <Label htmlFor="moduleLink">Module Link</Label>
+                <Input
+                  id="moduleLink"
+                  type="url"
+                  value={formData.moduleLink}
+                  onChange={(e) => setFormData(prev => ({ ...prev, moduleLink: e.target.value }))}
+                  placeholder="https://courses.skillopp.com/example"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Direct link to the module content for users to access
+                </p>
               </div>
 
               <div>
