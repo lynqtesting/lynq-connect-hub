@@ -168,8 +168,8 @@ export default function LynqLibrary() {
       </div>
 
       {/* Categories Grid */}
-      <div className="px-4 py-4 pb-8">
-        <div className="grid grid-cols-2 gap-3">
+      <div className="px-3 py-4 pb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
           {getFilteredCategories().map((category) => {
             const categoryInfo = categoryData[category as keyof typeof categoryData];
             const Icon = categoryInfo.icon;
@@ -180,20 +180,20 @@ export default function LynqLibrary() {
                 <Button
                   variant="ghost"
                   onClick={() => handleCategoryClick(category)}
-                  className="w-full p-4 h-auto flex flex-col items-center space-y-3 hover:bg-muted/50"
+                  className="w-full p-6 h-auto flex flex-col items-center space-y-4 hover:bg-muted/50 min-h-[140px]"
                 >
-                  <div className={`w-12 h-12 ${categoryInfo.bgColor} rounded-xl flex items-center justify-center`}>
-                    <Icon className={`w-6 h-6 ${categoryInfo.textColor}`} />
+                  <div className={`w-16 h-16 ${categoryInfo.bgColor} rounded-2xl flex items-center justify-center`}>
+                    <Icon className={`w-8 h-8 ${categoryInfo.textColor}`} />
                   </div>
-                  <div className="text-center">
-                    <h3 className="font-semibold text-foreground text-sm mb-1">{category}</h3>
-                    <p className="text-xs text-muted-foreground leading-tight">
+                  <div className="text-center space-y-2">
+                    <h3 className="font-semibold text-foreground text-base leading-tight">{category}</h3>
+                    <p className="text-sm text-muted-foreground leading-relaxed px-2">
                       {category === 'Product' && 'Product knowledge & features'}
                       {category === 'Compliance' && 'Regulatory & policy guidelines'}
                       {category === 'Soft Skills' && 'Communication & leadership'}
                       {category === 'Customer Awareness' && 'Customer service & relations'}
                     </p>
-                    <Badge variant="secondary" className={`mt-2 text-xs ${categoryInfo.badgeColor}`}>
+                    <Badge variant="secondary" className={`mt-3 text-sm ${categoryInfo.badgeColor} px-3 py-1`}>
                       {moduleCount} Lynqs
                     </Badge>
                   </div>
