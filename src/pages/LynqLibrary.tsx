@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Package, Shield, Users, BookOpen, Heart, Search, X } from "lucide-react";
+import { Package, Shield, Users, BookOpen, Heart, Search, X, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
 interface Module {
@@ -109,6 +109,18 @@ export default function LynqLibrary() {
     navigate(`/module/${moduleId}`);
   };
 
+  const handleLogout = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      navigate('/login');
+      toast.success('Logged out successfully');
+    } catch (error) {
+      console.error('Error logging out:', error);
+      toast.error('Failed to log out');
+    }
+  };
+
   if (loading) {
     return (
       <div className="min-h-screen bg-background flex items-center justify-center">
@@ -124,9 +136,20 @@ export default function LynqLibrary() {
     <div className="min-h-screen bg-background">
       {/* Header */}
       <div className="bg-card shadow-sm border-b sticky top-0 z-10">
-        <div className="px-4 py-3">
-          <h1 className="text-lg font-semibold text-foreground">LYNQ Library</h1>
-          <p className="text-xs text-muted-foreground mt-0.5">Learning resources organized by category</p>
+        <div className="px-4 py-3 flex items-center justify-between">
+          <div>
+            <h1 className="text-lg font-semibold text-foreground">LYNQ Library</h1>
+            <p className="text-xs text-muted-foreground mt-0.5">Learning resources organized by category</p>
+          </div>
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleLogout}
+            className="flex items-center gap-2"
+          >
+            <LogOut className="h-4 w-4" />
+            Logout
+          </Button>
         </div>
       </div>
 
