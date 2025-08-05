@@ -7,6 +7,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import Logo from "@/components/Logo";
 import RequestLynqModal from "@/components/RequestLynqModal";
 import AdaptLynqModal from "@/components/AdaptLynqModal";
+import { DataDashboard } from "@/components/DataDashboard";
 import { useNavigate, useParams } from 'react-router-dom';
 import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2, Info, ExternalLink } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
@@ -341,50 +342,8 @@ const ModuleDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Screenshot Section - Taller for better visibility */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-2 mb-3">
-                <h3 className="font-semibold">Data Performance</h3>
-                 <Popover>
-                   <PopoverTrigger asChild>
-                     <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
-                       <Info className="h-4 w-4 text-blue-500" />
-                     </Button>
-                   </PopoverTrigger>
-                   <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
-                     <div className="space-y-2">
-                       <p className="text-sm font-medium text-blue-900">Data Performance</p>
-                       <p className="text-xs text-blue-700">
-                         This is the live data metrics of your lynqs coming from your sales force.
-                       </p>
-                     </div>
-                   </PopoverContent>
-                 </Popover>
-              </div>
-              {moduleData?.screenshot_url ? (
-                (() => {
-                  console.log('Rendering screenshot with URL:', moduleData.screenshot_url); // Debug log
-                  
-                  return (
-                     <div className="aspect-[16/9] rounded-lg overflow-hidden border">
-                       <img 
-                         src={moduleData.screenshot_url} 
-                         alt="Data Performance Insights"
-                         className="w-full h-full object-cover"
-                         onLoad={() => console.log('Screenshot loaded successfully')}
-                         onError={(e) => console.error('Screenshot failed to load:', e)}
-                       />
-                     </div>
-                  );
-                })()
-              ) : (
-                 <div className="bg-muted aspect-[16/9] rounded-lg flex items-center justify-center border">
-                   <p className="text-muted-foreground">No performance data available</p>
-                 </div>
-              )}
-            </CardContent>
-          </Card>
+          {/* Data Performance Section */}
+          <DataDashboard />
         </div>
 
         {/* Video Modal */}
