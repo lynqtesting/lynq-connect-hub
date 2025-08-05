@@ -124,11 +124,15 @@ const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      // First create the request
+      // First create the request (exclude category as it doesn't exist in requests table)
       const { data: requestData, error: requestError } = await supabase
         .from('requests')
         .insert([{
-          ...formData,
+          title: formData.title,
+          description: formData.description,
+          duration: formData.duration,
+          request_type: formData.request_type,
+          quantity: formData.quantity,
           user_id: user.id
         }])
         .select()
