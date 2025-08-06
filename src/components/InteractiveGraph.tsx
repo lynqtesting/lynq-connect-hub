@@ -66,37 +66,42 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
 
       {/* Bar Chart */}
       <Card className="animate-fade-in" style={{ animationDelay: '500ms' }}>
-        <CardContent className="p-8">
-          <div className="space-y-6">
-            <h4 className="text-lg font-semibold text-center text-foreground">Objection Analysis</h4>
+        <CardContent className="p-10">
+          <div className="space-y-8">
+            <h4 className="text-2xl font-bold text-center text-foreground">Objection Frequency Analysis</h4>
             
-            <div className="space-y-4">
+            <div className="space-y-8">
               {data.metrics.map((metric, index) => {
                 const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
                 const percentage = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
                 
                 return (
-                  <div key={index} className="space-y-2">
+                  <div key={index} className="space-y-4">
                     <div className="flex justify-between items-center">
-                      <span className="text-sm font-medium text-foreground">{metric.label}</span>
-                      <span className="text-sm font-bold" style={{ color: metric.color }}>
+                      <span className="text-lg font-semibold text-foreground">{metric.label}</span>
+                      <span className="text-xl font-bold px-4 py-2 rounded-lg" 
+                            style={{ 
+                              color: metric.color,
+                              backgroundColor: `${metric.color}20`
+                            }}>
                         {metric.value}
                       </span>
                     </div>
-                    <div className="relative h-8 bg-muted rounded-full overflow-hidden">
+                    <div className="relative h-16 bg-muted/30 rounded-2xl overflow-hidden shadow-inner">
                       <div
-                        className="h-full rounded-full transition-all duration-1000 ease-out animate-scale-in"
+                        className="h-full rounded-2xl transition-all duration-2000 ease-out animate-scale-in shadow-lg"
                         style={{
                           backgroundColor: metric.color,
                           width: `${percentage}%`,
-                          animationDelay: `${800 + (index * 200)}ms`,
-                          backgroundImage: `linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent)`
+                          animationDelay: `${800 + (index * 300)}ms`,
+                          backgroundImage: `linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent)`,
+                          backgroundSize: '20px 20px'
                         }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
                       </div>
                       <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-xs font-semibold text-foreground/80 mix-blend-multiply">
+                        <span className="text-lg font-bold text-foreground drop-shadow-sm">
                           {percentage.toFixed(0)}%
                         </span>
                       </div>
