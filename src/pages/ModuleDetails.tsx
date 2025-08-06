@@ -276,32 +276,42 @@ const ModuleDetails = () => {
                 </TabsList>
                 
                 <TabsContent value="analysis" className="space-y-4 mt-0">
-                  <InteractiveGraph data={{
-                    type: "network",
-                    title: "Key Objections Network Analysis",
-                    metrics: [
-                      { label: "Total Objections", value: 2, color: "#ef4444" },
-                      { label: "Top Concern", value: "Cost", color: "#f59e0b" },
-                      { label: "Impact Level", value: "High", color: "#3b82f6" }
-                    ],
-                    nodes: [
-                      { id: "learner", label: "LEARNER OBJECTIONS", color: "#8b5cf6", x: 50, y: 20 },
-                      { id: "cost", label: "COST OBJECTION", color: "#ef4444", x: 20, y: 60 },
-                      { id: "investment", label: "INVESTMENT ASPECT", color: "#f59e0b", x: 80, y: 60 },
-                      { id: "premium", label: "Premium Too High", color: "#fca5a5", x: 10, y: 85 },
-                      { id: "value", label: "Poor Value Perception", color: "#fca5a5", x: 30, y: 85 },
-                      { id: "health", label: "Health & Wealth Mix", color: "#fde68a", x: 70, y: 85 },
-                      { id: "performance", label: "Fund Performance", color: "#fde68a", x: 90, y: 85 }
-                    ],
-                    connections: [
-                      { from: "learner", to: "cost" },
-                      { from: "learner", to: "investment" },
-                      { from: "cost", to: "premium" },
-                      { from: "cost", to: "value" },
-                      { from: "investment", to: "health" },
-                      { from: "investment", to: "performance" }
-                    ]
-                  }} />
+                  {moduleData?.confusion_analysis_url ? (
+                    <div className="space-y-4 animate-fade-in">
+                      <div className="text-center">
+                        <h3 className="text-xl font-bold text-foreground mb-2">Confusion Areas Analysis</h3>
+                        <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+                      </div>
+                      <Card className="animate-fade-in">
+                        <CardContent className="p-6">
+                          <img 
+                            src={moduleData.confusion_analysis_url} 
+                            alt="Confusion Areas Analysis"
+                            className="w-full h-auto rounded-lg"
+                          />
+                        </CardContent>
+                      </Card>
+                    </div>
+                  ) : (
+                    <InteractiveGraph data={{
+                      type: "network",
+                      title: "Key Objections Network Analysis",
+                      metrics: [
+                        { label: "Total Objections", value: 2, color: "#ef4444" },
+                        { label: "Top Concern", value: "Cost", color: "#f59e0b" },
+                        { label: "Impact Level", value: "High", color: "#3b82f6" }
+                      ],
+                      nodes: [
+                        { id: "learner", label: "LEARNER OBJECTIONS", color: "#8b5cf6", x: 50, y: 20 },
+                        { id: "cost", label: "COST OBJECTION", color: "#ef4444", x: 20, y: 60 },
+                        { id: "investment", label: "INVESTMENT ASPECT", color: "#f59e0b", x: 80, y: 60 }
+                      ],
+                      connections: [
+                        { from: "learner", to: "cost" },
+                        { from: "learner", to: "investment" }
+                      ]
+                    }} />
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="audio" className="mt-0">
