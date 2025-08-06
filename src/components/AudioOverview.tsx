@@ -1,66 +1,34 @@
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Play, Pause, Upload, Trash2, Volume2 } from 'lucide-react';
-import { useToast } from '@/hooks/use-toast';
-
-interface AudioFile {
-  id: string;
-  language: 'hindi' | 'english';
-  file: File;
-  url: string;
-  duration?: number;
-}
+import { Play, Pause, Volume2, Headphones } from 'lucide-react';
 
 export const AudioOverview: React.FC = () => {
-  const [audioFiles, setAudioFiles] = useState<AudioFile[]>([]);
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
   const [selectedLanguage, setSelectedLanguage] = useState<'hindi' | 'english'>('hindi');
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
-  const fileInputRef = useRef<HTMLInputElement>(null);
-  const { toast } = useToast();
 
-  const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
-    if (!file) return;
-
-    if (!file.type.startsWith('audio/')) {
-      toast({
-        title: "Invalid File",
-        description: "Please upload an audio file",
-        variant: "destructive"
-      });
-      return;
+  // Mock audio data - in real app this would come from admin uploads
+  const audioFiles = [
+    {
+      id: 'hindi-overview',
+      language: 'hindi' as const,
+      title: 'Hindi Overview',
+      description: 'Key objections analysis in Hindi',
+      duration: '2:45',
+      // Using a placeholder audio URL - replace with actual audio files
+      url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
+    },
+    {
+      id: 'english-overview',
+      language: 'english' as const,
+      title: 'English Overview',
+      description: 'Key objections analysis in English',
+      duration: '2:30',
+      // Using a placeholder audio URL - replace with actual audio files
+      url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
     }
-
-    const id = crypto.randomUUID();
-    const url = URL.createObjectURL(file);
-    
-    const newAudioFile: AudioFile = {
-      id,
-      language: selectedLanguage,
-      file,
-      url
-    };
-
-    setAudioFiles(prev => {
-      // Remove existing file for this language
-      const filtered = prev.filter(audio => audio.language !== selectedLanguage);
-      return [...filtered, newAudioFile];
-    });
-
-    toast({
-      title: "Audio Uploaded",
-      description: `${selectedLanguage} overview uploaded successfully`,
-    });
-
-    // Reset input
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
+  ];
 
   const togglePlayPause = (audioId: string) => {
     const audio = audioRefs.current[audioId];
@@ -77,136 +45,128 @@ export const AudioOverview: React.FC = () => {
     }
   };
 
-  const removeAudioFile = (audioId: string) => {
-    const audio = audioRefs.current[audioId];
-    if (audio) {
-      audio.pause();
-      URL.revokeObjectURL(audio.src);
-      delete audioRefs.current[audioId];
-    }
-    
-    setAudioFiles(prev => prev.filter(audio => audio.id !== audioId));
-    
-    if (currentPlaying === audioId) {
-      setCurrentPlaying(null);
-    }
-  };
-
   const getAudioForLanguage = (language: 'hindi' | 'english') => {
     return audioFiles.find(audio => audio.language === language);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Volume2 className="h-5 w-5" />
-          Audio Overview
-        </CardTitle>
-      </CardHeader>
-      <CardContent className="space-y-6">
-        {/* Language Selection & Upload */}
-        <div className="space-y-4">
-          <div>
-            <Label className="text-sm font-medium">Upload Audio Overview</Label>
-            <div className="flex gap-2 mt-2">
-              <Button 
-                variant={selectedLanguage === 'hindi' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setSelectedLanguage('hindi')}
-              >
-                Hindi
-              </Button>
-              <Button 
-                variant={selectedLanguage === 'english' ? 'default' : 'outline'} 
-                size="sm"
-                onClick={() => setSelectedLanguage('english')}
-              >
-                English
-              </Button>
-            </div>
-          </div>
+    <div className="space-y-4">
+      {/* Language Selection */}
+      <div className="flex gap-2 mb-4">
+        <Button 
+          variant={selectedLanguage === 'hindi' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setSelectedLanguage('hindi')}
+          className="flex-1"
+        >
+          <Volume2 className="h-4 w-4 mr-2" />
+          Hindi
+        </Button>
+        <Button 
+          variant={selectedLanguage === 'english' ? 'default' : 'outline'} 
+          size="sm"
+          onClick={() => setSelectedLanguage('english')}
+          className="flex-1"
+        >
+          <Headphones className="h-4 w-4 mr-2" />
+          English
+        </Button>
+      </div>
 
-          <div className="flex gap-2">
-            <Input
-              ref={fileInputRef}
-              type="file"
-              accept="audio/*"
-              onChange={handleFileUpload}
-              className="flex-1"
-            />
-            <Button
-              variant="outline"
-              onClick={() => fileInputRef.current?.click()}
-            >
-              <Upload className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
+      {/* Audio Player */}
+      {(() => {
+        const audio = getAudioForLanguage(selectedLanguage);
+        if (!audio) return null;
 
-        {/* Audio Players */}
-        <div className="space-y-4">
-          {(['hindi', 'english'] as const).map(language => {
-            const audio = getAudioForLanguage(language);
-            if (!audio) return null;
-
-            return (
-              <div key={language} className="border rounded-lg p-4 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h4 className="font-medium capitalize">{language} Overview</h4>
-                    <p className="text-sm text-muted-foreground">
-                      {audio.file.name}
-                    </p>
+        return (
+          <Card className="animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/40 rounded-xl flex items-center justify-center animate-scale-in">
+                    {currentPlaying === audio.id ? (
+                      <div className="w-6 h-6 rounded-full bg-primary animate-pulse" />
+                    ) : (
+                      <Volume2 className="h-6 w-6 text-primary" />
+                    )}
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => removeAudioFile(audio.id)}
-                  >
-                    <Trash2 className="h-4 w-4" />
-                  </Button>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => togglePlayPause(audio.id)}
-                  >
-                    {currentPlaying === audio.id ? (
-                      <Pause className="h-4 w-4" />
-                    ) : (
-                      <Play className="h-4 w-4" />
-                    )}
-                  </Button>
+                <div className="flex-1 min-w-0">
+                  <h4 className="font-semibold text-sm">{audio.title}</h4>
+                  <p className="text-xs text-muted-foreground mb-2">{audio.description}</p>
                   
-                  <audio
-                    ref={el => {
-                      if (el) audioRefs.current[audio.id] = el;
-                    }}
-                    src={audio.url}
-                    onEnded={() => setCurrentPlaying(null)}
-                    className="hidden"
-                  />
-                  
-                  <div className="flex-1 text-sm text-muted-foreground">
-                    Audio ready to play
+                  <div className="flex items-center space-x-3">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => togglePlayPause(audio.id)}
+                      className="hover-scale"
+                    >
+                      {currentPlaying === audio.id ? (
+                        <Pause className="h-4 w-4" />
+                      ) : (
+                        <Play className="h-4 w-4" />
+                      )}
+                    </Button>
+                    
+                    <div className="text-xs text-muted-foreground">
+                      Duration: {audio.duration}
+                    </div>
                   </div>
                 </div>
               </div>
-            );
-          })}
-        </div>
 
-        {audioFiles.length === 0 && (
-          <div className="text-center py-8 text-muted-foreground">
-            <Volume2 className="h-12 w-12 mx-auto mb-3 opacity-50" />
-            <p>No audio overviews uploaded yet</p>
-            <p className="text-sm">Upload Hindi and English audio files above</p>
+              {/* Audio Element */}
+              <audio
+                ref={el => {
+                  if (el) audioRefs.current[audio.id] = el;
+                }}
+                src={audio.url}
+                onEnded={() => setCurrentPlaying(null)}
+                className="hidden"
+              />
+
+              {/* Visual Waveform Placeholder */}
+              <div className="mt-4 flex items-center space-x-1 h-8">
+                {Array.from({ length: 30 }, (_, i) => (
+                  <div
+                    key={i}
+                    className={`w-1 bg-gradient-to-t from-primary/30 to-primary rounded-full transition-all duration-300 ${
+                      currentPlaying === audio.id ? 'animate-pulse' : ''
+                    }`}
+                    style={{
+                      height: `${Math.random() * 24 + 8}px`,
+                      animationDelay: `${i * 50}ms`
+                    }}
+                  />
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
+
+      {/* Key Points from Audio */}
+      <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <CardContent className="p-4">
+          <h4 className="font-semibold text-sm mb-3">📝 Audio Highlights</h4>
+          <div className="space-y-2 text-xs">
+            <div className="flex items-start space-x-2">
+              <div className="w-2 h-2 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
+              <p><strong>Cost Objection:</strong> "Premium is very high" - major barrier to conversion</p>
+            </div>
+            <div className="flex items-start space-x-2">
+              <div className="w-2 h-2 bg-orange-500 rounded-full mt-1.5 flex-shrink-0" />
+              <p><strong>Investment Clarity:</strong> Confusion about health and wealth combination needs addressing</p>
+            </div>
+            <div className="flex items-start space-x-2">
+              <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
+              <p><strong>Action Required:</strong> Immediate intervention needed for high-impact objections</p>
+            </div>
           </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 };

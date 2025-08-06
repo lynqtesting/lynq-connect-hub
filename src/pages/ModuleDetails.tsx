@@ -25,7 +25,6 @@ const ModuleDetails = () => {
   const [loading, setLoading] = useState(true);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [adaptModalOpen, setAdaptModalOpen] = useState(false);
-  const [generatedGraph, setGeneratedGraph] = useState<any>(null);
   const [activeTab, setActiveTab] = useState<'analysis' | 'audio'>('analysis');
 
   useEffect(() => {
@@ -259,9 +258,9 @@ const ModuleDetails = () => {
                     </PopoverTrigger>
                     <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
                       <div className="space-y-2">
-                        <p className="text-sm font-medium text-blue-900">Interactive Analysis</p>
+                        <p className="text-sm font-medium text-blue-900">Live Analysis</p>
                         <p className="text-xs text-blue-700">
-                          Upload graph screenshots to create interactive visualizations, or listen to audio overviews in Hindi and English.
+                          Real-time analysis of key objections and investment aspects from your lynq data.
                         </p>
                       </div>
                     </PopoverContent>
@@ -272,25 +271,37 @@ const ModuleDetails = () => {
 
               <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'analysis' | 'audio')}>
                 <TabsList className="grid w-full grid-cols-2 mb-4">
-                  <TabsTrigger value="analysis">Graph Analysis</TabsTrigger>
+                  <TabsTrigger value="analysis">Key Objections</TabsTrigger>
                   <TabsTrigger value="audio">Audio Overview</TabsTrigger>
                 </TabsList>
                 
                 <TabsContent value="analysis" className="space-y-4 mt-0">
-                  {!generatedGraph ? (
-                    <GraphAnalyzer onGraphGenerated={setGeneratedGraph} />
-                  ) : (
-                    <div className="space-y-4">
-                      <InteractiveGraph data={generatedGraph} />
-                      <Button
-                        variant="outline"
-                        onClick={() => setGeneratedGraph(null)}
-                        className="w-full"
-                      >
-                        Analyze New Graph
-                      </Button>
-                    </div>
-                  )}
+                  <InteractiveGraph data={{
+                    type: "network",
+                    title: "Key Objections Network Analysis",
+                    metrics: [
+                      { label: "Total Objections", value: 2, color: "#ef4444" },
+                      { label: "Top Concern", value: "Cost", color: "#f59e0b" },
+                      { label: "Impact Level", value: "High", color: "#3b82f6" }
+                    ],
+                    nodes: [
+                      { id: "learner", label: "LEARNER OBJECTIONS", color: "#8b5cf6", x: 50, y: 20 },
+                      { id: "cost", label: "COST OBJECTION", color: "#ef4444", x: 20, y: 60 },
+                      { id: "investment", label: "INVESTMENT ASPECT", color: "#f59e0b", x: 80, y: 60 },
+                      { id: "premium", label: "Premium Too High", color: "#fca5a5", x: 10, y: 85 },
+                      { id: "value", label: "Poor Value Perception", color: "#fca5a5", x: 30, y: 85 },
+                      { id: "health", label: "Health & Wealth Mix", color: "#fde68a", x: 70, y: 85 },
+                      { id: "performance", label: "Fund Performance", color: "#fde68a", x: 90, y: 85 }
+                    ],
+                    connections: [
+                      { from: "learner", to: "cost" },
+                      { from: "learner", to: "investment" },
+                      { from: "cost", to: "premium" },
+                      { from: "cost", to: "value" },
+                      { from: "investment", to: "health" },
+                      { from: "investment", to: "performance" }
+                    ]
+                  }} />
                 </TabsContent>
                 
                 <TabsContent value="audio" className="mt-0">
