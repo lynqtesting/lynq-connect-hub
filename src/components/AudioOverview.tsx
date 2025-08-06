@@ -1,34 +1,37 @@
 import React, { useState, useRef } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Play, Pause, Volume2, Headphones } from 'lucide-react';
+import { Badge } from '@/components/ui/badge';
+import { Play, Pause, Volume2 } from 'lucide-react';
 
-export const AudioOverview: React.FC = () => {
+interface AudioOverviewProps {
+  englishAudioUrl?: string;
+}
+
+export const AudioOverview: React.FC<AudioOverviewProps> = ({ englishAudioUrl }) => {
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
-  const [selectedLanguage, setSelectedLanguage] = useState<'hindi' | 'english'>('hindi');
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
-  // Mock audio data - in real app this would come from admin uploads
-  const audioFiles = [
-    {
-      id: 'hindi-overview',
-      language: 'hindi' as const,
-      title: 'Hindi Overview',
-      description: 'Key objections analysis in Hindi',
-      duration: '2:45',
-      // Using a placeholder audio URL - replace with actual audio files
-      url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
-    },
-    {
-      id: 'english-overview',
-      language: 'english' as const,
-      title: 'English Overview',
-      description: 'Key objections analysis in English',
-      duration: '2:30',
-      // Using a placeholder audio URL - replace with actual audio files
-      url: 'https://www.soundjay.com/misc/sounds/bell-ringing-05.wav'
+  // Audio data based on provided URL
+  const audioData = {
+    english: {
+      id: 'english-audio', 
+      title: 'Insurance Product Overview',
+      description: 'Comprehensive review of insurance products and key insights in English',
+      duration: '7:56',
+      url: englishAudioUrl || null
     }
-  ];
+  };
+
+  if (!englishAudioUrl) {
+    return (
+      <Card className="animate-fade-in">
+        <CardContent className="p-6 text-center">
+          <p className="text-muted-foreground">No audio overview available for this module.</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const togglePlayPause = (audioId: string) => {
     const audio = audioRefs.current[audioId];
@@ -45,46 +48,23 @@ export const AudioOverview: React.FC = () => {
     }
   };
 
-  const getAudioForLanguage = (language: 'hindi' | 'english') => {
-    return audioFiles.find(audio => audio.language === language);
+  const getAudioForLanguage = () => {
+    return audioData.english;
   };
 
   return (
-    <div className="space-y-4">
-      {/* Language Selection */}
-      <div className="flex gap-2 mb-4">
-        <Button 
-          variant={selectedLanguage === 'hindi' ? 'default' : 'outline'} 
-          size="sm"
-          onClick={() => setSelectedLanguage('hindi')}
-          className="flex-1"
-        >
-          <Volume2 className="h-4 w-4 mr-2" />
-          Hindi
-        </Button>
-        <Button 
-          variant={selectedLanguage === 'english' ? 'default' : 'outline'} 
-          size="sm"
-          onClick={() => setSelectedLanguage('english')}
-          className="flex-1"
-        >
-          <Headphones className="h-4 w-4 mr-2" />
-          English
-        </Button>
-      </div>
-
+    <div className="space-y-6 animate-fade-in">
       {/* Audio Player */}
       {(() => {
-        const audio = getAudioForLanguage(selectedLanguage);
-        if (!audio) return null;
+        const currentAudio = getAudioForLanguage();
 
         return (
           <Card className="animate-fade-in">
-            <CardContent className="p-4">
+            <CardContent className="p-6">
               <div className="flex items-center space-x-4">
                 <div className="flex-shrink-0">
                   <div className="w-16 h-16 bg-gradient-to-br from-primary/20 to-primary/40 rounded-xl flex items-center justify-center animate-scale-in">
-                    {currentPlaying === audio.id ? (
+                    {currentPlaying === currentAudio.id ? (
                       <div className="w-6 h-6 rounded-full bg-primary animate-pulse" />
                     ) : (
                       <Volume2 className="h-6 w-6 text-primary" />
@@ -93,17 +73,17 @@ export const AudioOverview: React.FC = () => {
                 </div>
 
                 <div className="flex-1 min-w-0">
-                  <h4 className="font-semibold text-sm">{audio.title}</h4>
-                  <p className="text-xs text-muted-foreground mb-2">{audio.description}</p>
+                  <h4 className="font-semibold text-sm">{currentAudio.title}</h4>
+                  <p className="text-xs text-muted-foreground mb-2">{currentAudio.description}</p>
                   
                   <div className="flex items-center space-x-3">
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => togglePlayPause(audio.id)}
+                      onClick={() => togglePlayPause(currentAudio.id)}
                       className="hover-scale"
                     >
-                      {currentPlaying === audio.id ? (
+                      {currentPlaying === currentAudio.id ? (
                         <Pause className="h-4 w-4" />
                       ) : (
                         <Play className="h-4 w-4" />
@@ -111,7 +91,7 @@ export const AudioOverview: React.FC = () => {
                     </Button>
                     
                     <div className="text-xs text-muted-foreground">
-                      Duration: {audio.duration}
+                      Duration: {currentAudio.duration}
                     </div>
                   </div>
                 </div>
@@ -120,9 +100,9 @@ export const AudioOverview: React.FC = () => {
               {/* Audio Element */}
               <audio
                 ref={el => {
-                  if (el) audioRefs.current[audio.id] = el;
+                  if (el) audioRefs.current[currentAudio.id] = el;
                 }}
-                src={audio.url}
+                src={currentAudio.url}
                 onEnded={() => setCurrentPlaying(null)}
                 className="hidden"
               />
@@ -133,7 +113,7 @@ export const AudioOverview: React.FC = () => {
                   <div
                     key={i}
                     className={`w-1 bg-gradient-to-t from-primary/30 to-primary rounded-full transition-all duration-300 ${
-                      currentPlaying === audio.id ? 'animate-pulse' : ''
+                      currentPlaying === currentAudio.id ? 'animate-pulse' : ''
                     }`}
                     style={{
                       height: `${Math.random() * 24 + 8}px`,
@@ -149,21 +129,49 @@ export const AudioOverview: React.FC = () => {
 
       {/* Key Points from Audio */}
       <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-        <CardContent className="p-4">
-          <h4 className="font-semibold text-sm mb-3">📝 Audio Highlights</h4>
-          <div className="space-y-2 text-xs">
-            <div className="flex items-start space-x-2">
-              <div className="w-2 h-2 bg-red-500 rounded-full mt-1.5 flex-shrink-0" />
-              <p><strong>Cost Objection:</strong> "Premium is very high" - major barrier to conversion</p>
-            </div>
-            <div className="flex items-start space-x-2">
-              <div className="w-2 h-2 bg-orange-500 rounded-full mt-1.5 flex-shrink-0" />
-              <p><strong>Investment Clarity:</strong> Confusion about health and wealth combination needs addressing</p>
-            </div>
-            <div className="flex items-start space-x-2">
-              <div className="w-2 h-2 bg-blue-500 rounded-full mt-1.5 flex-shrink-0" />
-              <p><strong>Action Required:</strong> Immediate intervention needed for high-impact objections</p>
-            </div>
+        <CardContent className="p-6">
+          <h4 className="font-semibold text-base flex items-center gap-2 mb-4">
+            🎯 Audio Highlights
+          </h4>
+          <div className="space-y-3">
+            <Badge 
+              variant="destructive" 
+              className="w-full justify-start p-4 text-left hover-scale"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-white rounded-full animate-pulse flex-shrink-0" />
+                <div>
+                  <div className="font-medium text-sm">Primary Cost Barrier</div>
+                  <div className="text-xs opacity-90 mt-1">"Premium is very high" - major barrier to conversion</div>
+                </div>
+              </div>
+            </Badge>
+            
+            <Badge 
+              variant="secondary" 
+              className="w-full justify-start p-4 text-left hover-scale"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-primary rounded-full animate-pulse flex-shrink-0" />
+                <div>
+                  <div className="font-medium text-sm">Investment Clarity Needed</div>
+                  <div className="text-xs opacity-90 mt-1">Confusion about "health and wealth" combo requires addressing</div>
+                </div>
+              </div>
+            </Badge>
+            
+            <Badge 
+              variant="outline" 
+              className="w-full justify-start p-4 text-left hover-scale"
+            >
+              <div className="flex items-center gap-3">
+                <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse flex-shrink-0" />
+                <div>
+                  <div className="font-medium text-sm">Performance Concerns</div>
+                  <div className="text-xs opacity-90 mt-1">Fund performance and ULIP component worries</div>
+                </div>
+              </div>
+            </Badge>
           </div>
         </CardContent>
       </Card>

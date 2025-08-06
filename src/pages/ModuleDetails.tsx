@@ -305,7 +305,7 @@ const ModuleDetails = () => {
                 </TabsContent>
                 
                 <TabsContent value="audio" className="mt-0">
-                  <AudioOverview />
+                  <AudioOverview englishAudioUrl={moduleData?.english_audio_url} />
                 </TabsContent>
               </Tabs>
             </CardContent>

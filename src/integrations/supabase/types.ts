@@ -17,11 +17,14 @@ export type Database = {
       modules: {
         Row: {
           category: string | null
+          confusion_analysis_url: string | null
           created_at: string
           description: string | null
+          english_audio_url: string | null
           english_video_url: string | null
           file_type: string | null
           file_url: string | null
+          followup_questions_url: string | null
           id: string
           module_link: string | null
           pdf_report_url: string | null
@@ -31,11 +34,14 @@ export type Database = {
         }
         Insert: {
           category?: string | null
+          confusion_analysis_url?: string | null
           created_at?: string
           description?: string | null
+          english_audio_url?: string | null
           english_video_url?: string | null
           file_type?: string | null
           file_url?: string | null
+          followup_questions_url?: string | null
           id?: string
           module_link?: string | null
           pdf_report_url?: string | null
@@ -45,11 +51,14 @@ export type Database = {
         }
         Update: {
           category?: string | null
+          confusion_analysis_url?: string | null
           created_at?: string
           description?: string | null
+          english_audio_url?: string | null
           english_video_url?: string | null
           file_type?: string | null
           file_url?: string | null
+          followup_questions_url?: string | null
           id?: string
           module_link?: string | null
           pdf_report_url?: string | null

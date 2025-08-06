@@ -24,6 +24,9 @@ const UploadModule = () => {
     file: null as File | null,
     screenshot: null as File | null,
     pdfReport: null as File | null,
+    englishAudio: null as File | null,
+    confusionAnalysis: null as File | null,
+    followupQuestions: null as File | null,
     category: 'Product'
   });
 
@@ -45,6 +48,27 @@ const UploadModule = () => {
     const file = e.target.files?.[0];
     if (file) {
       setFormData(prev => ({ ...prev, pdfReport: file }));
+    }
+  };
+
+  const handleEnglishAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, englishAudio: file }));
+    }
+  };
+
+  const handleConfusionAnalysisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, confusionAnalysis: file }));
+    }
+  };
+
+  const handleFollowupQuestionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      setFormData(prev => ({ ...prev, followupQuestions: file }));
     }
   };
 
@@ -126,6 +150,63 @@ const UploadModule = () => {
         pdfReportUrl = pdfPublicUrl;
       }
 
+      // Upload English audio if provided
+      let englishAudioUrl = null;
+      if (formData.englishAudio) {
+        const audioExt = formData.englishAudio.name.split('.').pop();
+        const audioFileName = `audio_${Date.now()}.${audioExt}`;
+        
+        const { error: audioUploadError } = await supabase.storage
+          .from('modules')
+          .upload(audioFileName, formData.englishAudio);
+
+        if (audioUploadError) throw audioUploadError;
+
+        const { data: { publicUrl: audioPublicUrl } } = supabase.storage
+          .from('modules')
+          .getPublicUrl(audioFileName);
+        
+        englishAudioUrl = audioPublicUrl;
+      }
+
+      // Upload confusion analysis screenshot if provided
+      let confusionAnalysisUrl = null;
+      if (formData.confusionAnalysis) {
+        const confusionExt = formData.confusionAnalysis.name.split('.').pop();
+        const confusionFileName = `confusion_${Date.now()}.${confusionExt}`;
+        
+        const { error: confusionUploadError } = await supabase.storage
+          .from('screenshots')
+          .upload(confusionFileName, formData.confusionAnalysis);
+
+        if (confusionUploadError) throw confusionUploadError;
+
+        const { data: { publicUrl: confusionPublicUrl } } = supabase.storage
+          .from('screenshots')
+          .getPublicUrl(confusionFileName);
+        
+        confusionAnalysisUrl = confusionPublicUrl;
+      }
+
+      // Upload follow-up questions screenshot if provided
+      let followupQuestionsUrl = null;
+      if (formData.followupQuestions) {
+        const followupExt = formData.followupQuestions.name.split('.').pop();
+        const followupFileName = `followup_${Date.now()}.${followupExt}`;
+        
+        const { error: followupUploadError } = await supabase.storage
+          .from('screenshots')
+          .upload(followupFileName, formData.followupQuestions);
+
+        if (followupUploadError) throw followupUploadError;
+
+        const { data: { publicUrl: followupPublicUrl } } = supabase.storage
+          .from('screenshots')
+          .getPublicUrl(followupFileName);
+        
+        followupQuestionsUrl = followupPublicUrl;
+      }
+
       // Create module record
       const { error: dbError } = await supabase
         .from('modules')
@@ -136,6 +217,9 @@ const UploadModule = () => {
           english_video_url: formData.englishYoutubeUrl || null,
           screenshot_url: screenshotUrl,
           pdf_report_url: pdfReportUrl,
+          english_audio_url: englishAudioUrl,
+          confusion_analysis_url: confusionAnalysisUrl,
+          followup_questions_url: followupQuestionsUrl,
           file_type: fileType,
           category: formData.category,
           module_link: formData.moduleLink || null
@@ -261,7 +345,46 @@ const UploadModule = () => {
               )}
 
               <div>
-                <Label htmlFor="screenshot">Live Data Insights</Label>
+                <Label htmlFor="englishAudio">English Audio Overview</Label>
+                <Input
+                  id="englishAudio"
+                  type="file"
+                  onChange={handleEnglishAudioChange}
+                  accept=".mp3,.wav,.m4a,.ogg"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload MP3 audio file for English overview
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="confusionAnalysis">Confusion Areas Analysis</Label>
+                <Input
+                  id="confusionAnalysis"
+                  type="file"
+                  onChange={handleConfusionAnalysisChange}
+                  accept="image/*"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload screenshot of confusion areas (bar chart, graph etc.)
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="followupQuestions">Follow-up Questions</Label>
+                <Input
+                  id="followupQuestions"
+                  type="file"
+                  onChange={handleFollowupQuestionsChange}
+                  accept="image/*"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Upload screenshot of follow-up questions for lynq adaptation
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="screenshot">Additional Data Insights (Optional)</Label>
                 <Input
                   id="screenshot"
                   type="file"

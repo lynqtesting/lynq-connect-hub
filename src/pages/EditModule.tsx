@@ -25,6 +25,9 @@ const EditModule = () => {
   
   const [screenshot, setScreenshot] = useState<File | null>(null);
   const [pdfReport, setPdfReport] = useState<File | null>(null);
+  const [englishAudio, setEnglishAudio] = useState<File | null>(null);
+  const [confusionAnalysis, setConfusionAnalysis] = useState<File | null>(null);
+  const [followupQuestions, setFollowupQuestions] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
   const [initialLoading, setInitialLoading] = useState(true);
 
@@ -83,6 +86,24 @@ const EditModule = () => {
     }
   };
 
+  const handleEnglishAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setEnglishAudio(e.target.files[0]);
+    }
+  };
+
+  const handleConfusionAnalysisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setConfusionAnalysis(e.target.files[0]);
+    }
+  };
+
+  const handleFollowupQuestionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFollowupQuestions(e.target.files[0]);
+    }
+  };
+
   const uploadFile = async (file: File, bucket: string, folder: string = '') => {
     const fileExt = file.name.split('.').pop();
     const fileName = `${Date.now()}.${fileExt}`;
@@ -108,6 +129,9 @@ const EditModule = () => {
     try {
       let screenshotUrl = null;
       let pdfReportUrl = null;
+      let englishAudioUrl = null;
+      let confusionAnalysisUrl = null;
+      let followupQuestionsUrl = null;
 
       // Upload new screenshot if provided
       if (screenshot) {
@@ -117,6 +141,21 @@ const EditModule = () => {
       // Upload new PDF report if provided
       if (pdfReport) {
         pdfReportUrl = await uploadFile(pdfReport, 'reports');
+      }
+
+      // Upload new English audio if provided
+      if (englishAudio) {
+        englishAudioUrl = await uploadFile(englishAudio, 'modules');
+      }
+
+      // Upload new confusion analysis if provided
+      if (confusionAnalysis) {
+        confusionAnalysisUrl = await uploadFile(confusionAnalysis, 'screenshots');
+      }
+
+      // Upload new follow-up questions if provided
+      if (followupQuestions) {
+        followupQuestionsUrl = await uploadFile(followupQuestions, 'screenshots');
       }
 
       // Update module data
@@ -135,6 +174,18 @@ const EditModule = () => {
 
       if (pdfReportUrl) {
         updateData.pdf_report_url = pdfReportUrl;
+      }
+
+      if (englishAudioUrl) {
+        updateData.english_audio_url = englishAudioUrl;
+      }
+
+      if (confusionAnalysisUrl) {
+        updateData.confusion_analysis_url = confusionAnalysisUrl;
+      }
+
+      if (followupQuestionsUrl) {
+        updateData.followup_questions_url = followupQuestionsUrl;
       }
 
       const { error } = await supabase
@@ -243,7 +294,49 @@ const EditModule = () => {
               </div>
 
               <div>
-                <Label htmlFor="screenshot">Update Live Data Insights (Optional)</Label>
+                <Label htmlFor="englishAudio">Update English Audio Overview (Optional)</Label>
+                <Input
+                  id="englishAudio"
+                  type="file"
+                  accept=".mp3,.wav,.m4a,.ogg"
+                  onChange={handleEnglishAudioChange}
+                  className="mt-1"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload a new MP3 audio file for English overview
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="confusionAnalysis">Update Confusion Areas Analysis (Optional)</Label>
+                <Input
+                  id="confusionAnalysis"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleConfusionAnalysisChange}
+                  className="mt-1"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload a new screenshot of confusion areas analysis
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="followupQuestions">Update Follow-up Questions (Optional)</Label>
+                <Input
+                  id="followupQuestions"
+                  type="file"
+                  accept="image/*"
+                  onChange={handleFollowupQuestionsChange}
+                  className="mt-1"
+                />
+                <p className="text-sm text-muted-foreground mt-1">
+                  Upload a new screenshot of follow-up questions
+                </p>
+              </div>
+
+              <div>
+                <Label htmlFor="screenshot">Update Additional Data Insights (Optional)</Label>
                 <Input
                   id="screenshot"
                   type="file"
@@ -252,7 +345,7 @@ const EditModule = () => {
                   className="mt-1"
                 />
                 <p className="text-sm text-muted-foreground mt-1">
-                  Upload a new screenshot to replace the current one
+                  Upload a new screenshot for additional insights
                 </p>
               </div>
 
