@@ -35,80 +35,77 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
       {/* Title with underline */}
       <div className="text-center">
         <h3 className="text-xl font-bold text-foreground mb-2">{data.title}</h3>
-        <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+        <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
       </div>
 
-      {/* Metrics Cards */}
-      <div className="grid grid-cols-3 gap-4">
-        {data.metrics.map((metric, index) => (
-          <Card 
-            key={index}
-            className="animate-scale-in hover-scale transition-all duration-300 bg-card border-border"
-            style={{ animationDelay: `${index * 150}ms` }}
-          >
-            <CardContent className="p-4 text-center">
-              <div 
-                className="text-3xl font-bold mb-2"
-                style={{ color: metric.color }}
-              >
-                {metric.value}
-              </div>
-              <div className="text-sm text-muted-foreground font-medium">
-                {metric.label}
-              </div>
-              {metric.label === "Total Objections" && (
-                <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
-              )}
-            </CardContent>
-          </Card>
-        ))}
-      </div>
-
-      {/* Bar Chart */}
-      <Card className="animate-fade-in" style={{ animationDelay: '500ms' }}>
-        <CardContent className="p-10">
-          <div className="space-y-8">
-            <h4 className="text-2xl font-bold text-center text-foreground">Objection Frequency Analysis</h4>
+      {/* Chart Container */}
+      <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            <div className="text-center">
+              <h4 className="text-lg font-semibold text-muted-foreground mb-6">Objection Frequency Analysis</h4>
+            </div>
             
-            <div className="space-y-8">
-              {data.metrics.map((metric, index) => {
-                const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
-                const percentage = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
-                
-                return (
-                  <div key={index} className="space-y-4">
-                    <div className="flex justify-between items-center">
-                      <span className="text-lg font-semibold text-foreground">{metric.label}</span>
-                      <span className="text-xl font-bold px-4 py-2 rounded-lg" 
-                            style={{ 
-                              color: metric.color,
-                              backgroundColor: `${metric.color}20`
-                            }}>
-                        {metric.value}
-                      </span>
-                    </div>
-                    <div className="relative h-16 bg-muted/30 rounded-2xl overflow-hidden shadow-inner">
-                      <div
-                        className="h-full rounded-2xl transition-all duration-2000 ease-out animate-scale-in shadow-lg"
-                        style={{
-                          backgroundColor: metric.color,
-                          width: `${percentage}%`,
-                          animationDelay: `${800 + (index * 300)}ms`,
-                          backgroundImage: `linear-gradient(45deg, rgba(255,255,255,0.2) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.2) 50%, rgba(255,255,255,0.2) 75%, transparent 75%, transparent)`,
-                          backgroundSize: '20px 20px'
+            {/* Bar Chart */}
+            <div className="relative">
+              <div className="flex items-end justify-between h-80 bg-muted/20 rounded-lg p-6">
+                {data.metrics.map((metric, index) => {
+                  const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
+                  const height = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center flex-1 mx-2">
+                      {/* Value Label on Top */}
+                      <div 
+                        className="text-sm font-bold mb-2 opacity-0 animate-fade-in"
+                        style={{ 
+                          color: metric.color,
+                          animationDelay: `${1000 + (index * 200)}ms`,
+                          animationFillMode: 'forwards'
                         }}
                       >
-                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent animate-pulse"></div>
+                        {metric.value}
                       </div>
-                      <div className="absolute inset-0 flex items-center justify-center">
-                        <span className="text-lg font-bold text-foreground drop-shadow-sm">
-                          {percentage.toFixed(0)}%
-                        </span>
+                      
+                      {/* Bar */}
+                      <div 
+                        className="w-full bg-gradient-to-t rounded-t-lg transition-all duration-1000 ease-out"
+                        style={{
+                          backgroundColor: metric.color,
+                          height: `${height}%`,
+                          backgroundImage: `linear-gradient(to top, ${metric.color}, ${metric.color}dd)`,
+                          transform: 'scaleY(0)',
+                          transformOrigin: 'bottom',
+                          animation: 'scaleY 1s ease-out forwards',
+                          animationDelay: `${600 + (index * 200)}ms`
+                        }}
+                      />
+                      
+                      {/* Label at Bottom */}
+                      <div className="text-xs font-medium text-center mt-3 px-1 leading-tight text-muted-foreground">
+                        {metric.label}
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+              
+              {/* Y-Axis Labels */}
+              <div className="absolute left-0 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
+                <span>70</span>
+                <span>60</span>
+                <span>50</span>
+                <span>40</span>
+                <span>30</span>
+                <span>20</span>
+                <span>10</span>
+                <span>0</span>
+              </div>
+              
+              {/* X-Axis Label */}
+              <div className="text-center mt-4">
+                <span className="text-sm font-medium text-muted-foreground">Objection Types</span>
+              </div>
             </div>
           </div>
         </CardContent>

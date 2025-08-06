@@ -190,4 +190,13 @@ All colors MUST be HSL.
       transform: translateY(10px);
     }
   }
+
+  @keyframes scaleY {
+    from {
+      transform: scaleY(0);
+    }
+    to {
+      transform: scaleY(1);
+    }
+  }
 }

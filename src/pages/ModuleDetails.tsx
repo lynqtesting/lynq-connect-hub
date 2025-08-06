@@ -294,21 +294,15 @@ const ModuleDetails = () => {
                     </div>
                   ) : (
                     <InteractiveGraph data={{
-                      type: "network",
-                      title: "Key Objections Network Analysis",
+                      type: "bar",
+                      title: "Confusion Areas Analysis",
                       metrics: [
-                        { label: "Total Objections", value: 2, color: "#ef4444" },
-                        { label: "Top Concern", value: "Cost", color: "#f59e0b" },
-                        { label: "Impact Level", value: "High", color: "#3b82f6" }
-                      ],
-                      nodes: [
-                        { id: "learner", label: "LEARNER OBJECTIONS", color: "#8b5cf6", x: 50, y: 20 },
-                        { id: "cost", label: "COST OBJECTION", color: "#ef4444", x: 20, y: 60 },
-                        { id: "investment", label: "INVESTMENT ASPECT", color: "#f59e0b", x: 80, y: 60 }
-                      ],
-                      connections: [
-                        { from: "learner", to: "cost" },
-                        { from: "learner", to: "investment" }
+                        { label: "Cost Objection", value: 65, color: "#ef4444" },
+                        { label: "Investment Confusion", value: 35, color: "#f59e0b" },
+                        { label: "Premium Too High", value: 45, color: "#f87171" },
+                        { label: "Poor Value Perception", value: 38, color: "#fca5a5" },
+                        { label: "Health & Wealth Mix", value: 28, color: "#fde68a" },
+                        { label: "Fund Performance", value: 22, color: "#fbbf24" }
                       ]
                     }} />
                   )}
@@ -318,6 +312,25 @@ const ModuleDetails = () => {
                   <AudioOverview englishAudioUrl={moduleData?.english_audio_url} />
                 </TabsContent>
               </Tabs>
+
+              {/* Follow-up Questions Section */}
+              {moduleData?.followup_questions_url && (
+                <div className="mt-8 space-y-4 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                  <div className="text-center">
+                    <h3 className="text-xl font-bold text-foreground mb-2">Follow-up Questions to Tweak Lynqs</h3>
+                    <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
+                  </div>
+                  <Card className="animate-fade-in">
+                    <CardContent className="p-6">
+                      <img 
+                        src={moduleData.followup_questions_url} 
+                        alt="Follow-up Questions to Tweak Lynqs"
+                        className="w-full h-auto rounded-lg"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              )}
             </CardContent>
           </Card>
 
