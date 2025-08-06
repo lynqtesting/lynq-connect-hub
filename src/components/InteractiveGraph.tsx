@@ -64,91 +64,50 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
         ))}
       </div>
 
-      {/* Network Graph */}
-      {data.nodes && (
-        <Card className="animate-fade-in" style={{ animationDelay: '500ms' }}>
-          <CardContent className="p-6">
-            <div className="relative bg-muted/20 rounded-xl p-8 h-96">
-              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
-                <defs>
-                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
-                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3"/>
-                  </filter>
-                  <filter id="glow">
-                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
-                    <feMerge> 
-                      <feMergeNode in="coloredBlur"/>
-                      <feMergeNode in="SourceGraphic"/>
-                    </feMerge>
-                  </filter>
-                </defs>
+      {/* Bar Chart */}
+      <Card className="animate-fade-in" style={{ animationDelay: '500ms' }}>
+        <CardContent className="p-8">
+          <div className="space-y-6">
+            <h4 className="text-lg font-semibold text-center text-foreground">Objection Analysis</h4>
+            
+            <div className="space-y-4">
+              {data.metrics.map((metric, index) => {
+                const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
+                const percentage = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
                 
-                {/* Connections */}
-                {data.connections?.map((connection, index) => {
-                  const fromNode = data.nodes?.find(n => n.id === connection.from);
-                  const toNode = data.nodes?.find(n => n.id === connection.to);
-                  if (!fromNode || !toNode) return null;
-                  
-                  return (
-                    <line
-                      key={index}
-                      x1={fromNode.x}
-                      y1={fromNode.y}
-                      x2={toNode.x}
-                      y2={toNode.y}
-                      stroke="#94a3b8"
-                      strokeWidth="2"
-                      opacity="0.6"
-                      className="animate-fade-in"
-                      style={{ animationDelay: `${700 + (index * 100)}ms` }}
-                    />
-                  );
-                })}
-                
-                {/* Node backgrounds (glow effect) */}
-                {data.nodes.map((node, index) => (
-                  <circle
-                    key={`bg-${node.id}`}
-                    cx={node.x}
-                    cy={node.y}
-                    r="12"
-                    fill={node.color}
-                    opacity="0.3"
-                    className="animate-scale-in"
-                    style={{ animationDelay: `${900 + (index * 100)}ms` }}
-                  />
-                ))}
-                
-                {/* Main Nodes */}
-                {data.nodes.map((node, index) => (
-                  <g key={node.id} className="cursor-pointer group">
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r="8"
-                      fill={node.color}
-                      filter="url(#shadow)"
-                      className="animate-scale-in group-hover:scale-110 transition-transform duration-200"
-                      style={{ animationDelay: `${1000 + (index * 100)}ms` }}
-                    />
-                    <text
-                      x={node.x}
-                      y={node.y + 18}
-                      textAnchor="middle"
-                      fontSize="3"
-                      fill="currentColor"
-                      className="font-semibold animate-fade-in pointer-events-none"
-                      style={{ animationDelay: `${1200 + (index * 100)}ms` }}
-                    >
-                      {node.label}
-                    </text>
-                  </g>
-                ))}
-              </svg>
+                return (
+                  <div key={index} className="space-y-2">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium text-foreground">{metric.label}</span>
+                      <span className="text-sm font-bold" style={{ color: metric.color }}>
+                        {metric.value}
+                      </span>
+                    </div>
+                    <div className="relative h-8 bg-muted rounded-full overflow-hidden">
+                      <div
+                        className="h-full rounded-full transition-all duration-1000 ease-out animate-scale-in"
+                        style={{
+                          backgroundColor: metric.color,
+                          width: `${percentage}%`,
+                          animationDelay: `${800 + (index * 200)}ms`,
+                          backgroundImage: `linear-gradient(45deg, rgba(255,255,255,0.1) 25%, transparent 25%, transparent 50%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0.1) 75%, transparent 75%, transparent)`
+                        }}
+                      >
+                        <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent animate-pulse"></div>
+                      </div>
+                      <div className="absolute inset-0 flex items-center justify-center">
+                        <span className="text-xs font-semibold text-foreground/80 mix-blend-multiply">
+                          {percentage.toFixed(0)}%
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
-          </CardContent>
-        </Card>
-      )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Key Insights */}
       <div className="space-y-3 animate-fade-in" style={{ animationDelay: '1400ms' }}>
