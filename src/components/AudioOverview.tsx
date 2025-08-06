@@ -1,8 +1,9 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Play, Pause, Volume2 } from 'lucide-react';
+import { Slider } from '@/components/ui/slider';
+import { Play, Pause, Volume2, SkipBack, SkipForward } from 'lucide-react';
 
 interface AudioOverviewProps {
   englishAudioUrl?: string;
@@ -10,6 +11,9 @@ interface AudioOverviewProps {
 
 export const AudioOverview: React.FC<AudioOverviewProps> = ({ englishAudioUrl }) => {
   const [currentPlaying, setCurrentPlaying] = useState<string | null>(null);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const audioRefs = useRef<{ [key: string]: HTMLAudioElement }>({});
 
   // Audio data based on provided URL
@@ -33,19 +37,52 @@ export const AudioOverview: React.FC<AudioOverviewProps> = ({ englishAudioUrl })
     );
   }
 
+  const formatTime = (timeInSeconds: number) => {
+    const minutes = Math.floor(timeInSeconds / 60);
+    const seconds = Math.floor(timeInSeconds % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
+
   const togglePlayPause = (audioId: string) => {
     const audio = audioRefs.current[audioId];
     if (!audio) return;
 
+    setIsLoading(true);
+    
     if (currentPlaying === audioId) {
       audio.pause();
       setCurrentPlaying(null);
     } else {
       // Pause any currently playing audio
       Object.values(audioRefs.current).forEach(a => a.pause());
-      audio.play();
-      setCurrentPlaying(audioId);
+      audio.play().then(() => {
+        setCurrentPlaying(audioId);
+        setIsLoading(false);
+      }).catch(() => {
+        setIsLoading(false);
+      });
     }
+  };
+
+  const handleSeek = (value: number[]) => {
+    const audio = audioRefs.current['english-audio'];
+    if (!audio || !duration) return;
+    
+    const newTime = (value[0] / 100) * duration;
+    audio.currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const skipForward = () => {
+    const audio = audioRefs.current['english-audio'];
+    if (!audio) return;
+    audio.currentTime = Math.min(audio.currentTime + 10, duration);
+  };
+
+  const skipBackward = () => {
+    const audio = audioRefs.current['english-audio'];
+    if (!audio) return;
+    audio.currentTime = Math.max(audio.currentTime - 10, 0);
   };
 
   const getAudioForLanguage = () => {
@@ -74,54 +111,123 @@ export const AudioOverview: React.FC<AudioOverviewProps> = ({ englishAudioUrl })
 
                 <div className="flex-1 min-w-0">
                   <h4 className="font-semibold text-sm">{currentAudio.title}</h4>
-                  <p className="text-xs text-muted-foreground mb-2">{currentAudio.description}</p>
-                  
-                  <div className="flex items-center space-x-3">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => togglePlayPause(currentAudio.id)}
-                      className="hover-scale"
-                    >
-                      {currentPlaying === currentAudio.id ? (
-                        <Pause className="h-4 w-4" />
-                      ) : (
-                        <Play className="h-4 w-4" />
-                      )}
-                    </Button>
-                    
-                    <div className="text-xs text-muted-foreground">
-                      Duration: {currentAudio.duration}
-                    </div>
-                  </div>
+                  <p className="text-xs text-muted-foreground mb-4">{currentAudio.description}</p>
+                </div>
+              </div>
+                   
+              {/* Audio Controls */}
+              <div className="flex items-center justify-center space-x-4 mb-4">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={skipBackward}
+                  disabled={!currentPlaying}
+                  className="hover-scale"
+                >
+                  <SkipBack className="h-4 w-4" />
+                </Button>
+                
+                <Button
+                  variant="default"
+                  size="lg"
+                  onClick={() => togglePlayPause(currentAudio.id)}
+                  disabled={isLoading}
+                  className="hover-scale rounded-full w-12 h-12"
+                >
+                  {isLoading ? (
+                    <div className="w-4 h-4 border-2 border-primary-foreground border-t-transparent rounded-full animate-spin" />
+                  ) : currentPlaying === currentAudio.id ? (
+                    <Pause className="h-5 w-5" />
+                  ) : (
+                    <Play className="h-5 w-5 ml-0.5" />
+                  )}
+                </Button>
+
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={skipForward}
+                  disabled={!currentPlaying}
+                  className="hover-scale"
+                >
+                  <SkipForward className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Progress Bar */}
+              <div className="space-y-2">
+                <Slider
+                  value={[duration > 0 ? (currentTime / duration) * 100 : 0]}
+                  onValueChange={handleSeek}
+                  max={100}
+                  step={0.1}
+                  className="w-full"
+                  disabled={!duration}
+                />
+                
+                <div className="flex justify-between text-xs text-muted-foreground">
+                  <span>{formatTime(currentTime)}</span>
+                  <span>{formatTime(duration)}</span>
                 </div>
               </div>
 
-              {/* Audio Element */}
-              <audio
-                ref={el => {
-                  if (el) audioRefs.current[currentAudio.id] = el;
-                }}
-                src={currentAudio.url}
-                onEnded={() => setCurrentPlaying(null)}
-                className="hidden"
-              />
+            {/* Audio Element */}
+            <audio
+              ref={el => {
+                if (el) {
+                  audioRefs.current[currentAudio.id] = el;
+                  
+                  // Set up event listeners
+                  el.onloadedmetadata = () => {
+                    setDuration(el.duration);
+                  };
+                  
+                  el.ontimeupdate = () => {
+                    setCurrentTime(el.currentTime);
+                  };
+                  
+                  el.onended = () => {
+                    setCurrentPlaying(null);
+                    setCurrentTime(0);
+                  };
+                  
+                  el.onpause = () => {
+                    if (currentPlaying === currentAudio.id) {
+                      setCurrentPlaying(null);
+                    }
+                  };
+                }
+              }}
+              src={currentAudio.url}
+              className="hidden"
+              preload="metadata"
+            />
 
-              {/* Visual Waveform Placeholder */}
-              <div className="mt-4 flex items-center space-x-1 h-8">
-                {Array.from({ length: 30 }, (_, i) => (
+            {/* Visual Waveform */}
+            <div className="mt-6 flex items-center space-x-1 h-8 bg-muted/20 rounded-lg p-2">
+              {Array.from({ length: 40 }, (_, i) => {
+                const progress = duration > 0 ? currentTime / duration : 0;
+                const barProgress = i / 40;
+                const isActive = barProgress <= progress;
+                
+                return (
                   <div
                     key={i}
-                    className={`w-1 bg-gradient-to-t from-primary/30 to-primary rounded-full transition-all duration-300 ${
-                      currentPlaying === currentAudio.id ? 'animate-pulse' : ''
+                    className={`w-1 rounded-full transition-all duration-300 ${
+                      isActive 
+                        ? 'bg-primary' 
+                        : currentPlaying === currentAudio.id 
+                          ? 'bg-primary/30 animate-pulse' 
+                          : 'bg-muted-foreground/20'
                     }`}
                     style={{
-                      height: `${Math.random() * 24 + 8}px`,
+                      height: `${Math.random() * 20 + 8}px`,
                       animationDelay: `${i * 50}ms`
                     }}
                   />
-                ))}
-              </div>
+                );
+              })}
+            </div>
             </CardContent>
           </Card>
         );
