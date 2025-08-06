@@ -4,12 +4,16 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import Logo from "@/components/Logo";
 import RequestLynqModal from "@/components/RequestLynqModal";
 import AdaptLynqModal from "@/components/AdaptLynqModal";
 import { DataDashboard } from "@/components/DataDashboard";
+import { GraphAnalyzer } from "@/components/GraphAnalyzer";
+import { InteractiveGraph } from "@/components/InteractiveGraph";
+import { AudioOverview } from "@/components/AudioOverview";
 import { useNavigate, useParams } from 'react-router-dom';
-import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Maximize2, Info, ExternalLink } from 'lucide-react';
+import { ArrowLeft, Download, MessageSquare, Edit, Calendar, Info, ExternalLink, BarChart3 } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -19,10 +23,10 @@ const ModuleDetails = () => {
   const { toast } = useToast();
   const [moduleData, setModuleData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
-  const [videoModalOpen, setVideoModalOpen] = useState(false);
   const [requestModalOpen, setRequestModalOpen] = useState(false);
   const [adaptModalOpen, setAdaptModalOpen] = useState(false);
-  const [selectedLanguage, setSelectedLanguage] = useState<'hindi' | 'english'>('hindi');
+  const [generatedGraph, setGeneratedGraph] = useState<any>(null);
+  const [activeTab, setActiveTab] = useState<'analysis' | 'audio'>('analysis');
 
   useEffect(() => {
     fetchModuleData();
@@ -52,25 +56,6 @@ const ModuleDetails = () => {
     }
   };
 
-  const getYouTubeEmbedUrl = (url: string) => {
-    if (!url) return '';
-    
-    console.log('Processing YouTube URL:', url); // Debug log
-    
-    // Handle different YouTube URL formats
-    const videoId = url.match(/(?:youtube\.com\/watch\?v=|youtu\.be\/|youtube\.com\/embed\/)([^&\n?#]+)/)?.[1];
-    const embedUrl = videoId ? `https://www.youtube.com/embed/${videoId}` : '';
-    
-    console.log('Generated embed URL:', embedUrl); // Debug log
-    return embedUrl;
-  };
-
-  const getCurrentVideoUrl = () => {
-    if (selectedLanguage === 'english' && moduleData?.english_video_url) {
-      return moduleData.english_video_url;
-    }
-    return moduleData?.file_url || '';
-  };
 
   if (loading) {
     return (
@@ -260,85 +245,58 @@ const ModuleDetails = () => {
             </CardContent>
           </Card>
 
-          {/* Video Player Section - Compact */}
+          {/* Interactive Analysis Section */}
           <Card>
             <CardContent className="p-4">
-              <div className="flex items-center justify-between mb-3">
+              <div className="flex items-center justify-between mb-4">
                 <div className="flex items-center gap-2">
-                  <h3 className="font-semibold">LIVE DATA</h3>
-                   <Popover>
-                     <PopoverTrigger asChild>
-                       <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
-                         <Info className="h-4 w-4 text-blue-500" />
-                       </Button>
-                     </PopoverTrigger>
-                     <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
-                       <div className="space-y-2">
-                         <p className="text-sm font-medium text-blue-900">Live Data</p>
-                         <p className="text-xs text-blue-700">
-                           This is the data being deduced qualitatively from the data that is being tracked in real time via the lynqs.
-                         </p>
-                       </div>
-                     </PopoverContent>
-                   </Popover>
+                  <h3 className="font-semibold">LIVE DATA ANALYSIS</h3>
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button variant="ghost" size="sm" className="p-1 h-6 w-6 touch-manipulation">
+                        <Info className="h-4 w-4 text-blue-500" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent side="top" className="w-64 bg-blue-50 border-blue-200 z-50">
+                      <div className="space-y-2">
+                        <p className="text-sm font-medium text-blue-900">Interactive Analysis</p>
+                        <p className="text-xs text-blue-700">
+                          Upload graph screenshots to create interactive visualizations, or listen to audio overviews in Hindi and English.
+                        </p>
+                      </div>
+                    </PopoverContent>
+                  </Popover>
                 </div>
-                {getCurrentVideoUrl() && getYouTubeEmbedUrl(getCurrentVideoUrl()) && (
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setVideoModalOpen(true)}
-                    className="p-1 h-8 w-8"
-                  >
-                    <Maximize2 className="h-4 w-4" />
-                  </Button>
-                )}
+                <BarChart3 className="h-5 w-5 text-primary" />
               </div>
-              {getCurrentVideoUrl() ? (
-                (() => {
-                  const embedUrl = getYouTubeEmbedUrl(getCurrentVideoUrl());
-                  console.log('Rendering video with URL:', embedUrl); // Debug log
-                  
-                  return embedUrl ? (
-                    <div 
-                      className="aspect-video rounded-md overflow-hidden cursor-pointer hover:opacity-90 transition-opacity"
-                      onClick={() => setVideoModalOpen(true)}
-                    >
-                      <iframe
-                        src={embedUrl}
-                        title="LIVE DATA"
-                        className="w-full h-full"
-                        allowFullScreen
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                      />
-                    </div>
+
+              <Tabs value={activeTab} onValueChange={(value) => setActiveTab(value as 'analysis' | 'audio')}>
+                <TabsList className="grid w-full grid-cols-2 mb-4">
+                  <TabsTrigger value="analysis">Graph Analysis</TabsTrigger>
+                  <TabsTrigger value="audio">Audio Overview</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="analysis" className="space-y-4 mt-0">
+                  {!generatedGraph ? (
+                    <GraphAnalyzer onGraphGenerated={setGeneratedGraph} />
                   ) : (
-                    <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                      <p className="text-muted-foreground">Invalid video URL format</p>
+                    <div className="space-y-4">
+                      <InteractiveGraph data={generatedGraph} />
+                      <Button
+                        variant="outline"
+                        onClick={() => setGeneratedGraph(null)}
+                        className="w-full"
+                      >
+                        Analyze New Graph
+                      </Button>
                     </div>
-                  );
-                })()
-              ) : (
-                <div className="bg-muted aspect-video rounded-md flex items-center justify-center">
-                  <p className="text-muted-foreground">No video available</p>
-                </div>
-              )}
-              <div className="flex gap-2 mt-3">
-                <Button 
-                  variant={selectedLanguage === 'hindi' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setSelectedLanguage('hindi')}
-                >
-                  Hindi
-                </Button>
-                <Button 
-                  variant={selectedLanguage === 'english' ? 'default' : 'outline'} 
-                  size="sm"
-                  onClick={() => setSelectedLanguage('english')}
-                  disabled={!moduleData?.english_video_url}
-                >
-                  English
-                </Button>
-              </div>
+                  )}
+                </TabsContent>
+                
+                <TabsContent value="audio" className="mt-0">
+                  <AudioOverview />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
 
@@ -346,27 +304,6 @@ const ModuleDetails = () => {
           <DataDashboard />
         </div>
 
-        {/* Video Modal */}
-        <Dialog open={videoModalOpen} onOpenChange={setVideoModalOpen}>
-          <DialogContent className="max-w-4xl w-[95vw] max-h-[90vh] p-0">
-            <DialogHeader className="p-4 pb-2">
-              <DialogTitle>Lynq: {moduleData?.title}</DialogTitle>
-            </DialogHeader>
-            <div className="px-4 pb-4">
-              {getCurrentVideoUrl() && (
-                <div className="aspect-video rounded-md overflow-hidden">
-                  <iframe
-                    src={getYouTubeEmbedUrl(getCurrentVideoUrl())}
-                    title="LIVE DATA - Full Size"
-                    className="w-full h-full"
-                    allowFullScreen
-                    allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                  />
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
 
         {/* Request New Lynq Modal */}
         <RequestLynqModal 
