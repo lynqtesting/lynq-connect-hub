@@ -1,5 +1,5 @@
 import React from 'react';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 
 interface GraphData {
@@ -31,69 +31,59 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
   if (!data) return null;
 
   return (
-    <div className="space-y-4">
-      {/* Enhanced Header */}
-      <div className="text-center pb-2">
-        <h3 className="text-xl font-bold animate-fade-in">{data.title}</h3>
-        <div className="h-1 w-20 bg-gradient-to-r from-primary to-primary/50 mx-auto mt-2 rounded-full animate-scale-in" 
-             style={{ animationDelay: '200ms' }} />
+    <div className="space-y-6 animate-fade-in">
+      {/* Title with underline */}
+      <div className="text-center">
+        <h3 className="text-xl font-bold text-foreground mb-2">{data.title}</h3>
+        <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
       </div>
 
-      {/* Enhanced Metrics with Pulse Animation */}
-      <div className="grid grid-cols-3 gap-3">
+      {/* Metrics Cards */}
+      <div className="grid grid-cols-3 gap-4">
         {data.metrics.map((metric, index) => (
           <Card 
             key={index}
-            className="relative overflow-hidden animate-scale-in hover-scale transition-all duration-300"
+            className="animate-scale-in hover-scale transition-all duration-300 bg-card border-border"
             style={{ animationDelay: `${index * 150}ms` }}
           >
-            <CardContent className="p-3 text-center relative">
-              <div className="absolute inset-0 bg-gradient-to-br from-transparent to-black/5 rounded-lg" />
+            <CardContent className="p-4 text-center">
               <div 
-                className="text-2xl font-bold mb-1 animate-fade-in" 
-                style={{ 
-                  color: metric.color,
-                  animationDelay: `${(index * 150) + 300}ms`,
-                  textShadow: '0 2px 4px rgba(0,0,0,0.1)'
-                }}
+                className="text-3xl font-bold mb-2"
+                style={{ color: metric.color }}
               >
                 {metric.value}
               </div>
-              <div className="text-xs text-muted-foreground font-medium leading-tight">
+              <div className="text-sm text-muted-foreground font-medium">
                 {metric.label}
               </div>
-              {index === 0 && (
-                <div className="absolute top-1 right-1">
-                  <div className="w-2 h-2 bg-red-500 rounded-full animate-pulse" />
-                </div>
+              {metric.label === "Total Objections" && (
+                <div className="absolute top-2 right-2 w-2 h-2 bg-red-500 rounded-full animate-pulse"></div>
               )}
             </CardContent>
           </Card>
         ))}
       </div>
 
-      {/* Enhanced Network Graph with Better Animations */}
+      {/* Network Graph */}
       {data.nodes && (
         <Card className="animate-fade-in" style={{ animationDelay: '500ms' }}>
-          <CardContent className="p-4">
-            <div className="relative bg-gradient-to-br from-muted/30 to-muted/60 rounded-xl p-6 h-80 overflow-hidden">
-              <svg className="w-full h-full" viewBox="0 0 100 100">
+          <CardContent className="p-6">
+            <div className="relative bg-muted/20 rounded-xl p-8 h-96">
+              <svg className="w-full h-full" viewBox="0 0 100 100" preserveAspectRatio="xMidYMid meet">
                 <defs>
+                  <filter id="shadow" x="-50%" y="-50%" width="200%" height="200%">
+                    <feDropShadow dx="0" dy="2" stdDeviation="3" floodOpacity="0.3"/>
+                  </filter>
                   <filter id="glow">
-                    <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+                    <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
                     <feMerge> 
                       <feMergeNode in="coloredBlur"/>
                       <feMergeNode in="SourceGraphic"/>
                     </feMerge>
                   </filter>
-                  <linearGradient id="connectionGradient" x1="0%" y1="0%" x2="100%" y2="0%">
-                    <stop offset="0%" stopColor="#94a3b8" stopOpacity="0.3"/>
-                    <stop offset="50%" stopColor="#64748b" stopOpacity="0.6"/>
-                    <stop offset="100%" stopColor="#94a3b8" stopOpacity="0.3"/>
-                  </linearGradient>
                 </defs>
                 
-                {/* Enhanced Connections with Gradient */}
+                {/* Connections */}
                 {data.connections?.map((connection, index) => {
                   const fromNode = data.nodes?.find(n => n.id === connection.from);
                   const toNode = data.nodes?.find(n => n.id === connection.to);
@@ -106,54 +96,49 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                       y1={fromNode.y}
                       x2={toNode.x}
                       y2={toNode.y}
-                      stroke="url(#connectionGradient)"
-                      strokeWidth="1"
+                      stroke="#94a3b8"
+                      strokeWidth="2"
+                      opacity="0.6"
                       className="animate-fade-in"
-                      style={{ 
-                        animationDelay: `${600 + (index * 200)}ms`,
-                        strokeDasharray: '100',
-                        strokeDashoffset: '100',
-                        animation: `fadeIn 0.3s ease-out ${600 + (index * 200)}ms forwards, drawLine 1s ease-out ${800 + (index * 200)}ms forwards`
-                      }}
+                      style={{ animationDelay: `${700 + (index * 100)}ms` }}
                     />
                   );
                 })}
                 
-                {/* Enhanced Nodes with Glow Effect */}
+                {/* Node backgrounds (glow effect) */}
+                {data.nodes.map((node, index) => (
+                  <circle
+                    key={`bg-${node.id}`}
+                    cx={node.x}
+                    cy={node.y}
+                    r="12"
+                    fill={node.color}
+                    opacity="0.3"
+                    className="animate-scale-in"
+                    style={{ animationDelay: `${900 + (index * 100)}ms` }}
+                  />
+                ))}
+                
+                {/* Main Nodes */}
                 {data.nodes.map((node, index) => (
                   <g key={node.id} className="cursor-pointer group">
-                    {/* Node Glow Background */}
-                    <circle
-                      cx={node.x}
-                      cy={node.y}
-                      r="12"
-                      fill={node.color}
-                      opacity="0.2"
-                      className="animate-scale-in group-hover:animate-pulse"
-                      style={{ animationDelay: `${1000 + (index * 100)}ms` }}
-                    />
-                    {/* Main Node */}
                     <circle
                       cx={node.x}
                       cy={node.y}
                       r="8"
                       fill={node.color}
-                      filter="url(#glow)"
+                      filter="url(#shadow)"
                       className="animate-scale-in group-hover:scale-110 transition-transform duration-200"
                       style={{ animationDelay: `${1000 + (index * 100)}ms` }}
                     />
-                    {/* Node Label */}
                     <text
                       x={node.x}
-                      y={node.y + 15}
+                      y={node.y + 18}
                       textAnchor="middle"
-                      fontSize="2.5"
+                      fontSize="3"
                       fill="currentColor"
-                      className="font-bold animate-fade-in pointer-events-none"
-                      style={{ 
-                        animationDelay: `${1200 + (index * 100)}ms`,
-                        filter: 'drop-shadow(0 1px 2px rgba(0,0,0,0.3))'
-                      }}
+                      className="font-semibold animate-fade-in pointer-events-none"
+                      style={{ animationDelay: `${1200 + (index * 100)}ms` }}
                     >
                       {node.label}
                     </text>
@@ -165,51 +150,52 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
         </Card>
       )}
 
-      {/* Enhanced Key Insights with Staggered Animation */}
-      <Card className="animate-fade-in" style={{ animationDelay: '1400ms' }}>
-        <CardContent className="p-4">
-          <h4 className="font-semibold text-sm mb-3 flex items-center gap-2">
-            🎯 Key Insights
-          </h4>
-          <div className="space-y-3">
-            <div className="animate-fade-in" style={{ animationDelay: '1600ms' }}>
-              <Badge variant="destructive" className="w-full justify-start p-3 text-left hover-scale">
-                <div className="w-2 h-2 bg-white rounded-full mr-3 animate-pulse" />
-                <div>
-                  <div className="font-medium">Primary Cost Barrier</div>
-                  <div className="text-xs opacity-90">"Too much cost" - frequently mentioned by prospects</div>
-                </div>
-              </Badge>
+      {/* Key Insights */}
+      <div className="space-y-3 animate-fade-in" style={{ animationDelay: '1400ms' }}>
+        <h4 className="font-semibold text-base flex items-center gap-2">
+          🎯 Key Insights
+        </h4>
+        <div className="space-y-3">
+          <Badge 
+            variant="destructive" 
+            className="w-full justify-start p-4 text-left hover-scale"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-white rounded-full animate-pulse flex-shrink-0" />
+              <div>
+                <div className="font-medium text-sm">Primary Cost Barrier</div>
+                <div className="text-xs opacity-90 mt-1">"Premium is very high" - major barrier to conversion</div>
+              </div>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '1800ms' }}>
-              <Badge variant="secondary" className="w-full justify-start p-3 text-left hover-scale">
-                <div className="w-2 h-2 bg-primary rounded-full mr-3 animate-pulse" />
-                <div>
-                  <div className="font-medium">Investment Clarity</div>
-                  <div className="text-xs opacity-90">Confusion about "health and wealth" combination</div>
-                </div>
-              </Badge>
+          </Badge>
+          
+          <Badge 
+            variant="secondary" 
+            className="w-full justify-start p-4 text-left hover-scale"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-primary rounded-full animate-pulse flex-shrink-0" />
+              <div>
+                <div className="font-medium text-sm">Investment Clarity Needed</div>
+                <div className="text-xs opacity-90 mt-1">Confusion about "health and wealth" combo requires addressing</div>
+              </div>
             </div>
-            <div className="animate-fade-in" style={{ animationDelay: '2000ms' }}>
-              <Badge variant="outline" className="w-full justify-start p-3 text-left hover-scale">
-                <div className="w-2 h-2 bg-orange-500 rounded-full mr-3 animate-pulse" />
-                <div>
-                  <div className="font-medium">Performance Concerns</div>
-                  <div className="text-xs opacity-90">Worries about fund performance and ULIP components</div>
-                </div>
-              </Badge>
+          </Badge>
+          
+          <Badge 
+            variant="outline" 
+            className="w-full justify-start p-4 text-left hover-scale"
+          >
+            <div className="flex items-center gap-3">
+              <div className="w-3 h-3 bg-orange-500 rounded-full animate-pulse flex-shrink-0" />
+              <div>
+                <div className="font-medium text-sm">Performance Concerns</div>
+                <div className="text-xs opacity-90 mt-1">Fund performance and ULIP component worries</div>
+              </div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      <style>{`
-        @keyframes drawLine {
-          to {
-            stroke-dashoffset: 0;
-          }
-        }
-      `}</style>
+          </Badge>
+        </div>
+      </div>
     </div>
   );
 };
