@@ -277,21 +277,19 @@ const ModuleDetails = () => {
                 
                 <TabsContent value="analysis" className="space-y-4 mt-0">
                   {moduleData?.confusion_analysis_url ? (
-                    <div className="space-y-4 animate-fade-in">
-                      <div className="text-center">
-                        <h3 className="text-xl font-bold text-foreground mb-2">Confusion Areas Analysis</h3>
-                        <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
-                      </div>
-                      <Card className="animate-fade-in">
-                        <CardContent className="p-6">
+                      <div className="space-y-4 animate-fade-in">
+                        <div className="text-center">
+                          <h3 className="text-xl font-bold text-foreground mb-2">Confusion Areas Analysis</h3>
+                          <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
+                        </div>
+                        <div className="animate-fade-in">
                           <img 
                             src={moduleData.confusion_analysis_url} 
                             alt="Confusion Areas Analysis"
                             className="w-full h-auto rounded-lg"
                           />
-                        </CardContent>
-                      </Card>
-                    </div>
+                        </div>
+                      </div>
                   ) : (
                     <InteractiveGraph data={{
                       type: "bar",
@@ -315,21 +313,19 @@ const ModuleDetails = () => {
 
               {/* Follow-up Questions Section */}
               {moduleData?.followup_questions_url && (
-                <div className="mt-8 space-y-4 animate-fade-in" style={{ animationDelay: '600ms' }}>
-                  <div className="text-center">
-                    <h3 className="text-xl font-bold text-foreground mb-2">Follow-up Questions to Tweak Lynqs</h3>
-                    <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
-                  </div>
-                  <Card className="animate-fade-in">
-                    <CardContent className="p-6">
+                  <div className="mt-8 space-y-4 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                    <div className="text-center">
+                      <h3 className="text-xl font-bold text-foreground mb-2">Follow-up Questions to Tweak Lynqs</h3>
+                      <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
+                    </div>
+                    <div className="animate-fade-in">
                       <img 
                         src={moduleData.followup_questions_url} 
                         alt="Follow-up Questions to Tweak Lynqs"
                         className="w-full h-auto rounded-lg"
                       />
-                    </CardContent>
-                  </Card>
-                </div>
+                    </div>
+                  </div>
               )}
             </CardContent>
           </Card>

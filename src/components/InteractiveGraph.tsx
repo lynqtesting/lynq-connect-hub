@@ -39,77 +39,75 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
       </div>
 
       {/* Chart Container */}
-      <Card className="animate-fade-in" style={{ animationDelay: '300ms' }}>
-        <CardContent className="p-8">
-          <div className="space-y-6">
-            <div className="text-center">
-              <h4 className="text-lg font-semibold text-muted-foreground mb-6">Objection Frequency Analysis</h4>
+      <div className="animate-fade-in" style={{ animationDelay: '300ms' }}>
+        <div className="space-y-6">
+          <div className="text-center">
+            <h4 className="text-lg font-semibold text-muted-foreground mb-6">Objection Frequency Analysis</h4>
+          </div>
+          
+          {/* Bar Chart */}
+          <div className="relative">
+            <div className="flex items-end justify-between h-80 bg-muted/10 rounded-lg p-6">
+              {data.metrics.map((metric, index) => {
+                const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
+                const height = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
+                
+                return (
+                  <div key={index} className="flex flex-col items-center flex-1 mx-2">
+                    {/* Value Label on Top */}
+                    <div 
+                      className="text-sm font-bold mb-2 opacity-0 animate-fade-in"
+                      style={{ 
+                        color: metric.color,
+                        animationDelay: `${1000 + (index * 200)}ms`,
+                        animationFillMode: 'forwards'
+                      }}
+                    >
+                      {metric.value}
+                    </div>
+                    
+                    {/* Bar */}
+                    <div 
+                      className="w-full bg-gradient-to-t rounded-t-lg transition-all duration-1000 ease-out"
+                      style={{
+                        backgroundColor: metric.color,
+                        height: `${height}%`,
+                        backgroundImage: `linear-gradient(to top, ${metric.color}, ${metric.color}dd)`,
+                        transform: 'scaleY(0)',
+                        transformOrigin: 'bottom',
+                        animation: 'scaleY 1s ease-out forwards',
+                        animationDelay: `${600 + (index * 200)}ms`
+                      }}
+                    />
+                    
+                    {/* Label at Bottom */}
+                    <div className="text-xs font-medium text-center mt-3 px-1 leading-tight text-muted-foreground">
+                      {metric.label}
+                    </div>
+                  </div>
+                );
+              })}
             </div>
             
-            {/* Bar Chart */}
-            <div className="relative">
-              <div className="flex items-end justify-between h-80 bg-muted/20 rounded-lg p-6">
-                {data.metrics.map((metric, index) => {
-                  const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
-                  const height = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
-                  
-                  return (
-                    <div key={index} className="flex flex-col items-center flex-1 mx-2">
-                      {/* Value Label on Top */}
-                      <div 
-                        className="text-sm font-bold mb-2 opacity-0 animate-fade-in"
-                        style={{ 
-                          color: metric.color,
-                          animationDelay: `${1000 + (index * 200)}ms`,
-                          animationFillMode: 'forwards'
-                        }}
-                      >
-                        {metric.value}
-                      </div>
-                      
-                      {/* Bar */}
-                      <div 
-                        className="w-full bg-gradient-to-t rounded-t-lg transition-all duration-1000 ease-out"
-                        style={{
-                          backgroundColor: metric.color,
-                          height: `${height}%`,
-                          backgroundImage: `linear-gradient(to top, ${metric.color}, ${metric.color}dd)`,
-                          transform: 'scaleY(0)',
-                          transformOrigin: 'bottom',
-                          animation: 'scaleY 1s ease-out forwards',
-                          animationDelay: `${600 + (index * 200)}ms`
-                        }}
-                      />
-                      
-                      {/* Label at Bottom */}
-                      <div className="text-xs font-medium text-center mt-3 px-1 leading-tight text-muted-foreground">
-                        {metric.label}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-              
-              {/* Y-Axis Labels */}
-              <div className="absolute left-0 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
-                <span>70</span>
-                <span>60</span>
-                <span>50</span>
-                <span>40</span>
-                <span>30</span>
-                <span>20</span>
-                <span>10</span>
-                <span>0</span>
-              </div>
-              
-              {/* X-Axis Label */}
-              <div className="text-center mt-4">
-                <span className="text-sm font-medium text-muted-foreground">Objection Types</span>
-              </div>
+            {/* Y-Axis Labels */}
+            <div className="absolute left-0 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
+              <span>70</span>
+              <span>60</span>
+              <span>50</span>
+              <span>40</span>
+              <span>30</span>
+              <span>20</span>
+              <span>10</span>
+              <span>0</span>
+            </div>
+            
+            {/* X-Axis Label */}
+            <div className="text-center mt-4">
+              <span className="text-sm font-medium text-muted-foreground">Objection Types</span>
             </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Key Insights */}
       <div className="space-y-3 animate-fade-in" style={{ animationDelay: '1400ms' }}>
