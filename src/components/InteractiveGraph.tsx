@@ -58,57 +58,59 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           </div>
           
           {/* Bar Chart */}
-          <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 shadow-lg border border-border/50 overflow-hidden">
-            {/* Grid Lines */}
-            <div className="absolute left-10 right-4 top-6 bottom-16 pointer-events-none">
-              {[0, 10, 20, 30, 40, 50, 60, 70].map((line, idx) => (
-                <div 
-                  key={idx}
-                  className="absolute w-full border-t border-muted-foreground/20"
-                  style={{ bottom: `${(line / 70) * 100}%` }}
-                />
-              ))}
-            </div>
-            
-            {/* Chart Area */}
-            <div className="pl-10 pr-4 pb-12 pt-6">
-              <div className="flex items-end justify-between h-64 relative">
+          <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 shadow-lg border border-border/50">
+            {/* Chart Container with proper dimensions */}
+            <div className="relative h-80 ml-8 mr-4 mb-12 mt-6">
+              {/* Grid Lines */}
+              <div className="absolute inset-0 pointer-events-none">
+                {[0, 10, 20, 30, 40, 50, 60, 70].map((value, idx) => {
+                  const position = ((70 - value) / 70) * 100; // Invert for top-down positioning
+                  return (
+                    <div 
+                      key={idx}
+                      className="absolute w-full border-t border-muted-foreground/20"
+                      style={{ top: `${position}%` }}
+                    />
+                  );
+                })}
+              </div>
+              
+              {/* Bars Container */}
+              <div className="flex items-end justify-between h-full relative">
                 {objectionData.metrics.map((metric, index) => {
-                  const maxValue = 70;
-                  const heightPercentage = (metric.value / maxValue) * 100;
+                  const heightPercentage = (metric.value / 70) * 100; // 70 is max value
                   
                   return (
-                    <div key={index} className="flex flex-col items-center flex-1 max-w-16 group">
+                    <div key={index} className="flex flex-col items-center w-16 group">
                       {/* Value Label on Top */}
                       <div 
-                        className="text-sm font-bold mb-2 transition-all duration-300 group-hover:scale-110"
+                        className="text-sm font-bold mb-1 transition-all duration-300 group-hover:scale-110"
                         style={{ 
-                          color: metric.color
+                          color: metric.color,
+                          position: 'absolute',
+                          top: `${100 - heightPercentage - 8}%`, // Position above bar
+                          transform: 'translateY(-100%)'
                         }}
                       >
                         {metric.value}
                       </div>
                       
-                      {/* Bar Container */}
-                      <div className="w-8 h-full flex items-end">
-                        {/* Main Bar */}
+                      {/* Bar */}
+                      <div 
+                        className="w-10 rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer relative"
+                        style={{
+                          backgroundColor: metric.color,
+                          height: `${heightPercentage}%`,
+                          boxShadow: `0 -2px 10px ${metric.color}40`
+                        }}
+                      >
+                        {/* Highlight Effect */}
                         <div 
-                          className="w-full rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
+                          className="w-full h-2 rounded-t-lg opacity-40"
                           style={{
-                            backgroundColor: metric.color,
-                            height: `${heightPercentage}%`,
-                            minHeight: heightPercentage > 0 ? '2px' : '0px',
-                            boxShadow: `0 -2px 10px ${metric.color}40`
+                            background: `linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)`
                           }}
-                        >
-                          {/* Highlight Effect */}
-                          <div 
-                            className="w-full h-2 rounded-t-lg opacity-40"
-                            style={{
-                              background: `linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)`
-                            }}
-                          />
-                        </div>
+                        />
                       </div>
                       
                       {/* Label at Bottom */}
@@ -122,14 +124,14 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
             </div>
             
             {/* Y-Axis Labels */}
-            <div className="absolute left-1 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
+            <div className="absolute left-1 top-6 h-80 flex flex-col justify-between text-xs text-muted-foreground">
               {[70, 60, 50, 40, 30, 20, 10, 0].map(value => (
                 <span key={value}>{value}</span>
               ))}
             </div>
             
             {/* X-Axis Label */}
-            <div className="absolute bottom-2 left-1/2 transform -translate-x-1/2">
+            <div className="text-center mt-2">
               <span className="text-sm font-medium text-muted-foreground">Objection Types</span>
             </div>
           </div>
