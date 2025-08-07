@@ -275,7 +275,7 @@ const ModuleDetails = () => {
                   <TabsTrigger value="audio">Audio Overview</TabsTrigger>
                 </TabsList>
                 
-                <TabsContent value="analysis" className="space-y-4 mt-0">
+                <TabsContent value="analysis" className="space-y-6 mt-0">
                   <InteractiveGraph data={{
                     type: "bar",
                     title: "Confusion Areas Analysis",
@@ -288,6 +288,20 @@ const ModuleDetails = () => {
                       { label: "Fund Performance", value: 22, color: "#fbbf24" }
                     ]
                   }} />
+                  
+                  {/* Follow-up Questions Section */}
+                  {moduleData?.followup_questions_url && (
+                    <div className="space-y-4 animate-fade-in" style={{ animationDelay: '600ms' }}>
+                      <h3 className="text-xl font-semibold text-foreground">Generated Questions</h3>
+                      <div className="rounded-lg border border-border overflow-hidden shadow-lg">
+                        <img 
+                          src={moduleData.followup_questions_url} 
+                          alt="Generated follow-up questions"
+                          className="w-full h-auto"
+                        />
+                      </div>
+                    </div>
+                  )}
                 </TabsContent>
                 
                 <TabsContent value="audio" className="mt-0">

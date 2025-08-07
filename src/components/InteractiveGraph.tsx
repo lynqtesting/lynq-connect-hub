@@ -28,13 +28,25 @@ interface InteractiveGraphProps {
 }
 
 export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
-  if (!data) return null;
+  // Real objection data based on your reference image
+  const objectionData = {
+    type: "bar",
+    title: "Confusion Areas Analysis",
+    metrics: [
+      { label: "Cost Objection", value: 65, color: "#ef4444" },
+      { label: "Investment Confusion", value: 35, color: "#f97316" },
+      { label: "Premium Too High", value: 45, color: "#ec4899" },
+      { label: "Poor Value Perception", value: 38, color: "#f472b6" },
+      { label: "Health & Wealth Mix", value: 28, color: "#facc15" },
+      { label: "Fund Performance", value: 22, color: "#eab308" }
+    ]
+  };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Title with underline */}
       <div className="text-center">
-        <h3 className="text-xl font-bold text-foreground mb-2">{data.title}</h3>
+        <h3 className="text-xl font-bold text-foreground mb-2">{objectionData.title}</h3>
         <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
       </div>
 
@@ -49,19 +61,19 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-8 shadow-lg border border-border/50">
             {/* Grid Lines */}
             <div className="absolute inset-8 pointer-events-none">
-              {[0, 20, 40, 60, 80, 100].map((line, idx) => (
+              {[0, 10, 20, 30, 40, 50, 60, 70].map((line, idx) => (
                 <div 
                   key={idx}
                   className="absolute w-full border-t border-muted/20"
-                  style={{ bottom: `${line}%` }}
+                  style={{ bottom: `${(line / 70) * 100}%` }}
                 />
               ))}
             </div>
             
-            <div className="flex items-end justify-between h-80 relative">
-              {data.metrics.map((metric, index) => {
-                const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
-                const height = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
+            <div className="flex items-end justify-between h-80 relative px-8">
+              {objectionData.metrics.map((metric, index) => {
+                const maxValue = 70; // Fixed max value based on your reference
+                const height = (metric.value / maxValue) * 100;
                 
                 return (
                   <div key={index} className="flex flex-col items-center flex-1 mx-1 group">
@@ -78,7 +90,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                     </div>
                     
                     {/* Bar Container */}
-                    <div className="relative w-full">
+                    <div className="relative w-full max-w-12">
                       {/* Bar Shadow */}
                       <div 
                         className="absolute inset-0 rounded-t-lg opacity-20 blur-sm"
@@ -96,7 +108,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                       <div 
                         className="relative rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
                         style={{
-                          background: `linear-gradient(to top, ${metric.color}, ${metric.color}aa, ${metric.color}cc)`,
+                          background: metric.color,
                           height: `${height}%`,
                           transform: 'scaleY(0)',
                           transformOrigin: 'bottom',
@@ -125,7 +137,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                     </div>
                     
                     {/* Label at Bottom */}
-                    <div className="text-xs font-medium text-center mt-4 px-1 leading-tight text-muted-foreground max-w-16 opacity-0 animate-fade-in"
+                    <div className="text-xs font-medium text-center mt-4 px-1 leading-tight text-muted-foreground max-w-20 opacity-0 animate-fade-in"
                          style={{ 
                            animationDelay: `${1200 + (index * 150)}ms`,
                            animationFillMode: 'forwards'
@@ -138,7 +150,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
             </div>
             
             {/* Y-Axis Labels */}
-            <div className="absolute left-0 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
+            <div className="absolute left-2 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
               <span>70</span>
               <span>60</span>
               <span>50</span>
