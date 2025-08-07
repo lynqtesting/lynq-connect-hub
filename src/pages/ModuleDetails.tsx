@@ -276,34 +276,18 @@ const ModuleDetails = () => {
                 </TabsList>
                 
                 <TabsContent value="analysis" className="space-y-4 mt-0">
-                  {moduleData?.confusion_analysis_url ? (
-                      <div className="space-y-4 animate-fade-in">
-                        <div className="text-center">
-                          <h3 className="text-xl font-bold text-foreground mb-2">Confusion Areas Analysis</h3>
-                          <div className="w-20 h-1 bg-blue-500 mx-auto rounded-full"></div>
-                        </div>
-                        <div className="animate-fade-in">
-                          <img 
-                            src={moduleData.confusion_analysis_url} 
-                            alt="Confusion Areas Analysis"
-                            className="w-full h-auto rounded-lg"
-                          />
-                        </div>
-                      </div>
-                  ) : (
-                    <InteractiveGraph data={{
-                      type: "bar",
-                      title: "Confusion Areas Analysis",
-                      metrics: [
-                        { label: "Cost Objection", value: 65, color: "#ef4444" },
-                        { label: "Investment Confusion", value: 35, color: "#f59e0b" },
-                        { label: "Premium Too High", value: 45, color: "#f87171" },
-                        { label: "Poor Value Perception", value: 38, color: "#fca5a5" },
-                        { label: "Health & Wealth Mix", value: 28, color: "#fde68a" },
-                        { label: "Fund Performance", value: 22, color: "#fbbf24" }
-                      ]
-                    }} />
-                  )}
+                  <InteractiveGraph data={{
+                    type: "bar",
+                    title: "Confusion Areas Analysis",
+                    metrics: [
+                      { label: "Cost Objection", value: 65, color: "#ef4444" },
+                      { label: "Investment Confusion", value: 35, color: "#f59e0b" },
+                      { label: "Premium Too High", value: 45, color: "#f87171" },
+                      { label: "Poor Value Perception", value: 38, color: "#fca5a5" },
+                      { label: "Health & Wealth Mix", value: 28, color: "#fde68a" },
+                      { label: "Fund Performance", value: 22, color: "#fbbf24" }
+                    ]
+                  }} />
                 </TabsContent>
                 
                 <TabsContent value="audio" className="mt-0">
