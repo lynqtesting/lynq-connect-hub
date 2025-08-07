@@ -58,9 +58,9 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           </div>
           
           {/* Bar Chart */}
-          <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-8 shadow-lg border border-border/50">
+          <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 shadow-lg border border-border/50 overflow-hidden">
             {/* Grid Lines */}
-            <div className="absolute left-12 right-8 top-8 bottom-20 pointer-events-none">
+            <div className="absolute left-10 right-4 top-6 bottom-16 pointer-events-none">
               {[0, 10, 20, 30, 40, 50, 60, 70].map((line, idx) => (
                 <div 
                   key={idx}
@@ -71,65 +71,61 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
             </div>
             
             {/* Chart Area */}
-            <div className="flex items-end justify-between h-80 relative ml-12 mr-8 mb-16">
-              {objectionData.metrics.map((metric, index) => {
-                const maxValue = 70;
-                const height = (metric.value / maxValue) * 100;
-                
-                return (
-                  <div key={index} className="flex flex-col items-center flex-1 mx-2 group">
-                    {/* Value Label on Top */}
-                    <div 
-                      className="text-sm font-bold mb-2 transition-all duration-300 group-hover:scale-110"
-                      style={{ 
-                        color: metric.color,
-                        opacity: 1
-                      }}
-                    >
-                      {metric.value}
-                    </div>
-                    
-                    {/* Bar Container */}
-                    <div className="relative w-12 h-full flex items-end">
-                      {/* Main Bar */}
+            <div className="pl-10 pr-4 pb-12 pt-6">
+              <div className="flex items-end justify-between h-64 relative">
+                {objectionData.metrics.map((metric, index) => {
+                  const maxValue = 70;
+                  const heightPercentage = (metric.value / maxValue) * 100;
+                  
+                  return (
+                    <div key={index} className="flex flex-col items-center flex-1 max-w-16 group">
+                      {/* Value Label on Top */}
                       <div 
-                        className="w-full rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
-                        style={{
-                          backgroundColor: metric.color,
-                          height: `${height}%`,
-                          minHeight: height > 0 ? '4px' : '0px',
-                          boxShadow: `0 -4px 20px ${metric.color}30`
+                        className="text-sm font-bold mb-2 transition-all duration-300 group-hover:scale-110"
+                        style={{ 
+                          color: metric.color
                         }}
                       >
-                        {/* Highlight Effect */}
+                        {metric.value}
+                      </div>
+                      
+                      {/* Bar Container */}
+                      <div className="w-8 h-full flex items-end">
+                        {/* Main Bar */}
                         <div 
-                          className="w-full h-2 rounded-t-lg opacity-30"
+                          className="w-full rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
                           style={{
-                            background: `linear-gradient(to bottom, rgba(255,255,255,0.6), transparent)`
+                            backgroundColor: metric.color,
+                            height: `${heightPercentage}%`,
+                            minHeight: heightPercentage > 0 ? '2px' : '0px',
+                            boxShadow: `0 -2px 10px ${metric.color}40`
                           }}
-                        />
+                        >
+                          {/* Highlight Effect */}
+                          <div 
+                            className="w-full h-2 rounded-t-lg opacity-40"
+                            style={{
+                              background: `linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)`
+                            }}
+                          />
+                        </div>
+                      </div>
+                      
+                      {/* Label at Bottom */}
+                      <div className="text-xs font-medium text-center mt-3 leading-tight text-muted-foreground w-full">
+                        {metric.label}
                       </div>
                     </div>
-                    
-                    {/* Label at Bottom */}
-                    <div className="text-xs font-medium text-center mt-4 px-1 leading-tight text-muted-foreground w-20">
-                      {metric.label}
-                    </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
             
             {/* Y-Axis Labels */}
-            <div className="absolute left-2 top-8 bottom-20 flex flex-col justify-between text-xs text-muted-foreground">
-              <span>70</span>
-              <span>60</span>
-              <span>50</span>
-              <span>40</span>
-              <span>30</span>
-              <span>20</span>
-              <span>10</span>
-              <span>0</span>
+            <div className="absolute left-1 top-6 bottom-16 flex flex-col justify-between text-xs text-muted-foreground">
+              {[70, 60, 50, 40, 30, 20, 10, 0].map(value => (
+                <span key={value}>{value}</span>
+              ))}
             </div>
             
             {/* X-Axis Label */}
