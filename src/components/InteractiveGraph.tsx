@@ -46,42 +46,90 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           </div>
           
           {/* Bar Chart */}
-          <div className="relative">
-            <div className="flex items-end justify-between h-80 bg-muted/10 rounded-lg p-6">
+          <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-8 shadow-lg border border-border/50">
+            {/* Grid Lines */}
+            <div className="absolute inset-8 pointer-events-none">
+              {[0, 20, 40, 60, 80, 100].map((line, idx) => (
+                <div 
+                  key={idx}
+                  className="absolute w-full border-t border-muted/20"
+                  style={{ bottom: `${line}%` }}
+                />
+              ))}
+            </div>
+            
+            <div className="flex items-end justify-between h-80 relative">
               {data.metrics.map((metric, index) => {
                 const maxValue = Math.max(...data.metrics.map(m => typeof m.value === 'number' ? m.value : 0));
                 const height = typeof metric.value === 'number' ? (metric.value / maxValue) * 100 : 0;
                 
                 return (
-                  <div key={index} className="flex flex-col items-center flex-1 mx-2">
+                  <div key={index} className="flex flex-col items-center flex-1 mx-1 group">
                     {/* Value Label on Top */}
                     <div 
-                      className="text-sm font-bold mb-2 opacity-0 animate-fade-in"
+                      className="text-sm font-bold mb-2 opacity-0 animate-fade-in transition-all duration-300 group-hover:scale-110"
                       style={{ 
                         color: metric.color,
-                        animationDelay: `${1000 + (index * 200)}ms`,
+                        animationDelay: `${1000 + (index * 150)}ms`,
                         animationFillMode: 'forwards'
                       }}
                     >
                       {metric.value}
                     </div>
                     
-                    {/* Bar */}
-                    <div 
-                      className="w-full bg-gradient-to-t rounded-t-lg transition-all duration-1000 ease-out"
-                      style={{
-                        backgroundColor: metric.color,
-                        height: `${height}%`,
-                        backgroundImage: `linear-gradient(to top, ${metric.color}, ${metric.color}dd)`,
-                        transform: 'scaleY(0)',
-                        transformOrigin: 'bottom',
-                        animation: 'scaleY 1s ease-out forwards',
-                        animationDelay: `${600 + (index * 200)}ms`
-                      }}
-                    />
+                    {/* Bar Container */}
+                    <div className="relative w-full">
+                      {/* Bar Shadow */}
+                      <div 
+                        className="absolute inset-0 rounded-t-lg opacity-20 blur-sm"
+                        style={{
+                          backgroundColor: metric.color,
+                          height: `${height}%`,
+                          transform: 'scaleY(0) translateY(4px)',
+                          transformOrigin: 'bottom',
+                          animation: `scaleY 1.2s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                          animationDelay: `${500 + (index * 150)}ms`
+                        }}
+                      />
+                      
+                      {/* Main Bar */}
+                      <div 
+                        className="relative rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer"
+                        style={{
+                          background: `linear-gradient(to top, ${metric.color}, ${metric.color}aa, ${metric.color}cc)`,
+                          height: `${height}%`,
+                          transform: 'scaleY(0)',
+                          transformOrigin: 'bottom',
+                          animation: `scaleY 1.5s cubic-bezier(0.4, 0, 0.2, 1) forwards`,
+                          animationDelay: `${600 + (index * 150)}ms`,
+                          boxShadow: `0 -4px 20px ${metric.color}30, inset 0 1px 0 rgba(255,255,255,0.2)`
+                        }}
+                      >
+                        {/* Highlight Effect */}
+                        <div 
+                          className="absolute top-0 left-0 w-full h-8 rounded-t-lg opacity-30"
+                          style={{
+                            background: `linear-gradient(to bottom, rgba(255,255,255,0.6), transparent)`
+                          }}
+                        />
+                        
+                        {/* Pulse Animation on Hover */}
+                        <div 
+                          className="absolute inset-0 rounded-t-lg opacity-0 group-hover:opacity-20 transition-opacity duration-300"
+                          style={{
+                            background: `linear-gradient(45deg, transparent, ${metric.color}, transparent)`,
+                            animation: 'pulse 2s infinite'
+                          }}
+                        />
+                      </div>
+                    </div>
                     
                     {/* Label at Bottom */}
-                    <div className="text-xs font-medium text-center mt-3 px-1 leading-tight text-muted-foreground">
+                    <div className="text-xs font-medium text-center mt-4 px-1 leading-tight text-muted-foreground max-w-16 opacity-0 animate-fade-in"
+                         style={{ 
+                           animationDelay: `${1200 + (index * 150)}ms`,
+                           animationFillMode: 'forwards'
+                         }}>
                       {metric.label}
                     </div>
                   </div>
