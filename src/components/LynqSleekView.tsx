@@ -17,6 +17,7 @@ import { ExternalLink } from "lucide-react";
 const cPrimary = "hsl(var(--primary))";
 const cAccent = "hsl(var(--accent))";
 const cDestructive = "hsl(var(--destructive))";
+const cBar = "hsl(var(--foreground))";
 const grid = "#eef2f7"; // subtle neutral for grids only
 
 export interface LynqSleekProps {
@@ -169,7 +170,7 @@ export default function LynqSleekView({
                     <XAxis type="number" domain={[0, 100]} hide />
                     <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
                     <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
-                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cDestructive} />
+                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cBar} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -184,7 +185,7 @@ export default function LynqSleekView({
                       cursor={{ fill: "#00000008" }}
                       formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
                     />
-                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cAccent} />
+                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cBar} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
@@ -196,7 +197,7 @@ export default function LynqSleekView({
                     <XAxis type="number" domain={[0, 100]} hide />
                     <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
                     <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
-                    <Bar dataKey="pct" radius={[0, 10, 10, 0]} fill={cDestructive} />
+                    <Bar dataKey="pct" radius={[0, 10, 10, 0]} fill={cBar} />
                   </BarChart>
                 </ResponsiveContainer>
               )}
