@@ -12,6 +12,9 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 // Use design tokens for colors
 const cPrimary = "hsl(var(--primary))";
@@ -72,6 +75,19 @@ export default function LynqSleekView({
     document.title = `${moduleTitle} – Lynq Dashboard`;
   }, [moduleTitle]);
 
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  const handleLogout = async () => {
+    try {
+      await supabase.auth.signOut();
+      toast({ title: "Success", description: "Logged out" });
+      navigate('/login');
+    } catch (e) {
+      toast({ title: "Error", description: "Failed to log out", variant: 'destructive' });
+    }
+  };
+
   const summary = useMemo(
     () => `Quick pulse: engagement ${kpis.engagement}%, completion ${kpis.completion}%, opening ${kpis.opening}%. Build an ROI calculator next.`,
     [kpis]
@@ -79,7 +95,7 @@ export default function LynqSleekView({
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <div className="mx-auto max-w-md px-4 pb-[96px] pt-4">
+      <div className="mx-auto max-w-md px-4 pb-8 pt-4">
         {/* Header */}
         <header className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           <div className="flex items-center justify-between">
@@ -88,8 +104,10 @@ export default function LynqSleekView({
               <div className="font-extrabold tracking-tight">LYNQ</div>
               <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">Adaptive</span>
             </div>
-            {/* Right side kept simple for now */}
-            <div className="text-sm font-medium opacity-70">{moduleTitle}</div>
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => navigate('/lynq-library')}>Library</Button>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>Logout</Button>
+            </div>
           </div>
         </header>
 
@@ -251,28 +269,11 @@ export default function LynqSleekView({
             />
           </div>
         </Card>
-
-        {/* FAB */}
-        <button
-          onClick={() => alert("New LYNQ – flow")}
-          className="fixed right-4 bottom-24 rounded-full px-5 py-3 font-bold text-primary-foreground bg-primary shadow-lg"
-        >
-          + Create LYNQ
-        </button>
       </div>
-
-      {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-6 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
-        <div className="grid grid-cols-4 gap-3 text-xs">
-          <NavItem label="Dashboard" active />
-          <NavItem label="Create" />
-          <NavItem label="Improve" />
-          <NavItem label="Profile" />
-        </div>
-      </nav>
     </div>
   );
 }
+
 
 /* ---------- UI bits ---------- */
 function Card({ title, children, footer, className = "" }: any) {
