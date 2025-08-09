@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import LynqSleekView from "@/components/LynqSleekView";
 
 const ModuleDetails = () => {
-  const navigate = useNavigate();
+  
   const { moduleId } = useParams();
   const { toast } = useToast();
   const [moduleData, setModuleData] = useState<any>(null);
