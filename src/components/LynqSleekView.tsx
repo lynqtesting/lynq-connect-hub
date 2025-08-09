@@ -1,0 +1,358 @@
+import React, { useEffect, useMemo, useState } from "react";
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  CartesianGrid,
+  XAxis,
+  YAxis,
+  Tooltip as ReTooltip,
+  BarChart,
+  Bar,
+} from "recharts";
+import { Button } from "@/components/ui/button";
+import { ExternalLink } from "lucide-react";
+
+// Use design tokens for colors
+const cPrimary = "hsl(var(--primary))";
+const cAccent = "hsl(var(--accent))";
+const cDestructive = "hsl(var(--destructive))";
+const grid = "#eef2f7"; // subtle neutral for grids only
+
+export interface LynqSleekProps {
+  moduleTitle?: string;
+  moduleLink?: string;
+  // Optional overrides (fallback to sensible defaults)
+  kpis?: { completion: number; engagement: number; opening: number; rating: number; learners: number };
+  trend?: Array<{ day: string; completion: number; engagement: number }>;
+  confusionData?: Array<{ name: string; value: number }>;
+  perception?: Array<{ metric: string; value: number; target: number }>;
+  objections?: Array<{ name: string; pct: number }>;
+}
+
+const defaultKpis = { completion: 87, engagement: 92, opening: 78, rating: 3.0, learners: 200 };
+const defaultTrend = [
+  { day: "Mon", completion: 82, engagement: 90 },
+  { day: "Tue", completion: 88, engagement: 92 },
+  { day: "Wed", completion: 85, engagement: 91 },
+  { day: "Thu", completion: 89, engagement: 93 },
+  { day: "Fri", completion: 87, engagement: 92 },
+];
+const defaultConfusion = [
+  { name: "Fixed Payout Confusion", value: 65 },
+  { name: "Firebase Setup Confusion", value: 42 },
+];
+const defaultPerception = [
+  { metric: "Trust", value: 72, target: 80 },
+  { metric: "Value", value: 58, target: 75 },
+  { metric: "Ease of Use", value: 85, target: 85 },
+  { metric: "Relevance", value: 78, target: 80 },
+  { metric: "Credibility", value: 65, target: 80 },
+];
+const defaultObjections = [
+  { name: "High Costs", pct: 65 },
+  { name: "Complex Process", pct: 42 },
+  { name: "Trust Issues", pct: 28 },
+];
+
+export default function LynqSleekView({
+  moduleTitle = "Lynq",
+  moduleLink,
+  kpis = defaultKpis,
+  trend = defaultTrend,
+  confusionData = defaultConfusion,
+  perception = defaultPerception,
+  objections = defaultObjections,
+}: LynqSleekProps) {
+  const [isPlaying, setPlaying] = useState(false);
+  const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
+
+  useEffect(() => {
+    document.title = `${moduleTitle} – Lynq Dashboard`;
+  }, [moduleTitle]);
+
+  const summary = useMemo(
+    () => `Quick pulse: engagement ${kpis.engagement}%, completion ${kpis.completion}%, opening ${kpis.opening}%. Build an ROI calculator next.`,
+    [kpis]
+  );
+
+  return (
+    <div className="min-h-screen bg-background text-foreground antialiased">
+      <div className="mx-auto max-w-md px-4 pb-[96px] pt-4">
+        {/* Header */}
+        <header className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="size-9 rounded-2xl bg-foreground text-background grid place-items-center font-black">L</div>
+              <div className="font-extrabold tracking-tight">LYNQ</div>
+              <span className="ml-2 text-[11px] px-2 py-0.5 rounded-full bg-accent/20 text-accent-foreground">Adaptive</span>
+            </div>
+            {/* Right side kept simple for now */}
+            <div className="text-sm font-medium opacity-70">{moduleTitle}</div>
+          </div>
+        </header>
+
+        {/* Keep existing View Lynq button (unchanged intention) */}
+        {moduleLink && (
+          <Button
+            onClick={() => window.open(moduleLink, "_blank")}
+            className="w-full mt-4"
+            size="lg"
+          >
+            <ExternalLink className="h-5 w-5 mr-2" />
+            View Lynq
+          </Button>
+        )}
+
+        {/* KPI Grid */}
+        <KPIGrid kpis={kpis} />
+
+        {/* Audio Summary */}
+        <Card title="Summary" className="mt-3">
+          <p className="text-xs text-muted-foreground mb-3">{summary}</p>
+          <Button onClick={() => setPlaying((p) => !p)} className="w-full" size="lg" variant="default">
+            {isPlaying ? "Pause" : "Play"}
+          </Button>
+        </Card>
+
+        {/* Tabs + Charts */}
+        <div className="mt-3">
+          <div className="grid grid-cols-4 gap-2 bg-muted p-1 rounded-2xl">
+            {[
+              { label: "Trend", value: "trend" },
+              { label: "Confusion", value: "confusion" },
+              { label: "Perception", value: "perception" },
+              { label: "Top Client Objections", value: "objections" },
+            ].map((i) => (
+              <button
+                key={i.value}
+                onClick={() => setTab(i.value as any)}
+                className={`py-2 rounded-xl text-sm font-semibold transition ${
+                  tab === (i.value as any) ? "bg-card shadow text-foreground" : "text-muted-foreground"
+                }`}
+              >
+                {i.label}
+              </button>
+            ))}
+          </div>
+
+          <Card
+            className="mt-2"
+            title={
+              tab === "trend" ? "Trend" : tab === "confusion" ? "Confusion" : tab === "perception" ? "Perception" : "Top Client Objections"
+            }
+          >
+            <div className="h-56">
+              {tab === "trend" && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trend} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
+                        <stop offset="95%" stopColor={cPrimary} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                    <YAxis hide domain={[60, 100]} />
+                    <ReTooltip cursor={{ fill: "#00000008" }} />
+                    <Area dataKey="completion" stroke={cPrimary} strokeWidth={2} fill="url(#g1)" type="monotone" />
+                    <Area dataKey="engagement" stroke={cAccent} strokeWidth={2} fillOpacity={0} type="monotone" />
+                  </AreaChart>
+                </ResponsiveContainer>
+              )}
+
+              {tab === "confusion" && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={confusionData} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
+                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cDestructive} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+
+              {tab === "perception" && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={perception} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis type="category" dataKey="metric" width={120} tick={{ fontSize: 12 }} />
+                    <ReTooltip
+                      cursor={{ fill: "#00000008" }}
+                      formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
+                    />
+                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cAccent} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+
+              {tab === "objections" && (
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={objections} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis type="number" domain={[0, 100]} hide />
+                    <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
+                    <Bar dataKey="pct" radius={[0, 10, 10, 0]} fill={cDestructive} />
+                  </BarChart>
+                </ResponsiveContainer>
+              )}
+            </div>
+          </Card>
+        </div>
+
+        {/* Actions & Improvements */}
+        <Card title="Actions & Improvements" className="mt-3">
+          <div className="text-[13px] font-semibold text-foreground mb-2">Next Adaptive Lynqs</div>
+          <div className="space-y-3">
+            <ActionRow
+              title="📚 Interactive Tutorials"
+              subtitle="Create step-by-step visual guides for fixed payout concepts to reduce confusion"
+              cta="Create Now"
+              onClick={() => alert("Create: Tutorials")}
+            />
+            <ActionRow
+              title="🎥 Video Walkthroughs"
+              subtitle="Develop comprehensive Firebase setup tutorials with troubleshooting guides"
+              cta="Create Now"
+              onClick={() => alert("Create: Videos")}
+            />
+            <ActionRow
+              title="🧮 Value Calculators"
+              subtitle="Build ROI calculators to demonstrate clear value proposition to users"
+              cta="Create Now"
+              onClick={() => alert("Create: Calculators")}
+            />
+          </div>
+        </Card>
+
+        {/* Tweak the LYNQ */}
+        <Card title="Tweak the LYNQ" className="mt-3">
+          <div className="space-y-3">
+            <TweakCard
+              title="💰 Cost Premiums Confusion"
+              subtitle="Get more real-time data on user understanding (3 tweaks allowed)"
+              uploadLabel="📁 Upload Supporting Materials"
+              uploadHint="PDFs, docs, images, or examples"
+              cta="Improve Content"
+              onClick={() => alert("Improve: Cost Premiums")}
+            />
+            <TweakCard
+              title="📄 Loan Processing Clarity"
+              subtitle="Collect real-time feedback on processing steps (3 tweaks allowed)"
+              uploadLabel="📄 Upload Brochures"
+              uploadHint="PDFs, documents, or guides"
+              cta="Add Content"
+              onClick={() => alert("Improve: Loan Processing")}
+            />
+          </div>
+        </Card>
+
+        {/* FAB */}
+        <button
+          onClick={() => alert("New LYNQ – flow")}
+          className="fixed right-4 bottom-24 rounded-full px-5 py-3 font-bold text-primary-foreground bg-primary shadow-lg"
+        >
+          + Create LYNQ
+        </button>
+      </div>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 right-0 bg-background/95 backdrop-blur border-t border-border px-6 pt-2 pb-[calc(0.5rem+env(safe-area-inset-bottom))]">
+        <div className="grid grid-cols-4 gap-3 text-xs">
+          <NavItem label="Dashboard" active />
+          <NavItem label="Create" />
+          <NavItem label="Improve" />
+          <NavItem label="Profile" />
+        </div>
+      </nav>
+    </div>
+  );
+}
+
+/* ---------- UI bits ---------- */
+function Card({ title, children, footer, className = "" }: any) {
+  return (
+    <section className={`rounded-3xl border border-border bg-card p-4 ${className}`}>
+      {title && (
+        <header className="mb-2 flex items-center justify-between">
+          <h3 className="text-[13px] font-semibold">{title}</h3>
+          {footer}
+        </header>
+      )}
+      {children}
+    </section>
+  );
+}
+
+function KPIGrid({ kpis }: { kpis: typeof defaultKpis }) {
+  return (
+    <section className="mt-3">
+      <div className="grid grid-cols-2 gap-3">
+        <KPICard label="Completion Rate" value={`${kpis.completion}%`} />
+        <KPICard label="Engagement Level" value={`${kpis.engagement}%`} />
+        <KPICard label="Opening Rate" value={`${kpis.opening}%`} />
+        <KPICard label="Average Rating" value={`${kpis.rating}`} />
+      </div>
+      <div className="mt-3 rounded-3xl p-6 text-primary-foreground text-center bg-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]">
+        <div className="text-6xl font-extrabold leading-none">{kpis.learners}</div>
+        <div className="mt-2 text-base font-semibold opacity-90">Learners Completed</div>
+      </div>
+    </section>
+  );
+}
+
+function KPICard({ label, value }: { label: string; value: string }) {
+  return (
+    <div className="rounded-3xl p-4 bg-muted border border-border shadow-sm">
+      <div className="text-4xl font-extrabold text-primary text-center">{value}</div>
+      <div className="mt-2 text-[11px] font-semibold tracking-wide text-muted-foreground text-center">
+        {label.toUpperCase()}
+      </div>
+    </div>
+  );
+}
+
+function ActionRow({ title, subtitle, cta, onClick }: any) {
+  return (
+    <div className="rounded-2xl border border-accent bg-accent/10 p-4">
+      <div className="text-sm font-semibold mb-1">{title}</div>
+      <div className="text-xs text-muted-foreground mb-3">{subtitle}</div>
+      <Button onClick={onClick} className="w-full" size="sm" variant="destructive">
+        {cta}
+      </Button>
+    </div>
+  );
+}
+
+function TweakCard({ title, subtitle, uploadLabel, uploadHint, cta, onClick }: any) {
+  return (
+    <div className="rounded-2xl border border-yellow-300/50 bg-yellow-100/40 p-4">
+      <div className="text-sm font-semibold mb-1">{title}</div>
+      <div className="text-xs text-muted-foreground mb-3">{subtitle}</div>
+      <label className="block border-2 border-dashed border-yellow-300/70 rounded-xl p-4 text-center cursor-pointer hover:bg-yellow-100/60 transition">
+        <input type="file" className="hidden" />
+        <div className="text-sm font-semibold">{uploadLabel}</div>
+        <div className="text-[11px] text-muted-foreground">{uploadHint}</div>
+      </label>
+      <Button onClick={onClick} className="mt-3 w-full" size="sm">
+        {cta}
+      </Button>
+    </div>
+  );
+}
+
+function NavItem({ label, active }: { label: string; active?: boolean }) {
+  return (
+    <button
+      className={`flex flex-col items-center py-1 ${active ? "text-foreground" : "text-muted-foreground"}`}
+      aria-current={active ? "page" : undefined}
+    >
+      <div className={`size-8 grid place-items-center rounded-xl border ${active ? "border-border" : "border-transparent"}`}>⬤</div>
+      <span className="text-[11px] mt-1 font-medium">{label}</span>
+    </button>
+  );
+}
