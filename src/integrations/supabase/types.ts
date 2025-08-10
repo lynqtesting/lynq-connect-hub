@@ -60,6 +60,7 @@ export type Database = {
       }
       modules: {
         Row: {
+          adapted_module_name: string | null
           adaptive_modules: Json | null
           category: string | null
           confusion_analysis_url: string | null
@@ -85,6 +86,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          adapted_module_name?: string | null
           adaptive_modules?: Json | null
           category?: string | null
           confusion_analysis_url?: string | null
@@ -110,6 +112,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          adapted_module_name?: string | null
           adaptive_modules?: Json | null
           category?: string | null
           confusion_analysis_url?: string | null
