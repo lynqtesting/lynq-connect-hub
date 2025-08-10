@@ -18,6 +18,7 @@ export type Database = {
         Row: {
           category: string | null
           confusion_analysis_url: string | null
+          confusion_data: Json | null
           created_at: string
           description: string | null
           english_audio_url: string | null
@@ -26,15 +27,21 @@ export type Database = {
           file_url: string | null
           followup_questions_url: string | null
           id: string
+          kpis: Json | null
           module_link: string | null
+          objections: Json | null
           pdf_report_url: string | null
+          perception: Json | null
           screenshot_url: string | null
+          summary_text: string | null
           title: string
+          trend: Json | null
           updated_at: string
         }
         Insert: {
           category?: string | null
           confusion_analysis_url?: string | null
+          confusion_data?: Json | null
           created_at?: string
           description?: string | null
           english_audio_url?: string | null
@@ -43,15 +50,21 @@ export type Database = {
           file_url?: string | null
           followup_questions_url?: string | null
           id?: string
+          kpis?: Json | null
           module_link?: string | null
+          objections?: Json | null
           pdf_report_url?: string | null
+          perception?: Json | null
           screenshot_url?: string | null
+          summary_text?: string | null
           title: string
+          trend?: Json | null
           updated_at?: string
         }
         Update: {
           category?: string | null
           confusion_analysis_url?: string | null
+          confusion_data?: Json | null
           created_at?: string
           description?: string | null
           english_audio_url?: string | null
@@ -60,10 +73,15 @@ export type Database = {
           file_url?: string | null
           followup_questions_url?: string | null
           id?: string
+          kpis?: Json | null
           module_link?: string | null
+          objections?: Json | null
           pdf_report_url?: string | null
+          perception?: Json | null
           screenshot_url?: string | null
+          summary_text?: string | null
           title?: string
+          trend?: Json | null
           updated_at?: string
         }
         Relationships: []
@@ -208,6 +226,47 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "requests_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      tweak_requests: {
+        Row: {
+          created_at: string
+          file_name: string | null
+          file_url: string | null
+          id: string
+          module_id: string | null
+          notes: string | null
+          title: string | null
+          user_id: string | null
+        }
+        Insert: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          module_id?: string | null
+          notes?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          created_at?: string
+          file_name?: string | null
+          file_url?: string | null
+          id?: string
+          module_id?: string | null
+          notes?: string | null
+          title?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "tweak_requests_module_id_fkey"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
