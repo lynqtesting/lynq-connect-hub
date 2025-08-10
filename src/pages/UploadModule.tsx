@@ -8,7 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Minus } from 'lucide-react';
 
 const UploadModule = () => {
   const navigate = useNavigate();
@@ -30,12 +30,10 @@ const UploadModule = () => {
   // Analytics fields for client dashboard linkage
   const [kpis, setKpis] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0, learners: 0 });
   const [summaryText, setSummaryText] = useState('');
-  const [confusionData, setConfusionData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
-  const [perceptionData, setPerceptionData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
+  const [confusionParameters, setConfusionParameters] = useState([{ label: '', percent: 0 }]);
+  const [perceptionParameters, setPerceptionParameters] = useState([{ label: '', percent: 0 }]);
+  const [objectionParameters, setObjectionParameters] = useState([{ label: '', percent: 0 }]);
   const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
-  const [confusionCsv, setConfusionCsv] = useState('');
-  const [perceptionCsv, setPerceptionCsv] = useState('');
-  const [objectionsCsv, setObjectionsCsv] = useState('');
   const [trendCsv, setTrendCsv] = useState('');
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -125,11 +123,13 @@ const UploadModule = () => {
           file_type: fileType,
           category: formData.category,
           module_link: formData.moduleLink || null,
+          adapted_module_name: formData.adaptedModuleName || null,
+          tweaking_topics: formData.tweakingTopics || null,
           kpis: kpis,
           trend: trendCsv ? parseTrend(trendCsv) : trendData,
-          confusion_data: confusionCsv ? parsePairs(confusionCsv) : confusionData,
-          perception: perceptionCsv ? parsePairs(perceptionCsv) : perceptionData,
-          objections: parsePairs(objectionsCsv),
+          confusion_data: confusionParameters,
+          perception: perceptionParameters,
+          objections: objectionParameters,
           summary_text: summaryText || null,
         });
 
@@ -330,30 +330,174 @@ const UploadModule = () => {
                   <Textarea value={trendCsv} onChange={(e)=>setTrendCsv(e.target.value)} placeholder={'Mon,82,90\nTue,88,92'} />
                 </div>
                 <div>
-                  <Label>Confusion Parameters</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label>Completion %</Label><Input type="number" value={confusionData.completion} onChange={(e)=>setConfusionData(s=>({...s, completion: +e.target.value||0}))} /></div>
-                    <div><Label>Engagement %</Label><Input type="number" value={confusionData.engagement} onChange={(e)=>setConfusionData(s=>({...s, engagement: +e.target.value||0}))} /></div>
-                    <div><Label>Opening %</Label><Input type="number" value={confusionData.opening} onChange={(e)=>setConfusionData(s=>({...s, opening: +e.target.value||0}))} /></div>
-                    <div><Label>Rating</Label><Input type="number" step="0.1" value={confusionData.rating} onChange={(e)=>setConfusionData(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  <div className="flex items-center justify-between">
+                    <Label>Confusion Parameters</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setConfusionParameters([...confusionParameters, { label: '', percent: 0 }])}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Row
+                    </Button>
                   </div>
-                  <Label className="mt-2">Or Confusion CSV (label,percent)</Label>
-                  <Textarea value={confusionCsv} onChange={(e)=>setConfusionCsv(e.target.value)} placeholder={'Fixed Payout Confusion,65'} />
+                  <p className="text-xs text-muted-foreground mb-2">Add items like "Fixed Payout Confusion".</p>
+                  {confusionParameters.map((param, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-2 mb-2">
+                      <div className="col-span-5">
+                        <Input
+                          placeholder="Label"
+                          value={param.label}
+                          onChange={(e) => {
+                            const newParams = [...confusionParameters];
+                            newParams[index].label = e.target.value;
+                            setConfusionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-5">
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={param.percent}
+                          onChange={(e) => {
+                            const newParams = [...confusionParameters];
+                            newParams[index].percent = +e.target.value || 0;
+                            setConfusionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (confusionParameters.length > 1) {
+                              setConfusionParameters(confusionParameters.filter((_, i) => i !== index));
+                            }
+                          }}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
                 <div>
-                  <Label>Perception Parameters</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label>Completion %</Label><Input type="number" value={perceptionData.completion} onChange={(e)=>setPerceptionData(s=>({...s, completion: +e.target.value||0}))} /></div>
-                    <div><Label>Engagement %</Label><Input type="number" value={perceptionData.engagement} onChange={(e)=>setPerceptionData(s=>({...s, engagement: +e.target.value||0}))} /></div>
-                    <div><Label>Opening %</Label><Input type="number" value={perceptionData.opening} onChange={(e)=>setPerceptionData(s=>({...s, opening: +e.target.value||0}))} /></div>
-                    <div><Label>Rating</Label><Input type="number" step="0.1" value={perceptionData.rating} onChange={(e)=>setPerceptionData(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  <div className="flex items-center justify-between">
+                    <Label>Perception Parameters</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setPerceptionParameters([...perceptionParameters, { label: '', percent: 0 }])}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Row
+                    </Button>
                   </div>
-                  <Label className="mt-2">Or Perception CSV (label,percent)</Label>
-                  <Textarea value={perceptionCsv} onChange={(e)=>setPerceptionCsv(e.target.value)} placeholder={'Trust,72'} />
+                  <p className="text-xs text-muted-foreground mb-2">Trust, Value, Ease of Use, Relevance, Credibility.</p>
+                  {perceptionParameters.map((param, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-2 mb-2">
+                      <div className="col-span-5">
+                        <Input
+                          placeholder="Label"
+                          value={param.label}
+                          onChange={(e) => {
+                            const newParams = [...perceptionParameters];
+                            newParams[index].label = e.target.value;
+                            setPerceptionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-5">
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={param.percent}
+                          onChange={(e) => {
+                            const newParams = [...perceptionParameters];
+                            newParams[index].percent = +e.target.value || 0;
+                            setPerceptionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (perceptionParameters.length > 1) {
+                              setPerceptionParameters(perceptionParameters.filter((_, i) => i !== index));
+                            }
+                          }}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
+
                 <div>
-                  <Label>Top Client Objections CSV (label,percent)</Label>
-                  <Textarea value={objectionsCsv} onChange={(e)=>setObjectionsCsv(e.target.value)} placeholder={'High Costs,65'} />
+                  <div className="flex items-center justify-between">
+                    <Label>Top Client Objections</Label>
+                    <Button 
+                      type="button" 
+                      variant="outline" 
+                      size="sm"
+                      onClick={() => setObjectionParameters([...objectionParameters, { label: '', percent: 0 }])}
+                    >
+                      <Plus className="h-4 w-4 mr-1" />
+                      Add Row
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground mb-2">High Costs, Complex Process, Trust Issues.</p>
+                  {objectionParameters.map((param, index) => (
+                    <div key={index} className="grid grid-cols-12 gap-2 mb-2">
+                      <div className="col-span-5">
+                        <Input
+                          placeholder="Label"
+                          value={param.label}
+                          onChange={(e) => {
+                            const newParams = [...objectionParameters];
+                            newParams[index].label = e.target.value;
+                            setObjectionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-5">
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={param.percent}
+                          onChange={(e) => {
+                            const newParams = [...objectionParameters];
+                            newParams[index].percent = +e.target.value || 0;
+                            setObjectionParameters(newParams);
+                          }}
+                        />
+                      </div>
+                      <div className="col-span-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => {
+                            if (objectionParameters.length > 1) {
+                              setObjectionParameters(objectionParameters.filter((_, i) => i !== index));
+                            }
+                          }}
+                        >
+                          <Minus className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               </div>
 
