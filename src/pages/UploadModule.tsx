@@ -110,7 +110,6 @@ const UploadModule = () => {
       }
 
       // Create module record
-      const parsePairs = (csv: string) => csv.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(line=>{ const [label, val] = line.split(',').map(s=>s.trim()); const percent = Math.max(0, Math.min(100, Number(val)||0)); return { label, percent }; });
       const parseTrend = (csv: string) => csv.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(line=>{ const [day, c, e] = line.split(',').map(s=>s.trim()); const completion = Math.max(0, Math.min(100, Number(c)||0)); const engagement = Math.max(0, Math.min(100, Number(e ?? c)||0)); return { day, completion, engagement }; });
 
       const { error: dbError } = await supabase
