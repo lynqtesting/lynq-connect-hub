@@ -22,11 +22,7 @@ const UploadModule = () => {
     englishYoutubeUrl: '',
     moduleLink: '',
     file: null as File | null,
-    screenshot: null as File | null,
-    pdfReport: null as File | null,
-    englishAudio: null as File | null,
-    confusionAnalysis: null as File | null,
-    followupQuestions: null as File | null,
+    audioOverview: null as File | null,
     category: 'Product'
   });
 
@@ -45,38 +41,10 @@ const UploadModule = () => {
     }
   };
 
-  const handleScreenshotChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleAudioOverviewChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
-      setFormData(prev => ({ ...prev, screenshot: file }));
-    }
-  };
-
-  const handlePdfReportChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, pdfReport: file }));
-    }
-  };
-
-  const handleEnglishAudioChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, englishAudio: file }));
-    }
-  };
-
-  const handleConfusionAnalysisChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, confusionAnalysis: file }));
-    }
-  };
-
-  const handleFollowupQuestionsChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setFormData(prev => ({ ...prev, followupQuestions: file }));
+      setFormData(prev => ({ ...prev, audioOverview: file }));
     }
   };
 
@@ -120,53 +88,15 @@ const UploadModule = () => {
                   formData.file.type.includes('image') ? 'image' : 'document';
       }
 
-      // Upload screenshot if provided
-      let screenshotUrl = null;
-      if (formData.screenshot) {
-        const screenshotExt = formData.screenshot.name.split('.').pop();
-        const screenshotFileName = `screenshot_${Date.now()}.${screenshotExt}`;
-        
-        const { error: screenshotUploadError } = await supabase.storage
-          .from('screenshots')
-          .upload(screenshotFileName, formData.screenshot);
-
-        if (screenshotUploadError) throw screenshotUploadError;
-
-        const { data: { publicUrl: screenshotPublicUrl } } = supabase.storage
-          .from('screenshots')
-          .getPublicUrl(screenshotFileName);
-        
-        screenshotUrl = screenshotPublicUrl;
-      }
-
-      // Upload PDF report if provided
-      let pdfReportUrl = null;
-      if (formData.pdfReport) {
-        const pdfExt = formData.pdfReport.name.split('.').pop();
-        const pdfFileName = `report_${Date.now()}.${pdfExt}`;
-        
-        const { error: pdfUploadError } = await supabase.storage
-          .from('reports')
-          .upload(pdfFileName, formData.pdfReport);
-
-        if (pdfUploadError) throw pdfUploadError;
-
-        const { data: { publicUrl: pdfPublicUrl } } = supabase.storage
-          .from('reports')
-          .getPublicUrl(pdfFileName);
-        
-        pdfReportUrl = pdfPublicUrl;
-      }
-
-      // Upload English audio if provided
-      let englishAudioUrl = null;
-      if (formData.englishAudio) {
-        const audioExt = formData.englishAudio.name.split('.').pop();
-        const audioFileName = `audio_${Date.now()}.${audioExt}`;
+      // Upload audio overview if provided
+      let audioOverviewUrl = null;
+      if (formData.audioOverview) {
+        const audioExt = formData.audioOverview.name.split('.').pop();
+        const audioFileName = `audio_overview_${Date.now()}.${audioExt}`;
         
         const { error: audioUploadError } = await supabase.storage
           .from('modules')
-          .upload(audioFileName, formData.englishAudio);
+          .upload(audioFileName, formData.audioOverview);
 
         if (audioUploadError) throw audioUploadError;
 
@@ -174,45 +104,7 @@ const UploadModule = () => {
           .from('modules')
           .getPublicUrl(audioFileName);
         
-        englishAudioUrl = audioPublicUrl;
-      }
-
-      // Upload confusion analysis screenshot if provided
-      let confusionAnalysisUrl = null;
-      if (formData.confusionAnalysis) {
-        const confusionExt = formData.confusionAnalysis.name.split('.').pop();
-        const confusionFileName = `confusion_${Date.now()}.${confusionExt}`;
-        
-        const { error: confusionUploadError } = await supabase.storage
-          .from('screenshots')
-          .upload(confusionFileName, formData.confusionAnalysis);
-
-        if (confusionUploadError) throw confusionUploadError;
-
-        const { data: { publicUrl: confusionPublicUrl } } = supabase.storage
-          .from('screenshots')
-          .getPublicUrl(confusionFileName);
-        
-        confusionAnalysisUrl = confusionPublicUrl;
-      }
-
-      // Upload follow-up questions screenshot if provided
-      let followupQuestionsUrl = null;
-      if (formData.followupQuestions) {
-        const followupExt = formData.followupQuestions.name.split('.').pop();
-        const followupFileName = `followup_${Date.now()}.${followupExt}`;
-        
-        const { error: followupUploadError } = await supabase.storage
-          .from('screenshots')
-          .upload(followupFileName, formData.followupQuestions);
-
-        if (followupUploadError) throw followupUploadError;
-
-        const { data: { publicUrl: followupPublicUrl } } = supabase.storage
-          .from('screenshots')
-          .getPublicUrl(followupFileName);
-        
-        followupQuestionsUrl = followupPublicUrl;
+        audioOverviewUrl = audioPublicUrl;
       }
 
       // Create module record
@@ -226,11 +118,7 @@ const UploadModule = () => {
           description: formData.description,
           file_url: publicUrl,
           english_video_url: formData.englishYoutubeUrl || null,
-          screenshot_url: screenshotUrl,
-          pdf_report_url: pdfReportUrl,
-          english_audio_url: englishAudioUrl,
-          confusion_analysis_url: confusionAnalysisUrl,
-          followup_questions_url: followupQuestionsUrl,
+          english_audio_url: audioOverviewUrl,
           file_type: fileType,
           category: formData.category,
           module_link: formData.moduleLink || null,
@@ -362,62 +250,16 @@ const UploadModule = () => {
               )}
 
               <div>
-                <Label htmlFor="englishAudio">English Audio Overview</Label>
+                <Label htmlFor="audioOverview">Audio Overview</Label>
                 <Input
-                  id="englishAudio"
+                  id="audioOverview"
                   type="file"
-                  onChange={handleEnglishAudioChange}
+                  onChange={handleAudioOverviewChange}
                   accept=".mp3,.wav,.m4a,.ogg"
                 />
                 <p className="text-xs text-muted-foreground mt-1">
-                  Upload MP3 audio file for English overview
+                  Upload MP3 audio file that connects to summary in client dashboard
                 </p>
-              </div>
-
-              <div>
-                <Label htmlFor="confusionAnalysis">Confusion Areas Analysis</Label>
-                <Input
-                  id="confusionAnalysis"
-                  type="file"
-                  onChange={handleConfusionAnalysisChange}
-                  accept="image/*"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload screenshot of confusion areas (bar chart, graph etc.)
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="followupQuestions">Follow-up Questions</Label>
-                <Input
-                  id="followupQuestions"
-                  type="file"
-                  onChange={handleFollowupQuestionsChange}
-                  accept="image/*"
-                />
-                <p className="text-xs text-muted-foreground mt-1">
-                  Upload screenshot of follow-up questions for lynq adaptation
-                </p>
-              </div>
-
-              <div>
-                <Label htmlFor="screenshot">Additional Data Insights (Optional)</Label>
-                <Input
-                  id="screenshot"
-                  type="file"
-                  onChange={handleScreenshotChange}
-                  accept="image/*"
-                />
-              </div>
-
-              <div>
-                <Label htmlFor="pdfReport">PDF Report (Connect to User)</Label>
-                <Input
-                  id="pdfReport"
-                  type="file"
-                  onChange={handlePdfReportChange}
-                  accept=".pdf"
-                />
               </div>
 
               <div>

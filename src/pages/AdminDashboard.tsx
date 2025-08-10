@@ -34,6 +34,7 @@ const AdminDashboard = () => {
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Eye, label: 'View All Users', action: () => navigate('/view-users') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
+    { icon: Upload, label: 'New Adaptation Lynqs', action: () => navigate('/adapt-lynqs') },
     { icon: Calendar, label: 'Update Calendly Link', action: () => {} },
   ];
 
