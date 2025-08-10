@@ -36,6 +36,8 @@ const UploadModule = () => {
   const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
   const [trendCsv, setTrendCsv] = useState('');
   const [tweakContentRequest, setTweakContentRequest] = useState('');
+  const [newModuleType, setNewModuleType] = useState('');
+  const [newModuleDescription, setNewModuleDescription] = useState('');
   const [tweakTopics, setTweakTopics] = useState([{ topic: '', description: '' }]);
   const [adaptiveModules, setAdaptiveModules] = useState([
     { id: 1, type: 'Custom Training Modules', description: 'Personalized learning paths based on user needs', added: false },
@@ -607,23 +609,51 @@ const UploadModule = () => {
                     ))}
                   </div>
 
-                  <div className="mt-4 text-center">
-                    <Button
-                      type="button"
-                      variant="default"
-                      className="bg-green-600 hover:bg-green-700"
-                      onClick={() => {
-                        const newModule = {
-                          id: adaptiveModules.length + 1,
-                          type: 'Custom Module',
-                          description: 'Custom adaptive module',
-                          added: false
-                        };
-                        setAdaptiveModules(prev => [...prev, newModule]);
-                      }}
-                    >
-                      + Add Different Module
-                    </Button>
+                  <div className="mt-4 space-y-3">
+                    <div className="grid grid-cols-2 gap-3">
+                      <div>
+                        <Label htmlFor="newModuleType">Module Type</Label>
+                        <Input
+                          id="newModuleType"
+                          value={newModuleType}
+                          onChange={(e) => setNewModuleType(e.target.value)}
+                          placeholder="e.g., Pro-fit claims"
+                        />
+                      </div>
+                      <div>
+                        <Label htmlFor="newModuleDescription">Description</Label>
+                        <Input
+                          id="newModuleDescription"
+                          value={newModuleDescription}
+                          onChange={(e) => setNewModuleDescription(e.target.value)}
+                          placeholder="Module description"
+                        />
+                      </div>
+                    </div>
+                    
+                    <div className="text-center">
+                      <Button
+                        type="button"
+                        variant="default"
+                        className="bg-green-600 hover:bg-green-700"
+                        onClick={() => {
+                          if (newModuleType.trim()) {
+                            const newModule = {
+                              id: adaptiveModules.length + 1,
+                              type: newModuleType.trim(),
+                              description: newModuleDescription.trim() || 'Custom adaptive module',
+                              added: false
+                            };
+                            setAdaptiveModules(prev => [...prev, newModule]);
+                            setNewModuleType('');
+                            setNewModuleDescription('');
+                          }
+                        }}
+                        disabled={!newModuleType.trim()}
+                      >
+                        + Add Different Module
+                      </Button>
+                    </div>
                   </div>
                 </div>
               </div>
