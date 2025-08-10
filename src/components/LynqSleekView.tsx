@@ -34,6 +34,8 @@ export interface LynqSleekProps {
   objections?: Array<{ name: string; pct: number }>;
   summaryText?: string;
   audioUrl?: string;
+  adaptiveModules?: Array<{ id: number; type: string; description: string; added: boolean }>;
+  tweakContentRequest?: string;
 }
 
 const defaultKpis = { completion: 87, engagement: 92, opening: 78, rating: 3.0, learners: 200 };
@@ -71,6 +73,8 @@ export default function LynqSleekView({
   objections = defaultObjections,
   summaryText,
   audioUrl,
+  adaptiveModules = [],
+  tweakContentRequest,
 }: LynqSleekProps) {
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
 

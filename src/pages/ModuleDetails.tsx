@@ -75,6 +75,8 @@ const ModuleDetails = () => {
         objections={(moduleData?.objections || [])?.map((i: any) => ({ name: i.name || i.label, pct: i.pct ?? i.percent ?? i.value }))}
         summaryText={moduleData?.summary_text || undefined}
         audioUrl={moduleData?.english_audio_url || undefined}
+        adaptiveModules={moduleData?.adaptive_modules || []}
+        tweakContentRequest={moduleData?.tweak_content_request || undefined}
       />
     </div>
   );
