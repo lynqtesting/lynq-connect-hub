@@ -76,6 +76,18 @@ export default function LynqSleekView({
   adaptiveModules = [],
   tweakContentRequest,
 }: LynqSleekProps) {
+  
+  // Test logging to verify data is being passed correctly
+  console.log('🔍 LynqSleekView - Received data:', {
+    moduleTitle,
+    adaptiveModules,
+    tweakContentRequest,
+    confusionData,
+    perception,
+    objections,
+    kpis,
+    hasAudioUrl: !!audioUrl
+  });
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
 
   useEffect(() => {
