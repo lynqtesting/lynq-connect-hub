@@ -19,16 +19,20 @@ const UploadModule = () => {
     description: '',
     contentType: 'youtube' as 'youtube' | 'file',
     youtubeUrl: '',
-    englishYoutubeUrl: '',
     moduleLink: '',
     file: null as File | null,
     audioOverview: null as File | null,
-    category: 'Product'
+    category: 'Product',
+    adaptedModuleName: '',
+    tweakingTopics: ''
   });
 
   // Analytics fields for client dashboard linkage
   const [kpis, setKpis] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0, learners: 0 });
   const [summaryText, setSummaryText] = useState('');
+  const [confusionData, setConfusionData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
+  const [perceptionData, setPerceptionData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
+  const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
   const [confusionCsv, setConfusionCsv] = useState('');
   const [perceptionCsv, setPerceptionCsv] = useState('');
   const [objectionsCsv, setObjectionsCsv] = useState('');
@@ -117,15 +121,14 @@ const UploadModule = () => {
           title: formData.title,
           description: formData.description,
           file_url: publicUrl,
-          english_video_url: formData.englishYoutubeUrl || null,
           english_audio_url: audioOverviewUrl,
           file_type: fileType,
           category: formData.category,
           module_link: formData.moduleLink || null,
           kpis: kpis,
-          trend: parseTrend(trendCsv),
-          confusion_data: parsePairs(confusionCsv),
-          perception: parsePairs(perceptionCsv),
+          trend: trendCsv ? parseTrend(trendCsv) : trendData,
+          confusion_data: confusionCsv ? parsePairs(confusionCsv) : confusionData,
+          perception: perceptionCsv ? parsePairs(perceptionCsv) : perceptionData,
           objections: parsePairs(objectionsCsv),
           summary_text: summaryText || null,
         });
@@ -215,27 +218,15 @@ const UploadModule = () => {
               </div>
 
               {formData.contentType === 'youtube' ? (
-                <div className="space-y-4">
-                  <div>
-                    <Label htmlFor="youtubeUrl">Hindi YouTube URL *</Label>
-                    <Input
-                      id="youtubeUrl"
-                      type="url"
-                      value={formData.youtubeUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                      placeholder="https://www.youtube.com/watch?v=..."
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="englishYoutubeUrl">English YouTube URL</Label>
-                    <Input
-                      id="englishYoutubeUrl"
-                      type="url"
-                      value={formData.englishYoutubeUrl}
-                      onChange={(e) => setFormData(prev => ({ ...prev, englishYoutubeUrl: e.target.value }))}
-                      placeholder="https://www.youtube.com/watch?v=..."
-                    />
-                  </div>
+                <div>
+                  <Label htmlFor="youtubeUrl">YouTube URL *</Label>
+                  <Input
+                    id="youtubeUrl"
+                    type="url"
+                    value={formData.youtubeUrl}
+                    onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                    placeholder="https://www.youtube.com/watch?v=..."
+                  />
                 </div>
               ) : (
                 <div>
@@ -294,6 +285,26 @@ const UploadModule = () => {
                 </Select>
               </div>
 
+              <div>
+                <Label htmlFor="adaptedModuleName">Adapted Module Name</Label>
+                <Input
+                  id="adaptedModuleName"
+                  value={formData.adaptedModuleName}
+                  onChange={(e) => setFormData(prev => ({ ...prev, adaptedModuleName: e.target.value }))}
+                  placeholder="Name for adapted version of this module"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="tweakingTopics">Topics for Tweaking Previous Lynqs</Label>
+                <Textarea
+                  id="tweakingTopics"
+                  value={formData.tweakingTopics}
+                  onChange={(e) => setFormData(prev => ({ ...prev, tweakingTopics: e.target.value }))}
+                  placeholder="List topics that can be tweaked or customized in previous lynqs"
+                />
+              </div>
+
               {/* Analytics inputs for dashboard linkage */}
               <div className="grid gap-4">
                 <div>
@@ -308,15 +319,36 @@ const UploadModule = () => {
                   <div className="col-span-2"><Label>Learners Completed</Label><Input type="number" value={kpis.learners} onChange={(e)=>setKpis(s=>({...s, learners: +e.target.value||0}))} /></div>
                 </div>
                 <div>
-                  <Label>Trend CSV (day,completion,engagement)</Label>
+                  <Label>Trend Parameters</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Completion %</Label><Input type="number" value={trendData.completion} onChange={(e)=>setTrendData(s=>({...s, completion: +e.target.value||0}))} /></div>
+                    <div><Label>Engagement %</Label><Input type="number" value={trendData.engagement} onChange={(e)=>setTrendData(s=>({...s, engagement: +e.target.value||0}))} /></div>
+                    <div><Label>Opening %</Label><Input type="number" value={trendData.opening} onChange={(e)=>setTrendData(s=>({...s, opening: +e.target.value||0}))} /></div>
+                    <div><Label>Rating</Label><Input type="number" step="0.1" value={trendData.rating} onChange={(e)=>setTrendData(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  </div>
+                  <Label className="mt-2">Or Trend CSV (day,completion,engagement)</Label>
                   <Textarea value={trendCsv} onChange={(e)=>setTrendCsv(e.target.value)} placeholder={'Mon,82,90\nTue,88,92'} />
                 </div>
                 <div>
-                  <Label>Confusion Parameters CSV (label,percent)</Label>
+                  <Label>Confusion Parameters</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Completion %</Label><Input type="number" value={confusionData.completion} onChange={(e)=>setConfusionData(s=>({...s, completion: +e.target.value||0}))} /></div>
+                    <div><Label>Engagement %</Label><Input type="number" value={confusionData.engagement} onChange={(e)=>setConfusionData(s=>({...s, engagement: +e.target.value||0}))} /></div>
+                    <div><Label>Opening %</Label><Input type="number" value={confusionData.opening} onChange={(e)=>setConfusionData(s=>({...s, opening: +e.target.value||0}))} /></div>
+                    <div><Label>Rating</Label><Input type="number" step="0.1" value={confusionData.rating} onChange={(e)=>setConfusionData(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  </div>
+                  <Label className="mt-2">Or Confusion CSV (label,percent)</Label>
                   <Textarea value={confusionCsv} onChange={(e)=>setConfusionCsv(e.target.value)} placeholder={'Fixed Payout Confusion,65'} />
                 </div>
                 <div>
-                  <Label>Perception Parameters CSV (label,percent)</Label>
+                  <Label>Perception Parameters</Label>
+                  <div className="grid grid-cols-2 gap-3">
+                    <div><Label>Completion %</Label><Input type="number" value={perceptionData.completion} onChange={(e)=>setPerceptionData(s=>({...s, completion: +e.target.value||0}))} /></div>
+                    <div><Label>Engagement %</Label><Input type="number" value={perceptionData.engagement} onChange={(e)=>setPerceptionData(s=>({...s, engagement: +e.target.value||0}))} /></div>
+                    <div><Label>Opening %</Label><Input type="number" value={perceptionData.opening} onChange={(e)=>setPerceptionData(s=>({...s, opening: +e.target.value||0}))} /></div>
+                    <div><Label>Rating</Label><Input type="number" step="0.1" value={perceptionData.rating} onChange={(e)=>setPerceptionData(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  </div>
+                  <Label className="mt-2">Or Perception CSV (label,percent)</Label>
                   <Textarea value={perceptionCsv} onChange={(e)=>setPerceptionCsv(e.target.value)} placeholder={'Trust,72'} />
                 </div>
                 <div>
