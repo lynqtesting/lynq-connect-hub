@@ -35,6 +35,12 @@ const UploadModule = () => {
   const [objectionParameters, setObjectionParameters] = useState([{ label: '', percent: 0 }]);
   const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
   const [trendCsv, setTrendCsv] = useState('');
+  const [tweakContentRequest, setTweakContentRequest] = useState('');
+  const [adaptiveModules, setAdaptiveModules] = useState([
+    { id: 1, type: 'Interactive Tutorials', description: 'Step-by-step visual guides for fixed payout concepts', added: false },
+    { id: 2, type: 'Video Walkthroughs', description: 'Firebase setup + troubleshooting guides', added: false },
+    { id: 3, type: 'Value Calculators', description: 'ROI calculators to show clear value', added: false }
+  ]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -124,6 +130,8 @@ const UploadModule = () => {
           module_link: formData.moduleLink || null,
           adapted_module_name: formData.adaptedModuleName || null,
           tweaking_topics: formData.tweakingTopics || null,
+          tweak_content_request: tweakContentRequest || null,
+          adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
           trend: trendCsv ? parseTrend(trendCsv) : trendData,
           confusion_data: confusionParameters,
@@ -497,6 +505,79 @@ const UploadModule = () => {
                       </div>
                     </div>
                   ))}
+                </div>
+              </div>
+
+              {/* Tweak Content Request Section */}
+              <div className="grid gap-4">
+                <div>
+                  <Label className="text-lg font-semibold">Tweak Content Request</Label>
+                  <div className="mt-2">
+                    <Label htmlFor="tweakContentRequest">Topic / Area to Tweak</Label>
+                    <Textarea
+                      id="tweakContentRequest"
+                      value={tweakContentRequest}
+                      onChange={(e) => setTweakContentRequest(e.target.value)}
+                      placeholder="Enter the topic or area that needs tweaking..."
+                      className="mt-1"
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <Label className="text-lg font-semibold">Actions & Improvements</Label>
+                  <p className="text-sm text-muted-foreground mb-4">Next Adaptive Lynqs</p>
+                  
+                  <div className="space-y-3">
+                    {adaptiveModules.map((module) => (
+                      <div key={module.id} className="flex items-center justify-between p-4 border rounded-lg">
+                        <div className="flex items-center space-x-3">
+                          <div className="w-8 h-8 bg-primary/10 rounded flex items-center justify-center">
+                            {module.type === 'Interactive Tutorials' && '📚'}
+                            {module.type === 'Video Walkthroughs' && '🎥'}
+                            {module.type === 'Value Calculators' && '🧮'}
+                          </div>
+                          <div>
+                            <h4 className="font-medium">{module.type}</h4>
+                            <p className="text-sm text-muted-foreground">{module.description}</p>
+                          </div>
+                        </div>
+                        <Button
+                          type="button"
+                          variant={module.added ? "default" : "destructive"}
+                          size="sm"
+                          onClick={() => {
+                            setAdaptiveModules(prev => 
+                              prev.map(m => 
+                                m.id === module.id ? { ...m, added: !m.added } : m
+                              )
+                            );
+                          }}
+                        >
+                          {module.added ? 'Added' : 'Add Now'}
+                        </Button>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="mt-4 text-center">
+                    <Button
+                      type="button"
+                      variant="default"
+                      className="bg-green-600 hover:bg-green-700"
+                      onClick={() => {
+                        const newModule = {
+                          id: adaptiveModules.length + 1,
+                          type: 'Custom Module',
+                          description: 'Custom adaptive module',
+                          added: false
+                        };
+                        setAdaptiveModules(prev => [...prev, newModule]);
+                      }}
+                    >
+                      + Add Different Module
+                    </Button>
+                  </div>
                 </div>
               </div>
 
