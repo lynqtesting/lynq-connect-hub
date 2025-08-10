@@ -58,7 +58,7 @@ const AdaptLynqs = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase
+      const { error } = await (supabase as any)
         .from('module_adaptations')
         .insert({
           original_module_id: selectedModule,
