@@ -60,6 +60,7 @@ export type Database = {
       }
       modules: {
         Row: {
+          adaptive_modules: Json | null
           category: string | null
           confusion_analysis_url: string | null
           confusion_data: Json | null
@@ -80,9 +81,11 @@ export type Database = {
           summary_text: string | null
           title: string
           trend: Json | null
+          tweak_content_request: string | null
           updated_at: string
         }
         Insert: {
+          adaptive_modules?: Json | null
           category?: string | null
           confusion_analysis_url?: string | null
           confusion_data?: Json | null
@@ -103,9 +106,11 @@ export type Database = {
           summary_text?: string | null
           title: string
           trend?: Json | null
+          tweak_content_request?: string | null
           updated_at?: string
         }
         Update: {
+          adaptive_modules?: Json | null
           category?: string | null
           confusion_analysis_url?: string | null
           confusion_data?: Json | null
@@ -126,6 +131,7 @@ export type Database = {
           summary_text?: string | null
           title?: string
           trend?: Json | null
+          tweak_content_request?: string | null
           updated_at?: string
         }
         Relationships: []
