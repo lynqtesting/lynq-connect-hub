@@ -36,6 +36,7 @@ const UploadModule = () => {
   const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
   const [trendCsv, setTrendCsv] = useState('');
   const [tweakContentRequest, setTweakContentRequest] = useState('');
+  const [tweakTopics, setTweakTopics] = useState([{ topic: '', description: '' }]);
   const [adaptiveModules, setAdaptiveModules] = useState([
     { id: 1, type: 'Interactive Tutorials', description: 'Step-by-step visual guides for fixed payout concepts', added: false },
     { id: 2, type: 'Video Walkthroughs', description: 'Firebase setup + troubleshooting guides', added: false },
@@ -129,7 +130,7 @@ const UploadModule = () => {
           category: formData.category,
           module_link: formData.moduleLink || null,
           adapted_module_name: formData.adaptedModuleName || null,
-          tweaking_topics: formData.tweakingTopics || null,
+          tweaking_topics: JSON.stringify(tweakTopics.filter(t => t.topic.trim())),
           tweak_content_request: tweakContentRequest || null,
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
@@ -303,13 +304,59 @@ const UploadModule = () => {
               </div>
 
               <div>
-                <Label htmlFor="tweakingTopics">Topics for Tweaking Previous Lynqs</Label>
-                <Textarea
-                  id="tweakingTopics"
-                  value={formData.tweakingTopics}
-                  onChange={(e) => setFormData(prev => ({ ...prev, tweakingTopics: e.target.value }))}
-                  placeholder="List topics that can be tweaked or customized in previous lynqs"
-                />
+                <div className="flex items-center justify-between">
+                  <Label>Topics for Tweaking Previous Lynqs</Label>
+                  <Button 
+                    type="button" 
+                    variant="outline" 
+                    size="sm"
+                    onClick={() => setTweakTopics([...tweakTopics, { topic: '', description: '' }])}
+                  >
+                    <Plus className="h-4 w-4 mr-1" />
+                    Add Topic
+                  </Button>
+                </div>
+                <p className="text-xs text-muted-foreground mb-2">Add multiple topics that can be tweaked or customized in previous lynqs</p>
+                {tweakTopics.map((item, index) => (
+                  <div key={index} className="grid grid-cols-12 gap-2 mb-2">
+                    <div className="col-span-4">
+                      <Input
+                        placeholder="Topic"
+                        value={item.topic}
+                        onChange={(e) => {
+                          const newTopics = [...tweakTopics];
+                          newTopics[index].topic = e.target.value;
+                          setTweakTopics(newTopics);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-6">
+                      <Input
+                        placeholder="Description"
+                        value={item.description}
+                        onChange={(e) => {
+                          const newTopics = [...tweakTopics];
+                          newTopics[index].description = e.target.value;
+                          setTweakTopics(newTopics);
+                        }}
+                      />
+                    </div>
+                    <div className="col-span-2">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => {
+                          if (tweakTopics.length > 1) {
+                            setTweakTopics(tweakTopics.filter((_, i) => i !== index));
+                          }
+                        }}
+                      >
+                        <Minus className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  </div>
+                ))}
               </div>
 
               {/* Analytics inputs for dashboard linkage */}
