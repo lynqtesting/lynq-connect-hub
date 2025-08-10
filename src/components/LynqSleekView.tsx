@@ -32,6 +32,8 @@ export interface LynqSleekProps {
   confusionData?: Array<{ name: string; value: number }>;
   perception?: Array<{ metric: string; value: number; target: number }>;
   objections?: Array<{ name: string; pct: number }>;
+  summaryText?: string;
+  audioUrl?: string;
 }
 
 const defaultKpis = { completion: 87, engagement: 92, opening: 78, rating: 3.0, learners: 200 };
@@ -67,8 +69,9 @@ export default function LynqSleekView({
   confusionData = defaultConfusion,
   perception = defaultPerception,
   objections = defaultObjections,
+  summaryText,
+  audioUrl,
 }: LynqSleekProps) {
-  const [isPlaying, setPlaying] = useState(false);
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
 
   useEffect(() => {
@@ -88,9 +91,9 @@ export default function LynqSleekView({
     }
   };
 
-  const summary = useMemo(
-    () => `Quick pulse: engagement ${kpis.engagement}%, completion ${kpis.completion}%, opening ${kpis.opening}%. Build an ROI calculator next.`,
-    [kpis]
+  const textSummary = useMemo(
+    () => summaryText ?? `Quick pulse: engagement ${kpis.engagement}%, completion ${kpis.completion}%, opening ${kpis.opening}%. Build an ROI calculator next.`,
+    [kpis, summaryText]
   );
 
   return (
@@ -128,10 +131,14 @@ export default function LynqSleekView({
 
         {/* Audio Summary */}
         <Card title="Summary" className="mt-3">
-          <p className="text-xs text-muted-foreground mb-3">{summary}</p>
-          <Button onClick={() => setPlaying((p) => !p)} className="w-full" size="lg" variant="default">
-            {isPlaying ? "Pause" : "Play"}
-          </Button>
+          <p className="text-xs text-muted-foreground mb-3">{textSummary}</p>
+          {audioUrl ? (
+            <audio controls className="w-full" src={audioUrl} preload="none" />
+          ) : (
+            <Button onClick={() => navigate('/lynq-library')} className="w-full" size="lg" variant="default">
+              Play
+            </Button>
+          )}
         </Card>
 
         {/* Tabs + Charts */}

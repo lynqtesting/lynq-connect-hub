@@ -3,7 +3,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import Logo from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
-import { Upload, Users, FileText, Calendar, Settings, Eye } from 'lucide-react';
+import { Upload, Users, Calendar, Eye } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 
@@ -34,8 +34,6 @@ const AdminDashboard = () => {
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Eye, label: 'View All Users', action: () => navigate('/view-users') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
-    { icon: FileText, label: 'See Requests', action: () => navigate('/view-requests') },
-    { icon: Settings, label: 'Write Recommendations', action: () => navigate('/write-recommendations') },
     { icon: Calendar, label: 'Update Calendly Link', action: () => {} },
   ];
 

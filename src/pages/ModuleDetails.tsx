@@ -68,6 +68,13 @@ const ModuleDetails = () => {
       <LynqSleekView
         moduleTitle={moduleData?.title || 'Lynq'}
         moduleLink={moduleData?.module_link}
+        kpis={moduleData?.kpis || undefined}
+        trend={moduleData?.trend || undefined}
+        confusionData={(moduleData?.confusion_data || [])?.map((i: any) => ({ name: i.name || i.label, value: i.value ?? i.percent }))}
+        perception={(moduleData?.perception || [])?.map((i: any) => ({ metric: i.metric || i.label, value: i.value ?? i.percent, target: i.target ?? 80 }))}
+        objections={(moduleData?.objections || [])?.map((i: any) => ({ name: i.name || i.label, pct: i.pct ?? i.percent ?? i.value }))}
+        summaryText={moduleData?.summary_text || undefined}
+        audioUrl={moduleData?.english_audio_url || undefined}
       />
     </div>
   );

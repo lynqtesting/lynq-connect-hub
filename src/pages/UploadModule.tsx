@@ -30,6 +30,14 @@ const UploadModule = () => {
     category: 'Product'
   });
 
+  // Analytics fields for client dashboard linkage
+  const [kpis, setKpis] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0, learners: 0 });
+  const [summaryText, setSummaryText] = useState('');
+  const [confusionCsv, setConfusionCsv] = useState('');
+  const [perceptionCsv, setPerceptionCsv] = useState('');
+  const [objectionsCsv, setObjectionsCsv] = useState('');
+  const [trendCsv, setTrendCsv] = useState('');
+
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
@@ -208,6 +216,9 @@ const UploadModule = () => {
       }
 
       // Create module record
+      const parsePairs = (csv: string) => csv.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(line=>{ const [label, val] = line.split(',').map(s=>s.trim()); const percent = Math.max(0, Math.min(100, Number(val)||0)); return { label, percent }; });
+      const parseTrend = (csv: string) => csv.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(line=>{ const [day, c, e] = line.split(',').map(s=>s.trim()); const completion = Math.max(0, Math.min(100, Number(c)||0)); const engagement = Math.max(0, Math.min(100, Number(e ?? c)||0)); return { day, completion, engagement }; });
+
       const { error: dbError } = await supabase
         .from('modules')
         .insert({
@@ -222,7 +233,13 @@ const UploadModule = () => {
           followup_questions_url: followupQuestionsUrl,
           file_type: fileType,
           category: formData.category,
-          module_link: formData.moduleLink || null
+          module_link: formData.moduleLink || null,
+          kpis: kpis,
+          trend: parseTrend(trendCsv),
+          confusion_data: parsePairs(confusionCsv),
+          perception: parsePairs(perceptionCsv),
+          objections: parsePairs(objectionsCsv),
+          summary_text: summaryText || null,
         });
 
       if (dbError) throw dbError;
@@ -433,6 +450,37 @@ const UploadModule = () => {
                     <SelectItem value="Soft Skills">Soft Skills</SelectItem>
                   </SelectContent>
                 </Select>
+              </div>
+
+              {/* Analytics inputs for dashboard linkage */}
+              <div className="grid gap-4">
+                <div>
+                  <Label>Summary Text</Label>
+                  <Textarea value={summaryText} onChange={(e)=>setSummaryText(e.target.value)} placeholder="Short summary shown to users" />
+                </div>
+                <div className="grid grid-cols-2 gap-3">
+                  <div><Label>Completion %</Label><Input type="number" value={kpis.completion} onChange={(e)=>setKpis(s=>({...s, completion: +e.target.value||0}))} /></div>
+                  <div><Label>Engagement %</Label><Input type="number" value={kpis.engagement} onChange={(e)=>setKpis(s=>({...s, engagement: +e.target.value||0}))} /></div>
+                  <div><Label>Opening %</Label><Input type="number" value={kpis.opening} onChange={(e)=>setKpis(s=>({...s, opening: +e.target.value||0}))} /></div>
+                  <div><Label>Average Rating</Label><Input type="number" step="0.1" value={kpis.rating} onChange={(e)=>setKpis(s=>({...s, rating: +e.target.value||0}))} /></div>
+                  <div className="col-span-2"><Label>Learners Completed</Label><Input type="number" value={kpis.learners} onChange={(e)=>setKpis(s=>({...s, learners: +e.target.value||0}))} /></div>
+                </div>
+                <div>
+                  <Label>Trend CSV (day,completion,engagement)</Label>
+                  <Textarea value={trendCsv} onChange={(e)=>setTrendCsv(e.target.value)} placeholder={'Mon,82,90\nTue,88,92'} />
+                </div>
+                <div>
+                  <Label>Confusion Parameters CSV (label,percent)</Label>
+                  <Textarea value={confusionCsv} onChange={(e)=>setConfusionCsv(e.target.value)} placeholder={'Fixed Payout Confusion,65'} />
+                </div>
+                <div>
+                  <Label>Perception Parameters CSV (label,percent)</Label>
+                  <Textarea value={perceptionCsv} onChange={(e)=>setPerceptionCsv(e.target.value)} placeholder={'Trust,72'} />
+                </div>
+                <div>
+                  <Label>Top Client Objections CSV (label,percent)</Label>
+                  <Textarea value={objectionsCsv} onChange={(e)=>setObjectionsCsv(e.target.value)} placeholder={'High Costs,65'} />
+                </div>
               </div>
 
               <div className="pt-2">
