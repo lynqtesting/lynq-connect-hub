@@ -38,9 +38,9 @@ const UploadModule = () => {
   const [tweakContentRequest, setTweakContentRequest] = useState('');
   const [tweakTopics, setTweakTopics] = useState([{ topic: '', description: '' }]);
   const [adaptiveModules, setAdaptiveModules] = useState([
-    { id: 1, type: 'Interactive Tutorials', description: 'Step-by-step visual guides for fixed payout concepts', added: false },
-    { id: 2, type: 'Video Walkthroughs', description: 'Firebase setup + troubleshooting guides', added: false },
-    { id: 3, type: 'Value Calculators', description: 'ROI calculators to show clear value', added: false }
+    { id: 1, type: 'Custom Training Modules', description: 'Personalized learning paths based on user needs', added: false },
+    { id: 2, type: 'Interactive Simulations', description: 'Hands-on practice scenarios for skill development', added: false },
+    { id: 3, type: 'Assessment Tools', description: 'Comprehensive evaluation and progress tracking', added: false }
   ]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
