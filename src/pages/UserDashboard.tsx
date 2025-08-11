@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
+import { BookOpen, BarChart3, LibraryBig, LogOut } from "lucide-react";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -45,6 +46,11 @@ const UserDashboard = () => {
 
     return () => subscription.unsubscribe();
   }, [navigate]);
+
+  // SEO: set page title
+  useEffect(() => {
+    document.title = "LYNQ Access & Data Dashboard";
+  }, []);
 
   const fetchUserModules = async (userId: string) => {
     try {
@@ -119,78 +125,108 @@ const UserDashboard = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      <div className="p-4 max-w-md mx-auto">
-        <div className="mb-6">
-          <Logo className="mb-2" />
-          <h2 className="text-lg text-muted-foreground">Welcome, User!</h2>
+      <div className="max-w-md mx-auto px-4 pb-8">
+        {/* Header / Hero */}
+        <section className="rounded-3xl border border-border bg-gradient-to-br from-primary/10 via-accent/5 to-background p-5 mt-6 mb-4 animate-fade-in">
+          <div className="flex items-center gap-3">
+            <div className="size-10 rounded-2xl bg-primary text-primary-foreground grid place-items-center shadow">
+              <BarChart3 className="h-5 w-5" />
+            </div>
+            <div>
+              <h1 className="text-lg font-extrabold tracking-tight">LYNQ Access & Data Dashboard</h1>
+              <p className="text-xs text-muted-foreground">Your assigned LYNQs and recommendations</p>
+            </div>
+          </div>
+        </section>
+
+        {/* Quick Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <Card className="rounded-2xl">
+            <CardContent className="p-4">
+              <div className="text-[11px] text-muted-foreground">Assigned LYNQs</div>
+              <div className="text-2xl font-extrabold">{userModules.length}</div>
+            </CardContent>
+          </Card>
+          <Card className="rounded-2xl">
+            <CardContent className="p-4">
+              <div className="text-[11px] text-muted-foreground">Recommendations</div>
+              <div className="text-2xl font-extrabold">{recommendations.length}</div>
+            </CardContent>
+          </Card>
         </div>
 
-        <div className="space-y-4">
-          <h3 className="text-xl font-semibold mb-4">Your Modules:</h3>
-          
+        {/* Assigned Modules */}
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Assigned LYNQs</h2>
           {loading ? (
             <div className="text-center py-8">Loading modules...</div>
           ) : userModules.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              No modules assigned yet
-            </div>
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 text-center">
+                <div className="text-sm text-muted-foreground">No modules assigned yet</div>
+                <Button variant="outline" className="mt-3" onClick={() => navigate('/lynq-library')}>
+                  <LibraryBig className="h-4 w-4 mr-2" /> Browse LYNQ Library
+                </Button>
+              </CardContent>
+            </Card>
           ) : (
-            userModules.map((assignment) => (
-              <Card 
-                key={assignment.id} 
-                className="cursor-pointer hover:shadow-md transition-shadow"
-                onClick={() => navigate(`/module/${assignment.modules.id}`)}
-              >
-                <CardContent className="p-4">
-                  <h4 className="font-medium">{assignment.modules.title}</h4>
-                  {assignment.modules.description && (
-                    <p className="text-sm text-muted-foreground mt-1">
-                      {assignment.modules.description}
-                    </p>
-                  )}
-                </CardContent>
-              </Card>
-            ))
+            <div className="space-y-3">
+              {userModules.map((assignment) => (
+                <Card
+                  key={assignment.id}
+                  className="cursor-pointer transition-shadow hover:shadow-md hover-scale rounded-2xl"
+                  onClick={() => navigate(`/module/${assignment.modules.id}`)}
+                >
+                  <CardContent className="p-4 flex items-start gap-3">
+                    <div className="size-9 rounded-xl bg-muted grid place-items-center border">
+                      <BookOpen className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1">
+                      <div className="font-medium leading-tight">{assignment.modules.title}</div>
+                      {assignment.modules.description && (
+                        <p className="text-xs text-muted-foreground mt-1 line-clamp-2">
+                          {assignment.modules.description}
+                        </p>
+                      )}
+                    </div>
+                    <Button size="sm" variant="outline">Open</Button>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           )}
+        </section>
 
-          {/* Recommendations Section */}
-          {recommendations.length > 0 && (
-            <div className="mt-8">
-              <h3 className="text-xl font-semibold mb-4">Recommendations for New Modules:</h3>
+        {/* Recommendations Section */}
+        {recommendations.length > 0 && (
+          <section className="mt-8">
+            <h2 className="text-sm font-semibold text-muted-foreground mb-2">Recommendations</h2>
+            <div className="space-y-3">
               {recommendations.map((recommendation) => (
-                <Card key={recommendation.id} className="mb-4">
-                  <CardHeader>
-                    <CardTitle className="text-sm font-medium text-primary">
-                      Module Recommendation
-                    </CardTitle>
+                <Card key={recommendation.id} className="rounded-2xl">
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm font-medium text-primary">Module Recommendation</CardTitle>
                   </CardHeader>
                   <CardContent>
                     <p className="text-sm leading-relaxed">{recommendation.content}</p>
-                    <p className="text-xs text-muted-foreground mt-2">
+                    <p className="text-[11px] text-muted-foreground mt-2">
                       {new Date(recommendation.created_at).toLocaleDateString()}
                     </p>
                   </CardContent>
                 </Card>
               ))}
             </div>
-           )}
-           
-           <div className="mt-6 space-y-2">
-             <Button 
-               variant="outline" 
-               className="w-full"
-               onClick={() => navigate('/lynq-library')}
-             >
-               Browse LYNQ Library
-             </Button>
-             <Button 
-               variant="outline" 
-               className="w-full"
-               onClick={handleLogout}
-             >
-               Logout
-             </Button>
-           </div>
+          </section>
+        )}
+
+        {/* Footer Actions */}
+        <div className="mt-8 grid grid-cols-2 gap-3">
+          <Button variant="outline" className="w-full" onClick={() => navigate('/lynq-library')}>
+            <LibraryBig className="h-4 w-4 mr-2" /> Library
+          </Button>
+          <Button variant="destructive" className="w-full" onClick={handleLogout}>
+            <LogOut className="h-4 w-4 mr-2" /> Logout
+          </Button>
         </div>
       </div>
     </div>
