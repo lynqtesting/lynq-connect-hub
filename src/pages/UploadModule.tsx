@@ -126,7 +126,7 @@ const UploadModule = () => {
           category: formData.category,
           module_link: formData.moduleLink || null,
           
-          tweaking_topics: JSON.stringify(tweakTopics.filter(t => t.topic.trim())),
+          
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
           
@@ -145,6 +145,7 @@ const UploadModule = () => {
 
       navigate('/admin-dashboard');
     } catch (error) {
+      console.error('Upload error:', error);
       toast({
         title: "Error",
         description: "Failed to upload lynq",
