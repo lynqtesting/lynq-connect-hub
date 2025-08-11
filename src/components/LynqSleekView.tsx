@@ -250,46 +250,44 @@ export default function LynqSleekView({
         <Card title="Actions & Improvements" className="mt-3">
           <div className="text-[13px] font-semibold text-foreground mb-2">Next Adaptive Lynqs</div>
           <div className="space-y-3">
-            <ActionRow
-              title="📚 Interactive Tutorials"
-              subtitle="Create step-by-step visual guides for fixed payout concepts to reduce confusion"
-              cta="Create Now"
-              onClick={() => alert("Create: Tutorials")}
-            />
-            <ActionRow
-              title="🎥 Video Walkthroughs"
-              subtitle="Develop comprehensive Firebase setup tutorials with troubleshooting guides"
-              cta="Create Now"
-              onClick={() => alert("Create: Videos")}
-            />
-            <ActionRow
-              title="🧮 Value Calculators"
-              subtitle="Build ROI calculators to demonstrate clear value proposition to users"
-              cta="Create Now"
-              onClick={() => alert("Create: Calculators")}
-            />
+            {Array.isArray(adaptiveModules) && adaptiveModules.filter(m => m?.added ?? true).length > 0 ? (
+              adaptiveModules
+                .filter(m => m?.added ?? true)
+                .map((m) => (
+                  <ActionRow
+                    key={m.id}
+                    title={m.type}
+                    subtitle={m.description || "No description provided"}
+                    cta={m.added === false ? "Add Now" : "Create Now"}
+                    onClick={() => navigate('/upload-module')}
+                  />
+                ))
+            ) : (
+              <ActionRow
+                title="No adaptive lynqs yet"
+                subtitle="Add adaptive lynqs for this module from the Upload/Edit form."
+                cta="Add Now"
+                onClick={() => navigate('/upload-module')}
+              />
+            )}
           </div>
         </Card>
 
         {/* Tweak the LYNQ */}
         <Card title="Tweak the LYNQ" className="mt-3">
           <div className="space-y-3">
-            <TweakCard
-              title="💰 Cost Premiums Confusion"
-              subtitle="Get more real-time data on user understanding (3 tweaks allowed)"
-              uploadLabel="📁 Upload Supporting Materials"
-              uploadHint="PDFs, docs, images, or examples"
-              cta="Improve Content"
-              onClick={() => alert("Improve: Cost Premiums")}
-            />
-            <TweakCard
-              title="📄 Loan Processing Clarity"
-              subtitle="Collect real-time feedback on processing steps (3 tweaks allowed)"
-              uploadLabel="📄 Upload Brochures"
-              uploadHint="PDFs, documents, or guides"
-              cta="Add Content"
-              onClick={() => alert("Improve: Loan Processing")}
-            />
+            {tweakContentRequest ? (
+              <TweakCard
+                title={tweakContentRequest}
+                subtitle="Share materials or notes to refine this LYNQ"
+                uploadLabel="📁 Upload Supporting Materials"
+                uploadHint="PDFs, docs, images, or examples"
+                cta="Submit Tweak"
+                onClick={() => navigate('/request-form')}
+              />
+            ) : (
+              <div className="text-xs text-muted-foreground">No tweak requests yet for this LYNQ.</div>
+            )}
           </div>
         </Card>
       </div>
