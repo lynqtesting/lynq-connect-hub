@@ -592,7 +592,6 @@ const UploadModule = () => {
                     </div>
                   </div>
                 </div>
-              </div>
 
               <div className="pt-2">
                 <Button 
