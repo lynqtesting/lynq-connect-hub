@@ -17,7 +17,6 @@ const UploadModule = () => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    contentType: 'youtube' as 'youtube' | 'file',
     youtubeUrl: '',
     moduleLink: '',
     file: null as File | null,
@@ -32,7 +31,7 @@ const UploadModule = () => {
   const [confusionParameters, setConfusionParameters] = useState([{ label: '', percent: 0 }]);
   const [perceptionParameters, setPerceptionParameters] = useState([{ label: '', percent: 0 }]);
   const [objectionParameters, setObjectionParameters] = useState([{ label: '', percent: 0 }]);
-  const [tweakContentRequest, setTweakContentRequest] = useState('');
+  
   const [newModuleType, setNewModuleType] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
   const [tweakTopics, setTweakTopics] = useState([{ topic: '', description: '' }]);
@@ -58,10 +57,10 @@ const UploadModule = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || (formData.contentType === 'file' && !formData.file) || (formData.contentType === 'youtube' && !formData.youtubeUrl)) {
+    if (!formData.title || (!formData.youtubeUrl && !formData.file)) {
       toast({
         title: "Error",
-        description: "Please fill in all required fields",
+        description: "Please provide a YouTube URL or upload a file",
         variant: "destructive"
       });
       return;
@@ -72,7 +71,7 @@ const UploadModule = () => {
       let publicUrl = '';
       let fileType = 'video';
 
-      if (formData.contentType === 'youtube') {
+      if (formData.youtubeUrl) {
         publicUrl = formData.youtubeUrl;
         fileType = 'video';
       } else if (formData.file) {
@@ -128,7 +127,6 @@ const UploadModule = () => {
           module_link: formData.moduleLink || null,
           
           tweaking_topics: JSON.stringify(tweakTopics.filter(t => t.topic.trim())),
-          tweak_content_request: tweakContentRequest || null,
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
           
@@ -198,52 +196,30 @@ const UploadModule = () => {
                 />
               </div>
 
+
               <div>
-                <Label>Content Type *</Label>
-                <div className="flex gap-4 mt-2">
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="contentType"
-                      checked={formData.contentType === 'youtube'}
-                      onChange={() => setFormData(prev => ({ ...prev, contentType: 'youtube' }))}
-                    />
-                    <span>YouTube Video</span>
-                  </label>
-                  <label className="flex items-center space-x-2">
-                    <input
-                      type="radio"
-                      name="contentType"
-                      checked={formData.contentType === 'file'}
-                      onChange={() => setFormData(prev => ({ ...prev, contentType: 'file' }))}
-                    />
-                    <span>File Upload</span>
-                  </label>
-                </div>
+                <Label htmlFor="youtubeUrl">YouTube URL (optional)</Label>
+                <Input
+                  id="youtubeUrl"
+                  type="url"
+                  value={formData.youtubeUrl}
+                  onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
+                  placeholder="https://www.youtube.com/watch?v=..."
+                />
               </div>
 
-              {formData.contentType === 'youtube' ? (
-                <div>
-                  <Label htmlFor="youtubeUrl">YouTube URL *</Label>
-                  <Input
-                    id="youtubeUrl"
-                    type="url"
-                    value={formData.youtubeUrl}
-                    onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
-                    placeholder="https://www.youtube.com/watch?v=..."
-                  />
-                </div>
-              ) : (
-                <div>
-                  <Label htmlFor="file">File *</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    onChange={handleFileChange}
-                    accept="video/*,image/*,.pdf,.doc,.docx"
-                  />
-                </div>
-              )}
+              <div>
+                <Label htmlFor="file">File (optional)</Label>
+                <Input
+                  id="file"
+                  type="file"
+                  onChange={handleFileChange}
+                  accept="video/*,image/*,.pdf,.doc,.docx"
+                />
+                <p className="text-xs text-muted-foreground mt-1">
+                  Provide either a YouTube URL or upload a file
+                </p>
+              </div>
 
               <div>
                 <Label htmlFor="audioOverview">Audio Overview</Label>
@@ -532,21 +508,6 @@ const UploadModule = () => {
                 </div>
               </div>
 
-              {/* Tweak Content Request Section */}
-              <div className="grid gap-4">
-                <div>
-                  <Label className="text-lg font-semibold">Tweak Content Request</Label>
-                  <div className="mt-2">
-                    <Label htmlFor="tweakContentRequest">Topic / Area to Tweak</Label>
-                    <Textarea
-                      id="tweakContentRequest"
-                      value={tweakContentRequest}
-                      onChange={(e) => setTweakContentRequest(e.target.value)}
-                      placeholder="Enter the topic or area that needs tweaking..."
-                      className="mt-1"
-                    />
-                  </div>
-                </div>
 
                 <div>
                   <Label className="text-lg font-semibold">Actions & Improvements</Label>
