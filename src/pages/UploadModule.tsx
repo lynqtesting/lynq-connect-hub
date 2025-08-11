@@ -23,7 +23,6 @@ const UploadModule = () => {
     file: null as File | null,
     audioOverview: null as File | null,
     category: 'Product',
-    adaptedModuleName: '',
     tweakingTopics: ''
   });
 
@@ -33,8 +32,6 @@ const UploadModule = () => {
   const [confusionParameters, setConfusionParameters] = useState([{ label: '', percent: 0 }]);
   const [perceptionParameters, setPerceptionParameters] = useState([{ label: '', percent: 0 }]);
   const [objectionParameters, setObjectionParameters] = useState([{ label: '', percent: 0 }]);
-  const [trendData, setTrendData] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0 });
-  const [trendCsv, setTrendCsv] = useState('');
   const [tweakContentRequest, setTweakContentRequest] = useState('');
   const [newModuleType, setNewModuleType] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
@@ -118,8 +115,6 @@ const UploadModule = () => {
         audioOverviewUrl = audioPublicUrl;
       }
 
-      // Create module record
-      const parseTrend = (csv: string) => csv.split(/\r?\n/).map(l=>l.trim()).filter(Boolean).map(line=>{ const [day, c, e] = line.split(',').map(s=>s.trim()); const completion = Math.max(0, Math.min(100, Number(c)||0)); const engagement = Math.max(0, Math.min(100, Number(e ?? c)||0)); return { day, completion, engagement }; });
 
       const { error: dbError } = await supabase
         .from('modules')
@@ -131,12 +126,12 @@ const UploadModule = () => {
           file_type: fileType,
           category: formData.category,
           module_link: formData.moduleLink || null,
-          adapted_module_name: formData.adaptedModuleName || null,
+          
           tweaking_topics: JSON.stringify(tweakTopics.filter(t => t.topic.trim())),
           tweak_content_request: tweakContentRequest || null,
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
-          trend: trendCsv ? parseTrend(trendCsv) : trendData,
+          
           confusion_data: confusionParameters,
           perception: perceptionParameters,
           objections: objectionParameters,
@@ -295,15 +290,6 @@ const UploadModule = () => {
                 </Select>
               </div>
 
-              <div>
-                <Label htmlFor="adaptedModuleName">Adapted Module Name</Label>
-                <Input
-                  id="adaptedModuleName"
-                  value={formData.adaptedModuleName}
-                  onChange={(e) => setFormData(prev => ({ ...prev, adaptedModuleName: e.target.value }))}
-                  placeholder="Name for adapted version of this module"
-                />
-              </div>
 
               <div>
                 <div className="flex items-center justify-between">
@@ -373,17 +359,6 @@ const UploadModule = () => {
                   <div><Label>Opening %</Label><Input type="number" value={kpis.opening} onChange={(e)=>setKpis(s=>({...s, opening: +e.target.value||0}))} /></div>
                   <div><Label>Average Rating</Label><Input type="number" step="0.1" value={kpis.rating} onChange={(e)=>setKpis(s=>({...s, rating: +e.target.value||0}))} /></div>
                   <div className="col-span-2"><Label>Learners Completed</Label><Input type="number" value={kpis.learners} onChange={(e)=>setKpis(s=>({...s, learners: +e.target.value||0}))} /></div>
-                </div>
-                <div>
-                  <Label>Trend Parameters</Label>
-                  <div className="grid grid-cols-2 gap-3">
-                    <div><Label>Completion %</Label><Input type="number" value={trendData.completion} onChange={(e)=>setTrendData(s=>({...s, completion: +e.target.value||0}))} /></div>
-                    <div><Label>Engagement %</Label><Input type="number" value={trendData.engagement} onChange={(e)=>setTrendData(s=>({...s, engagement: +e.target.value||0}))} /></div>
-                    <div><Label>Opening %</Label><Input type="number" value={trendData.opening} onChange={(e)=>setTrendData(s=>({...s, opening: +e.target.value||0}))} /></div>
-                    <div><Label>Rating</Label><Input type="number" step="0.1" value={trendData.rating} onChange={(e)=>setTrendData(s=>({...s, rating: +e.target.value||0}))} /></div>
-                  </div>
-                  <Label className="mt-2">Or Trend CSV (day,completion,engagement)</Label>
-                  <Textarea value={trendCsv} onChange={(e)=>setTrendCsv(e.target.value)} placeholder={'Mon,82,90\nTue,88,92'} />
                 </div>
                 <div>
                   <div className="flex items-center justify-between">
