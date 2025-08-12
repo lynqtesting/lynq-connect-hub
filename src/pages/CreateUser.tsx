@@ -16,7 +16,8 @@ const CreateUser = () => {
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     username: '',
-    password: ''
+    password: '',
+    domain: ''
   });
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -53,7 +54,8 @@ const CreateUser = () => {
         },
         body: JSON.stringify({
           username: formData.username.trim(),
-          password: formData.password
+          password: formData.password,
+          domain: (formData.domain || "example.com").trim()
         })
       });
 
@@ -68,8 +70,9 @@ const CreateUser = () => {
         description: "User created successfully",
         duration: 4000
       });
+      alert(`✅ User created with email: ${result?.email || (formData.username.trim().toLowerCase() + '@' + (formData.domain || 'example.com').trim())}`);
 
-      setFormData({ username: '', password: '' });
+      setFormData({ username: '', password: '', domain: '' });
     } catch (error: any) {
       console.error('Create user error:', error);
       toast({
@@ -77,6 +80,7 @@ const CreateUser = () => {
         description: error?.message || "Failed to create user",
         variant: "destructive"
       });
+      alert(`❌ Error: ${error?.message || "Failed to create user"}`);
     } finally {
       setLoading(false);
     }
@@ -126,8 +130,21 @@ const CreateUser = () => {
                   />
                 </div>
 
+                <div>
+                  <Label htmlFor="domain">Domain (optional)</Label>
+                  <Input
+                    id="domain"
+                    type="text"
+                    value={formData.domain}
+                    onChange={(e) => setFormData(prev => ({ ...prev, domain: e.target.value }))}
+                    placeholder="example.com"
+                    autoComplete="off"
+                  />
+                </div>
+
                 <p className="text-xs text-muted-foreground">
-                  Email is auto-generated as username@example.com and pre-verified.
+                  Email is auto-generated as username@
+                  {formData.domain?.trim() || "example.com"} and pre-verified.
                 </p>
 
                 <Button type="submit" className="w-full" disabled={loading}>

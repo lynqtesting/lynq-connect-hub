@@ -13,7 +13,7 @@ serve(async (req) => {
   }
 
   try {
-    const { username, password } = await req.json();
+    const { username, password, domain } = await req.json();
 
     if (!username || !password) {
       return new Response(
@@ -69,7 +69,15 @@ serve(async (req) => {
       });
     }
 
-    const fakeEmail = `${String(username).toLowerCase()}@example.com`;
+    const rawUsername = String(username).trim().toLowerCase();
+    const sanitizedUsername = rawUsername.includes("@")
+      ? rawUsername.split("@")[0]
+      : rawUsername;
+
+    const rawDomain = String(domain ?? "example.com").trim().toLowerCase();
+    const sanitizedDomain = rawDomain.replace(/^@+/, "").split("@").pop() || "example.com";
+
+    const fakeEmail = `${sanitizedUsername}@${sanitizedDomain}`;
 
     // Use service role for admin user creation
     const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
