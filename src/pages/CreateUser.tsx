@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,11 +9,17 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, UserPlus } from 'lucide-react';
 
+type CreatedUser = {
+  email: string;
+  username: string;
+  password: string;
+};
+
 const CreateUser = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const [loading, setLoading] = useState(false);
-  const [createdUser, setCreatedUser] = useState(null);
+  const [createdUser, setCreatedUser] = useState<CreatedUser | null>(null);
   const [formData, setFormData] = useState({
     email: '',
     username: '',
@@ -21,10 +28,12 @@ const CreateUser = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.email || !formData.password) {
+
+    // New validation: require password AND either email or username
+    if (!formData.password || (!formData.email && !formData.username)) {
       toast({
-        title: "Error",
-        description: "Please fill in email and password",
+        title: "Missing information",
+        description: "Please provide a password and either an email or a username.",
         variant: "destructive"
       });
       return;
@@ -32,20 +41,29 @@ const CreateUser = () => {
 
     setLoading(true);
     try {
-      // Use admin function to create user without email verification
       const { data, error } = await supabase.rpc('create_user_admin', {
-        user_email: formData.email,
+        // Pass empty strings through — the function handles normalization
+        user_email: formData.email?.trim() || null,
         user_password: formData.password,
-        user_username: formData.username || formData.email.split('@')[0]
+        user_username: formData.username?.trim() || null
       });
 
       if (error) throw error;
 
-      // Store created user credentials to display
+      const returned = (data as any) || {};
+      const effectiveEmail =
+        typeof returned.email === 'string' && returned.email.length > 0
+          ? returned.email
+          : (formData.email?.trim() || `${(formData.username || '').trim()}@local.user`);
+      const effectiveUsername =
+        typeof returned.username === 'string' && returned.username.length > 0
+          ? returned.username
+          : (formData.username?.trim() || formData.email.split('@')[0]);
+
       setCreatedUser({
-        email: formData.email,
-        password: formData.password,
-        username: formData.username || formData.email.split('@')[0]
+        email: effectiveEmail,
+        username: effectiveUsername,
+        password: formData.password
       });
 
       toast({
@@ -57,9 +75,10 @@ const CreateUser = () => {
       // Reset form but keep showing credentials
       setFormData({ email: '', username: '', password: '' });
     } catch (error: any) {
+      console.error('Create user error:', error);
       toast({
         title: "Error",
-        description: error.message || "Failed to create user",
+        description: error?.message || "Failed to create user",
         variant: "destructive"
       });
     } finally {
@@ -89,15 +108,17 @@ const CreateUser = () => {
           <CardContent>
             <form onSubmit={handleSubmit} className="space-y-4">
               <div>
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email">Email (Optional)</Label>
                 <Input
                   id="email"
                   type="email"
                   value={formData.email}
                   onChange={(e) => setFormData(prev => ({ ...prev, email: e.target.value }))}
-                  placeholder="Enter email address"
-                  required
+                  placeholder="Enter email address or leave blank"
                 />
+                <p className="mt-1 text-xs text-muted-foreground">
+                  If left blank, an internal email like username@local.user will be generated.
+                </p>
               </div>
 
               <div>
@@ -106,7 +127,7 @@ const CreateUser = () => {
                   id="username"
                   value={formData.username}
                   onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
-                  placeholder="Enter username (will use email if empty)"
+                  placeholder="Enter username (will use email prefix if empty)"
                 />
               </div>
 
@@ -121,6 +142,10 @@ const CreateUser = () => {
                   required
                 />
               </div>
+
+              <p className="text-xs text-muted-foreground">
+                Note: Provide at least one of Email or Username (Password is required).
+              </p>
 
               <Button type="submit" className="w-full" disabled={loading}>
                 {loading ? 'Creating...' : 'Create User'}
