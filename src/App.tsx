@@ -26,6 +26,7 @@ import AdaptiveRequests from "./pages/AdaptiveRequests";
 import TweakRequests from "./pages/TweakRequests";
 import ManageQuestions from "./pages/ManageQuestions";
 import ClientRequests from "./pages/ClientRequests";
+import TweakRequestForm from "./pages/TweakRequestForm";
 
 const queryClient = new QueryClient();
 
@@ -44,6 +45,7 @@ const App = () => (
             <Route path="/module/:moduleId" element={<RouteGuard><ModuleDetails /></RouteGuard>} />
             <Route path="/request-form/new" element={<RouteGuard><RequestForm type="new" /></RouteGuard>} />
             <Route path="/request-form/adapt/:moduleId" element={<RouteGuard><RequestForm type="adapt" /></RouteGuard>} />
+            <Route path="/request-form/tweak/:moduleId" element={<RouteGuard><TweakRequestForm /></RouteGuard>} />
             
             {/* Admin Routes - Protected */}
             <Route path="/admin-dashboard" element={<RouteGuard requireAdmin><AdminDashboard /></RouteGuard>} />

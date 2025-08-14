@@ -305,8 +305,6 @@ export default function LynqSleekView({
                   key={question.id}
                   title={question.title}
                   subtitle="Share materials or notes to refine this LYNQ"
-                  uploadLabel="📁 Upload Supporting Materials"
-                  uploadHint="PDFs, docs, images, or examples"
                   cta="Submit Tweak"
                   onClick={() => navigate(`/request-form/tweak/${moduleId}?questionId=${question.id}`)}
                 />
@@ -383,16 +381,11 @@ function ActionRow({ title, subtitle, cta, onClick }: any) {
   );
 }
 
-function TweakCard({ title, subtitle, uploadLabel, uploadHint, cta, onClick }: any) {
+function TweakCard({ title, subtitle, cta, onClick }: any) {
   return (
     <div className="rounded-2xl border border-yellow-300/50 bg-yellow-100/40 p-4">
       <div className="text-sm font-semibold mb-1">{title}</div>
       <div className="text-xs text-muted-foreground mb-3">{subtitle}</div>
-      <label className="block border-2 border-dashed border-yellow-300/70 rounded-xl p-4 text-center cursor-pointer hover:bg-yellow-100/60 transition">
-        <input type="file" className="hidden" />
-        <div className="text-sm font-semibold">{uploadLabel}</div>
-        <div className="text-[11px] text-muted-foreground">{uploadHint}</div>
-      </label>
       <Button onClick={onClick} className="mt-3 w-full" size="sm">
         {cta}
       </Button>

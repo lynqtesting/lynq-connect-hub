@@ -7,7 +7,12 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) {
-  const { loading: authLoading } = requireAdmin ? useRequireAdmin() : useRequireAuth();
+  // Always call both hooks to avoid hook order issues
+  const authResult = useRequireAuth();
+  const adminResult = useRequireAdmin();
+  
+  // Use the appropriate result based on requireAdmin flag
+  const { loading: authLoading } = requireAdmin ? adminResult : authResult;
 
   if (authLoading) {
     return (
