@@ -13,6 +13,7 @@ const UserDashboard = () => {
   const { toast } = useToast();
   const [userModules, setUserModules] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
+  const [tweakableQuestions, setTweakableQuestions] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -42,6 +43,7 @@ const UserDashboard = () => {
       
       fetchUserModules(session.user.id);
       fetchRecommendations(session.user.id);
+      fetchTweakableQuestions();
     });
 
     return () => subscription.unsubscribe();
@@ -100,6 +102,79 @@ const UserDashboard = () => {
     }
   };
 
+  const fetchTweakableQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tweakable_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTweakableQuestions(data || []);
+    } catch (error) {
+      console.error('Error fetching tweakable questions:', error);
+    }
+  };
+
+  const handleCreateAdaptiveRequest = async () => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('requests')
+        .insert({
+          user_id: user.id,
+          request_type: 'adaptive',
+          title: 'Adaptive LYNQ Request',
+          description: 'User requested a new adaptive LYNQ module',
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request sent",
+        description: "Your adaptive LYNQ request has been submitted successfully.",
+      });
+    } catch (error) {
+      console.error('Error creating adaptive request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
+  const handleTweakRequest = async (questionId: string) => {
+    if (!user) return;
+
+    try {
+      const { error } = await supabase
+        .from('tweak_requests')
+        .insert({
+          user_id: user.id,
+          question_id: questionId,
+          note: 'User submitted a tweak request',
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Tweak request sent",
+        description: "Your tweak request has been submitted successfully.",
+      });
+    } catch (error) {
+      console.error('Error creating tweak request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit tweak request. Please try again.",
+        variant: "destructive",
+      });
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -110,6 +185,7 @@ const UserDashboard = () => {
       setSession(null);
       setUserModules([]);
       setRecommendations([]);
+      setTweakableQuestions([]);
       
       // Navigate to login
       navigate('/login');
@@ -218,6 +294,64 @@ const UserDashboard = () => {
             </div>
           </section>
         )}
+
+        {/* Adaptive LYNQ Requests Section */}
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Adaptive LYNQs</h2>
+          <Card className="rounded-2xl">
+            <CardContent className="p-6 text-center">
+              <div className="size-12 rounded-2xl bg-primary/10 grid place-items-center mx-auto mb-3">
+                <BarChart3 className="h-6 w-6 text-primary" />
+              </div>
+              <h3 className="font-semibold mb-2">Create Custom LYNQ</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Request a personalized LYNQ module tailored to your needs
+              </p>
+              <Button 
+                className="w-full" 
+                onClick={handleCreateAdaptiveRequest}
+              >
+                Create Now
+              </Button>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Tweakable Questions Section */}
+        <section className="mt-6">
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Tweakable Questions</h2>
+          {tweakableQuestions.length === 0 ? (
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 text-center">
+                <div className="text-sm text-muted-foreground">No questions available. Check back soon.</div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {tweakableQuestions.map((question) => (
+                <Card key={question.id} className="rounded-2xl">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm">{question.title}</h3>
+                        {question.category && (
+                          <p className="text-xs text-muted-foreground mt-1">{question.category}</p>
+                        )}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={() => handleTweakRequest(question.id)}
+                      >
+                        Submit Tweak
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
+        </section>
 
         {/* Footer Actions */}
         <div className="mt-8 grid grid-cols-2 gap-3">
