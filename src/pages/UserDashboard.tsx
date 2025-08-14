@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
 import { BookOpen, BarChart3, LibraryBig, LogOut, Send } from "lucide-react";
+import RequestLynqModal from "@/components/RequestLynqModal";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -21,13 +22,8 @@ const UserDashboard = () => {
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   
-  // Request form state
-  const [requestForm, setRequestForm] = useState({
-    title: '',
-    description: '',
-    type: ''
-  });
-  const [submittingRequest, setSubmittingRequest] = useState(false);
+  // Modal state
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -115,49 +111,22 @@ const UserDashboard = () => {
 
   const fetchTweakableQuestions = async () => {
     try {
-      // TODO: Enable after types are updated
-      // const { data, error } = await supabase
-      //   .from('tweakable_questions')
-      //   .select('*')
-      //   .eq('is_active', true)
-      //   .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('tweakable_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
 
-      // if (error) throw error;
-      // setTweakableQuestions(data || []);
-      setTweakableQuestions([]);
+      if (error) throw error;
+      setTweakableQuestions(data || []);
     } catch (error) {
       console.error('Error fetching tweakable questions:', error);
+      setTweakableQuestions([]);
     }
   };
 
-  const handleCreateAdaptiveRequest = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .from('requests')
-        .insert({
-          user_id: user.id,
-          request_type: 'adaptive',
-          title: 'Adaptive LYNQ Request',
-          description: 'User requested a new adaptive LYNQ module',
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Request sent",
-        description: "Your adaptive LYNQ request has been submitted successfully.",
-      });
-    } catch (error) {
-      console.error('Error creating adaptive request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit request. Please try again.",
-        variant: "destructive",
-      });
-    }
+  const handleCreateAdaptiveRequest = () => {
+    setRequestModalOpen(true);
   };
 
   const handleTweakRequest = async (questionId: string) => {
@@ -188,48 +157,6 @@ const UserDashboard = () => {
     }
   };
 
-  const handleSubmitRequest = async () => {
-    if (!user || !requestForm.title || !requestForm.type) {
-      toast({
-        title: "Error",
-        description: "Please fill in all required fields.",
-        variant: "destructive",
-      });
-      return;
-    }
-
-    setSubmittingRequest(true);
-    try {
-      const { error } = await supabase
-        .from('requests')
-        .insert({
-          user_id: user.id,
-          request_type: requestForm.type,
-          title: requestForm.title,
-          description: requestForm.description || '',
-          status: 'pending'
-        });
-
-      if (error) throw error;
-
-      toast({
-        title: "Request submitted",
-        description: "Your request has been sent to the admin team for review.",
-      });
-
-      // Reset form
-      setRequestForm({ title: '', description: '', type: '' });
-    } catch (error) {
-      console.error('Error submitting request:', error);
-      toast({
-        title: "Error",
-        description: "Failed to submit request. Please try again.",
-        variant: "destructive",
-      });
-    } finally {
-      setSubmittingRequest(false);
-    }
-  };
 
   const handleLogout = async () => {
     try {
@@ -367,68 +294,31 @@ const UserDashboard = () => {
                 className="w-full" 
                 onClick={handleCreateAdaptiveRequest}
               >
-                Create Now
+                Request Adaptive LYNQ
               </Button>
             </CardContent>
           </Card>
         </section>
 
-        {/* Submit Request Section */}
+        {/* Quick Request Section */}
         <section className="mt-8">
-          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Submit Request</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Submit Other Request</h2>
           <Card className="rounded-2xl">
-            <CardContent className="p-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="text-sm font-medium">Request Type</label>
-                  <Select value={requestForm.type} onValueChange={(value) => setRequestForm({...requestForm, type: value})}>
-                    <SelectTrigger className="mt-1">
-                      <SelectValue placeholder="Select request type" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="adaptive">Adaptive Request</SelectItem>
-                      <SelectItem value="tweak">Tweak Request</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Title</label>
-                  <Input 
-                    placeholder="Enter request title"
-                    value={requestForm.title}
-                    onChange={(e) => setRequestForm({...requestForm, title: e.target.value})}
-                    className="mt-1"
-                  />
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium">Description</label>
-                  <Textarea 
-                    placeholder="Describe your request in detail"
-                    value={requestForm.description}
-                    onChange={(e) => setRequestForm({...requestForm, description: e.target.value})}
-                    className="mt-1"
-                    rows={3}
-                  />
-                </div>
-                
-                <Button 
-                  onClick={handleSubmitRequest}
-                  disabled={submittingRequest || !requestForm.title || !requestForm.type}
-                  className="w-full"
-                >
-                  {submittingRequest ? (
-                    "Submitting..."
-                  ) : (
-                    <>
-                      <Send className="h-4 w-4 mr-2" />
-                      Submit Request
-                    </>
-                  )}
-                </Button>
+            <CardContent className="p-6 text-center">
+              <div className="size-12 rounded-2xl bg-accent/10 grid place-items-center mx-auto mb-3">
+                <Send className="h-6 w-6 text-accent" />
               </div>
+              <h3 className="font-semibold mb-2">Need Something Else?</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Submit a custom request for tweaks, modifications, or other needs
+              </p>
+              <Button 
+                className="w-full" 
+                variant="outline"
+                onClick={() => setRequestModalOpen(true)}
+              >
+                Submit Request
+              </Button>
             </CardContent>
           </Card>
         </section>
@@ -478,6 +368,12 @@ const UserDashboard = () => {
             <LogOut className="h-4 w-4 mr-2" /> Logout
           </Button>
         </div>
+
+        {/* Request Modal */}
+        <RequestLynqModal 
+          open={requestModalOpen}
+          onOpenChange={setRequestModalOpen}
+        />
       </div>
     </div>
   );

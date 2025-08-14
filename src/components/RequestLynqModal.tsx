@@ -1,355 +1,159 @@
-import React, { useState, useEffect } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import React, { useState } from 'react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
-import { Upload, X } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { Send } from "lucide-react";
 
 interface RequestLynqModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const RequestLynqModal = ({ open, onOpenChange }: RequestLynqModalProps) => {
+const RequestLynqModal: React.FC<RequestLynqModalProps> = ({ 
+  open, 
+  onOpenChange
+}) => {
   const { toast } = useToast();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
-    duration: 1,
-    request_type: 'new',
-    quantity: 1,
-    category: 'Product'
+    type: ''
   });
   const [loading, setLoading] = useState(false);
-  const [recommendations, setRecommendations] = useState<any[]>([]);
-  const [attachedFiles, setAttachedFiles] = useState<File[]>([]);
-  const [uploading, setUploading] = useState(false);
 
-  const fetchRecommendations = async () => {
-    try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // Get user's module assignments first
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('user_module_assignments')
-        .select('module_id')
-        .eq('user_id', user.id);
-
-      if (assignmentsError) throw assignmentsError;
-
-      if (assignments && assignments.length > 0) {
-        const moduleIds = assignments.map(a => a.module_id);
-        
-        const { data, error } = await supabase
-          .from('recommendations')
-          .select(`
-            *,
-            modules (
-              id,
-              title
-            )
-          `)
-          .in('module_id', moduleIds);
-
-        if (error) throw error;
-        setRecommendations(data || []);
-      }
-    } catch (error) {
-      console.error('Error fetching recommendations:', error);
-    }
-  };
-
-  const handleRecommendationSelect = (recommendation: any) => {
-    setFormData(prev => ({
-      ...prev,
-      title: recommendation.content,
-      description: `Based on recommendation for: ${recommendation.modules?.title || 'Unknown Module'}`
-    }));
-  };
-
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
-    setAttachedFiles(prev => [...prev, ...files]);
-  };
-
-  const removeFile = (index: number) => {
-    setAttachedFiles(prev => prev.filter((_, i) => i !== index));
-  };
-
-  const uploadFiles = async (userId: string) => {
-    const uploadedFiles = [];
-    
-    for (const file of attachedFiles) {
-      const fileExt = file.name.split('.').pop();
-      const fileName = `${userId}/${Date.now()}_${file.name}`;
-      
-      const { error: uploadError } = await supabase.storage
-        .from('recommendation-files')
-        .upload(fileName, file);
-
-      if (uploadError) throw uploadError;
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('recommendation-files')
-        .getPublicUrl(fileName);
-
-      uploadedFiles.push({
-        file_name: file.name,
-        file_url: publicUrl,
-        file_size: file.size,
-        file_type: file.type
+  const handleSubmit = async () => {
+    if (!formData.title || !formData.type) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
       });
+      return;
     }
-    
-    return uploadedFiles;
-  };
 
-  useEffect(() => {
-    if (open) {
-      fetchRecommendations();
-    }
-  }, [open]);
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
     setLoading(true);
-    setUploading(true);
-
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) throw new Error('User not authenticated');
-
-      // First create the request (exclude category as it doesn't exist in requests table)
-      const { data: requestData, error: requestError } = await supabase
-        .from('requests')
-        .insert([{
-          title: formData.title,
-          description: formData.description,
-          duration: formData.duration,
-          request_type: formData.request_type,
-          quantity: formData.quantity,
-          user_id: user.id
-        }])
-        .select()
-        .single();
-
-      if (requestError) throw requestError;
-
-      // Create a recommendation with the request details and category
-      const { data: recommendationData, error: recommendationError } = await supabase
-        .from('recommendations')
-        .insert({
-          content: `Category: ${formData.category}\n\nRequest: ${formData.title}\n\nDescription: ${formData.description}`,
-          user_id: user.id
-        })
-        .select()
-        .single();
-
-      if (recommendationError) throw recommendationError;
-
-      // Upload files if any
-      if (attachedFiles.length > 0) {
-        const uploadedFiles = await uploadFiles(user.id);
-        
-        // Save file records
-        for (const fileData of uploadedFiles) {
-          const { error: fileError } = await supabase
-            .from('recommendation_files')
-            .insert({
-              recommendation_id: recommendationData.id,
-              ...fileData
-            });
-          
-          if (fileError) throw fileError;
-        }
+      
+      if (!user) {
+        toast({
+          title: "Error",
+          description: "You must be logged in to submit a request.",
+          variant: "destructive",
+        });
+        return;
       }
+
+      const { error } = await supabase
+        .from('requests')
+        .insert({
+          user_id: user.id,
+          request_type: formData.type,
+          title: formData.title,
+          description: formData.description || '',
+          status: 'pending'
+        });
+
+      if (error) throw error;
 
       toast({
-        title: "Success",
-        description: "Your lynq request has been submitted successfully!"
+        title: "Request submitted",
+        description: "Your request has been sent to the admin team for review.",
       });
 
       // Reset form and close modal
-      setFormData({ title: '', description: '', duration: 1, request_type: 'new', quantity: 1, category: 'Product' });
-      setAttachedFiles([]);
+      setFormData({ title: '', description: '', type: '' });
       onOpenChange(false);
     } catch (error) {
       console.error('Error submitting request:', error);
       toast({
         title: "Error",
         description: "Failed to submit request. Please try again.",
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setLoading(false);
-      setUploading(false);
     }
+  };
+
+  const handleCancel = () => {
+    setFormData({ title: '', description: '', type: '' });
+    onOpenChange(false);
   };
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md w-[90vw] max-h-[90vh] overflow-y-auto">
+      <DialogContent className="sm:max-w-[500px]">
         <DialogHeader>
-          <DialogTitle>Request New Lynq</DialogTitle>
+          <DialogTitle>Submit Request</DialogTitle>
+          <DialogDescription>
+            Fill out the form below to submit your request to the admin team.
+          </DialogDescription>
         </DialogHeader>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        
+        <div className="space-y-4 py-4">
           <div>
-            <Label htmlFor="title">Title</Label>
-            <Input
-              id="title"
+            <label className="text-sm font-medium">Request Type *</label>
+            <Select 
+              value={formData.type} 
+              onValueChange={(value) => setFormData({...formData, type: value})}
+            >
+              <SelectTrigger className="mt-1">
+                <SelectValue placeholder="Select request type" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="adaptive">Adaptive Request</SelectItem>
+                <SelectItem value="tweak">Tweak Request</SelectItem>
+                <SelectItem value="other">Other</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          
+          <div>
+            <label className="text-sm font-medium">Title *</label>
+            <Input 
+              placeholder="Enter request title"
               value={formData.title}
-              onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
-              required
+              onChange={(e) => setFormData({...formData, title: e.target.value})}
+              className="mt-1"
             />
           </div>
           
           <div>
-            <Label htmlFor="description">Description</Label>
-            <Textarea
-              id="description"
+            <label className="text-sm font-medium">Description</label>
+            <Textarea 
+              placeholder="Describe your request in detail"
               value={formData.description}
-              onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-              rows={3}
+              onChange={(e) => setFormData({...formData, description: e.target.value})}
+              className="mt-1"
+              rows={4}
             />
           </div>
-
-          <div>
-            <Label htmlFor="duration">Duration (minutes)</Label>
-            <Select value={formData.duration.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, duration: parseInt(value) }))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 minute</SelectItem>
-                <SelectItem value="2">2 minutes</SelectItem>
-                <SelectItem value="3">3 minutes</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div>
-            <Label htmlFor="quantity">Number of Lynqs</Label>
-            <Select value={formData.quantity.toString()} onValueChange={(value) => setFormData(prev => ({ ...prev, quantity: parseInt(value) }))}>
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="1">1 lynq</SelectItem>
-                <SelectItem value="2">2 lynqs</SelectItem>
-                <SelectItem value="3">3 lynqs</SelectItem>
-                <SelectItem value="4">4 lynqs</SelectItem>
-                <SelectItem value="5">5 lynqs</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Category Selection */}
-          <div>
-            <Label htmlFor="category">Category *</Label>
-            <Select 
-              value={formData.category} 
-              onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select category" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="Product">Product</SelectItem>
-                <SelectItem value="Compliance">Compliance</SelectItem>
-                <SelectItem value="Customer Awareness">Customer Awareness</SelectItem>
-                <SelectItem value="Soft Skills">Soft Skills</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* File Upload */}
-          <div>
-            <Label htmlFor="files">Attach Files (optional)</Label>
-            <div className="space-y-2">
-              <Input
-                id="files"
-                type="file"
-                onChange={handleFileChange}
-                multiple
-                accept=".pdf,.doc,.docx,.txt,.jpg,.jpeg,.png"
-                className="cursor-pointer"
-              />
-              {attachedFiles.length > 0 && (
-                <div className="space-y-1">
-                  {attachedFiles.map((file, index) => (
-                    <div key={index} className="flex items-center justify-between p-2 bg-muted rounded-md">
-                      <div className="flex items-center space-x-2">
-                        <Upload className="h-4 w-4" />
-                        <span className="text-sm font-medium">{file.name}</span>
-                        <span className="text-xs text-muted-foreground">
-                          ({(file.size / 1024).toFixed(1)} KB)
-                        </span>
-                      </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => removeFile(index)}
-                        className="h-6 w-6 p-0"
-                      >
-                        <X className="h-3 w-3" />
-                      </Button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-
-          {recommendations.length > 0 && (
-            <div className="space-y-3">
-              <Label>Recommendations</Label>
-              <div className="space-y-2 max-h-32 overflow-y-auto">
-                {recommendations.map((recommendation) => (
-                  <div
-                    key={recommendation.id}
-                    className="p-3 border rounded-lg cursor-pointer hover:bg-muted transition-colors"
-                    onClick={() => handleRecommendationSelect(recommendation)}
-                  >
-                    <div className="text-sm font-medium">
-                      {recommendation.modules?.title || 'General Recommendation'}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1">
-                      {recommendation.content}
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Click on a recommendation to use it as your lynq request
-              </p>
-            </div>
-          )}
-
-          <div className="flex gap-2 pt-4">
-            <Button 
-              type="button" 
-              variant="outline" 
-              onClick={() => onOpenChange(false)} 
-              className="flex-1"
-              disabled={uploading}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              disabled={loading || uploading} 
-              className="flex-1"
-            >
-              {uploading ? "Submitting..." : "Submit Request"}
-            </Button>
-          </div>
-        </form>
+        </div>
+        
+        <div className="flex gap-3 pt-4">
+          <Button variant="outline" onClick={handleCancel} className="flex-1">
+            Cancel
+          </Button>
+          <Button 
+            onClick={handleSubmit}
+            disabled={loading || !formData.title || !formData.type}
+            className="flex-1"
+          >
+            {loading ? (
+              "Submitting..."
+            ) : (
+              <>
+                <Send className="h-4 w-4 mr-2" />
+                Submit Request
+              </>
+            )}
+          </Button>
+        </div>
       </DialogContent>
     </Dialog>
   );
