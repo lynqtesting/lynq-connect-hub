@@ -20,6 +20,9 @@ import WriteRecommendations from "./pages/WriteRecommendations";
 import EditModule from "./pages/EditModule";
 import LynqLibrary from "./pages/LynqLibrary";
 import AdaptLynqs from "./pages/AdaptLynqs";
+import AdaptiveRequests from "./pages/AdaptiveRequests";
+import TweakRequests from "./pages/TweakRequests";
+import ManageQuestions from "./pages/ManageQuestions";
 
 const queryClient = new QueryClient();
 
@@ -47,6 +50,9 @@ const App = () => (
           <Route path="/write-recommendations" element={<WriteRecommendations />} />
           <Route path="/edit-module/:moduleId" element={<EditModule />} />
           <Route path="/adapt-lynqs" element={<AdaptLynqs />} />
+          <Route path="/admin/adaptive-requests" element={<AdaptiveRequests />} />
+          <Route path="/admin/tweak-requests" element={<TweakRequests />} />
+          <Route path="/admin/manage-questions" element={<ManageQuestions />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

@@ -7,7 +7,7 @@ export type Json =
   | Json[]
 
 export type Database = {
-  // Allows to automatically instanciate createClient with right options
+  // Allows to automatically instantiate createClient with right options
   // instead of createClient<Database, { PostgrestVersion: 'XX' }>(URL, KEY)
   __InternalSupabase: {
     PostgrestVersion: "12.2.12 (cd3cf9e)"
@@ -294,6 +294,7 @@ export type Database = {
           id: string
           module_id: string | null
           notes: string | null
+          question_id: string | null
           title: string | null
           user_id: string | null
         }
@@ -304,6 +305,7 @@ export type Database = {
           id?: string
           module_id?: string | null
           notes?: string | null
+          question_id?: string | null
           title?: string | null
           user_id?: string | null
         }
@@ -314,6 +316,7 @@ export type Database = {
           id?: string
           module_id?: string | null
           notes?: string | null
+          question_id?: string | null
           title?: string | null
           user_id?: string | null
         }
@@ -325,7 +328,41 @@ export type Database = {
             referencedRelation: "modules"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "tweak_requests_question_id_fkey"
+            columns: ["question_id"]
+            isOneToOne: false
+            referencedRelation: "tweakable_questions"
+            referencedColumns: ["id"]
+          },
         ]
+      }
+      tweakable_questions: {
+        Row: {
+          category: string | null
+          created_at: string
+          id: string
+          is_active: boolean
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string | null
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       user_module_assignments: {
         Row: {

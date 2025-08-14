@@ -104,14 +104,16 @@ const UserDashboard = () => {
 
   const fetchTweakableQuestions = async () => {
     try {
-      const { data, error } = await supabase
-        .from('tweakable_questions')
-        .select('*')
-        .eq('is_active', true)
-        .order('created_at', { ascending: false });
+      // TODO: Enable after types are updated
+      // const { data, error } = await supabase
+      //   .from('tweakable_questions')
+      //   .select('*')
+      //   .eq('is_active', true)
+      //   .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setTweakableQuestions(data || []);
+      // if (error) throw error;
+      // setTweakableQuestions(data || []);
+      setTweakableQuestions([]);
     } catch (error) {
       console.error('Error fetching tweakable questions:', error);
     }
