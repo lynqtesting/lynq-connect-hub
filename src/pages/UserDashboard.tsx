@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Logo from "@/components/Logo";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import type { User, Session } from '@supabase/supabase-js';
-import { BookOpen, BarChart3, LibraryBig, LogOut } from "lucide-react";
+import { BookOpen, BarChart3, LibraryBig, LogOut, Send } from "lucide-react";
 
 const UserDashboard = () => {
   const navigate = useNavigate();
@@ -17,6 +20,14 @@ const UserDashboard = () => {
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
+  
+  // Request form state
+  const [requestForm, setRequestForm] = useState({
+    title: '',
+    description: '',
+    type: ''
+  });
+  const [submittingRequest, setSubmittingRequest] = useState(false);
 
   useEffect(() => {
     // Set up auth state listener
@@ -177,6 +188,49 @@ const UserDashboard = () => {
     }
   };
 
+  const handleSubmitRequest = async () => {
+    if (!user || !requestForm.title || !requestForm.type) {
+      toast({
+        title: "Error",
+        description: "Please fill in all required fields.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setSubmittingRequest(true);
+    try {
+      const { error } = await supabase
+        .from('requests')
+        .insert({
+          user_id: user.id,
+          request_type: requestForm.type,
+          title: requestForm.title,
+          description: requestForm.description || '',
+          status: 'pending'
+        });
+
+      if (error) throw error;
+
+      toast({
+        title: "Request submitted",
+        description: "Your request has been sent to the admin team for review.",
+      });
+
+      // Reset form
+      setRequestForm({ title: '', description: '', type: '' });
+    } catch (error) {
+      console.error('Error submitting request:', error);
+      toast({
+        title: "Error",
+        description: "Failed to submit request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmittingRequest(false);
+    }
+  };
+
   const handleLogout = async () => {
     try {
       const { error } = await supabase.auth.signOut();
@@ -315,6 +369,66 @@ const UserDashboard = () => {
               >
                 Create Now
               </Button>
+            </CardContent>
+          </Card>
+        </section>
+
+        {/* Submit Request Section */}
+        <section className="mt-8">
+          <h2 className="text-sm font-semibold text-muted-foreground mb-2">Submit Request</h2>
+          <Card className="rounded-2xl">
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div>
+                  <label className="text-sm font-medium">Request Type</label>
+                  <Select value={requestForm.type} onValueChange={(value) => setRequestForm({...requestForm, type: value})}>
+                    <SelectTrigger className="mt-1">
+                      <SelectValue placeholder="Select request type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="adaptive">Adaptive Request</SelectItem>
+                      <SelectItem value="tweak">Tweak Request</SelectItem>
+                      <SelectItem value="other">Other</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Title</label>
+                  <Input 
+                    placeholder="Enter request title"
+                    value={requestForm.title}
+                    onChange={(e) => setRequestForm({...requestForm, title: e.target.value})}
+                    className="mt-1"
+                  />
+                </div>
+                
+                <div>
+                  <label className="text-sm font-medium">Description</label>
+                  <Textarea 
+                    placeholder="Describe your request in detail"
+                    value={requestForm.description}
+                    onChange={(e) => setRequestForm({...requestForm, description: e.target.value})}
+                    className="mt-1"
+                    rows={3}
+                  />
+                </div>
+                
+                <Button 
+                  onClick={handleSubmitRequest}
+                  disabled={submittingRequest || !requestForm.title || !requestForm.type}
+                  className="w-full"
+                >
+                  {submittingRequest ? (
+                    "Submitting..."
+                  ) : (
+                    <>
+                      <Send className="h-4 w-4 mr-2" />
+                      Submit Request
+                    </>
+                  )}
+                </Button>
+              </div>
             </CardContent>
           </Card>
         </section>

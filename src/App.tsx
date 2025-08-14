@@ -25,6 +25,7 @@ import AdaptLynqs from "./pages/AdaptLynqs";
 import AdaptiveRequests from "./pages/AdaptiveRequests";
 import TweakRequests from "./pages/TweakRequests";
 import ManageQuestions from "./pages/ManageQuestions";
+import ClientRequests from "./pages/ClientRequests";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="/write-recommendations" element={<RouteGuard requireAdmin><WriteRecommendations /></RouteGuard>} />
             <Route path="/edit-module/:moduleId" element={<RouteGuard requireAdmin><EditModule /></RouteGuard>} />
             <Route path="/adapt-lynqs" element={<RouteGuard requireAdmin><AdaptLynqs /></RouteGuard>} />
+            <Route path="/admin/client-requests" element={<RouteGuard requireAdmin><ClientRequests /></RouteGuard>} />
             <Route path="/admin/adaptive-requests" element={<RouteGuard requireAdmin><AdaptiveRequests /></RouteGuard>} />
             <Route path="/admin/tweak-requests" element={<RouteGuard requireAdmin><TweakRequests /></RouteGuard>} />
             <Route path="/admin/manage-questions" element={<RouteGuard requireAdmin><ManageQuestions /></RouteGuard>} />
