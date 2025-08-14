@@ -109,7 +109,7 @@ export function useRequireAuth() {
     if (!loading && !user && navigate) {
       navigate('/login');
     }
-  }, [user, loading, navigate]);
+  }, [user, loading]);
 
   return { user, loading };
 }
@@ -132,7 +132,7 @@ export function useRequireAdmin() {
         navigate('/lynq-library');
       }
     }
-  }, [user, isAdmin, loading, navigate, toast]);
+  }, [user, isAdmin, loading]);
 
   return { user, isAdmin, loading };
 }
