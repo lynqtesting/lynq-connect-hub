@@ -106,10 +106,10 @@ export function useRequireAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user && navigate) {
+    if (!loading && !user && typeof navigate === 'function') {
       navigate('/login');
     }
-  }, [user, loading]);
+  }, [user, loading, navigate]);
 
   return { user, loading };
 }
@@ -120,7 +120,7 @@ export function useRequireAdmin() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading && navigate) {
+    if (!loading && typeof navigate === 'function') {
       if (!user) {
         navigate('/login');
       } else if (!isAdmin) {
@@ -132,7 +132,7 @@ export function useRequireAdmin() {
         navigate('/lynq-library');
       }
     }
-  }, [user, isAdmin, loading]);
+  }, [user, isAdmin, loading, navigate, toast]);
 
   return { user, isAdmin, loading };
 }
