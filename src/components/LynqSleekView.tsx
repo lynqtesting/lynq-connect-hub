@@ -15,6 +15,7 @@ import { ExternalLink } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import RequestLynqModal from "@/components/RequestLynqModal";
 
 // Use design tokens for colors
 const cPrimary = "hsl(var(--primary))";
@@ -89,6 +90,7 @@ export default function LynqSleekView({
     hasAudioUrl: !!audioUrl
   });
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
+  const [requestModalOpen, setRequestModalOpen] = useState(false);
 
   useEffect(() => {
     document.title = `${moduleTitle} – Lynq Dashboard`;
@@ -254,93 +256,21 @@ export default function LynqSleekView({
               adaptiveModules
                 .filter(m => m?.added ?? true)
                 .map((m) => (
-                     <ActionRow
-                       key={m.id}
-                       title={m.type}
-                       subtitle={m.description || "No description provided"}
-                       cta="Request Adaptive LYNQ"
-                       onClick={async () => {
-                         try {
-                           const { data: { user } } = await supabase.auth.getUser();
-                           if (!user) {
-                             toast({
-                               title: "Error",
-                               description: "Please log in to make requests",
-                               variant: "destructive"
-                             });
-                             return;
-                           }
-
-                           const { error } = await supabase
-                             .from('requests')
-                             .insert({
-                               title: m.type,
-                               description: m.description || "Adaptive LYNQ request",
-                               request_type: 'adaptive',
-                               user_id: user.id,
-                               status: 'pending'
-                             });
-
-                           if (error) throw error;
-
-                           toast({
-                             title: "Request sent to admin for review",
-                             description: "You'll be notified when it's ready"
-                           });
-                         } catch (error) {
-                           console.error('Error creating request:', error);
-                           toast({
-                             title: "Error",
-                             description: "Failed to send request",
-                             variant: "destructive"
-                           });
-                         }
-                       }}
-                     />
+                       <ActionRow
+                        key={m.id}
+                        title={m.type}
+                        subtitle={m.description || "No description provided"}
+                        cta="Request Adaptive LYNQ"
+                        onClick={() => setRequestModalOpen(true)}
+                      />
                 ))
             ) : (
                <ActionRow
-                 title="No adaptive lynqs yet"
-                 subtitle="Request a new adaptive LYNQ to be created for this module."
-                 cta="Request Adaptive LYNQ"
-                 onClick={async () => {
-                   try {
-                     const { data: { user } } = await supabase.auth.getUser();
-                     if (!user) {
-                       toast({
-                         title: "Error",
-                         description: "Please log in to make requests",
-                         variant: "destructive"
-                       });
-                       return;
-                     }
-
-                     const { error } = await supabase
-                       .from('requests')
-                       .insert({
-                         title: `Adaptive LYNQ for ${moduleTitle}`,
-                         description: "Request for new adaptive LYNQ module",
-                         request_type: 'adaptive',
-                         user_id: user.id,
-                         status: 'pending'
-                       });
-
-                     if (error) throw error;
-
-                     toast({
-                       title: "Request sent to admin for review",
-                       description: "You'll be notified when it's ready"
-                     });
-                   } catch (error) {
-                     console.error('Error creating request:', error);
-                     toast({
-                       title: "Error",
-                       description: "Failed to send request",
-                       variant: "destructive"
-                     });
-                   }
-                 }}
-               />
+                  title="No adaptive lynqs yet"
+                  subtitle="Request a new adaptive LYNQ to be created for this module."
+                  cta="Request Adaptive LYNQ"
+                  onClick={() => setRequestModalOpen(true)}
+                />
             )}
           </div>
         </Card>
@@ -362,6 +292,12 @@ export default function LynqSleekView({
             )}
           </div>
         </Card>
+
+        {/* Request Modal */}
+        <RequestLynqModal 
+          open={requestModalOpen}
+          onOpenChange={setRequestModalOpen}
+        />
       </div>
     </div>
   );

@@ -21,10 +21,7 @@ const ClientRequests = () => {
     try {
       const { data, error } = await supabase
         .from('requests')
-        .select(`
-          *,
-          profiles!requests_user_id_fkey (username)
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -141,7 +138,7 @@ const ClientRequests = () => {
                       </div>
                     </div>
                     <div className="text-sm text-muted-foreground text-right">
-                      <div>By: {request.profiles?.username || 'Unknown User'}</div>
+                      <div>User ID: {request.user_id}</div>
                       <div>{new Date(request.created_at).toLocaleDateString()}</div>
                     </div>
                   </div>
