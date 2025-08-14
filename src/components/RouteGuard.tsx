@@ -1,5 +1,8 @@
-import { ReactNode } from 'react';
-import { useRequireAuth, useRequireAdmin } from '@/hooks/useAuth';
+import { ReactNode, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { useToast } from '@/hooks/use-toast';
+import { supabase } from '@/integrations/supabase/client';
 
 interface RouteGuardProps {
   children: ReactNode;
@@ -7,12 +10,44 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) {
-  // Always call both hooks to avoid hook order issues
-  const authResult = useRequireAuth();
-  const adminResult = useRequireAdmin();
-  
-  // Use the appropriate result based on requireAdmin flag
-  const { loading: authLoading } = requireAdmin ? adminResult : authResult;
+  const { user, loading } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+
+  useEffect(() => {
+    if (!loading && typeof navigate === 'function') {
+      if (!user) {
+        navigate('/login');
+      } else if (requireAdmin) {
+        // Check admin status only when required
+        const checkAdminStatus = async () => {
+          try {
+            const { data: profile } = await supabase
+              .from('profiles')
+              .select('is_admin')
+              .eq('user_id', user.id)
+              .single();
+
+            if (!profile?.is_admin) {
+              toast({
+                title: "Access Denied",
+                description: "Admin access required",
+                variant: "destructive"
+              });
+              navigate('/lynq-library');
+            }
+          } catch (error) {
+            console.error('Error checking admin status:', error);
+            navigate('/lynq-library');
+          }
+        };
+        
+        checkAdminStatus();
+      }
+    }
+  }, [user, loading, requireAdmin, navigate, toast]);
+
+  const authLoading = loading;
 
   if (authLoading) {
     return (
