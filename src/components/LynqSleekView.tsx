@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { Button } from "@/components/ui/button";
 import { ExternalLink } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import RequestLynqModal from "@/components/RequestLynqModal";
@@ -91,10 +91,31 @@ export default function LynqSleekView({
   });
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
   const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [tweakingQuestions, setTweakingQuestions] = useState<any[]>([]);
+  const { moduleId } = useParams();
 
   useEffect(() => {
     document.title = `${moduleTitle} – Lynq Dashboard`;
   }, [moduleTitle]);
+
+  useEffect(() => {
+    fetchTweakingQuestions();
+  }, []);
+
+  const fetchTweakingQuestions = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('tweakable_questions')
+        .select('*')
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setTweakingQuestions(data || []);
+    } catch (error) {
+      console.error('Error fetching tweaking questions:', error);
+    }
+  };
 
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -278,15 +299,18 @@ export default function LynqSleekView({
         {/* Tweak the LYNQ */}
         <Card title="Tweak the LYNQ" className="mt-3">
           <div className="space-y-3">
-            {tweakContentRequest ? (
-              <TweakCard
-                title={tweakContentRequest}
-                subtitle="Share materials or notes to refine this LYNQ"
-                uploadLabel="📁 Upload Supporting Materials"
-                uploadHint="PDFs, docs, images, or examples"
-                cta="Submit Tweak"
-                onClick={() => navigate('/request-form')}
-              />
+            {tweakingQuestions.length > 0 ? (
+              tweakingQuestions.map((question) => (
+                <TweakCard
+                  key={question.id}
+                  title={question.title}
+                  subtitle="Share materials or notes to refine this LYNQ"
+                  uploadLabel="📁 Upload Supporting Materials"
+                  uploadHint="PDFs, docs, images, or examples"
+                  cta="Submit Tweak"
+                  onClick={() => navigate(`/request-form/tweak/${moduleId}?questionId=${question.id}`)}
+                />
+              ))
             ) : (
               <div className="text-xs text-muted-foreground">No tweak requests yet for this LYNQ.</div>
             )}
