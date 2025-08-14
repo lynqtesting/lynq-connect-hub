@@ -106,7 +106,7 @@ export function useRequireAuth() {
   const navigate = useNavigate();
 
   useEffect(() => {
-    if (!loading && !user) {
+    if (!loading && !user && navigate) {
       navigate('/login');
     }
   }, [user, loading, navigate]);
@@ -120,7 +120,7 @@ export function useRequireAdmin() {
   const { toast } = useToast();
 
   useEffect(() => {
-    if (!loading) {
+    if (!loading && navigate) {
       if (!user) {
         navigate('/login');
       } else if (!isAdmin) {
