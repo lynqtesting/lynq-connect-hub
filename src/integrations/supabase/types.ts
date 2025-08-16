@@ -84,6 +84,7 @@ export type Database = {
           trend: Json | null
           tweak_content_request: string | null
           updated_at: string
+          version: number | null
         }
         Insert: {
           adapted_module_name?: string | null
@@ -110,6 +111,7 @@ export type Database = {
           trend?: Json | null
           tweak_content_request?: string | null
           updated_at?: string
+          version?: number | null
         }
         Update: {
           adapted_module_name?: string | null
@@ -136,6 +138,7 @@ export type Database = {
           trend?: Json | null
           tweak_content_request?: string | null
           updated_at?: string
+          version?: number | null
         }
         Relationships: []
       }
