@@ -59,69 +59,69 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           
           {/* Bar Chart */}
           <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 shadow-lg border border-border/50">
-            {/* Chart Container with proper dimensions */}
-            <div className="relative h-80 ml-8 mr-4 mb-12 mt-6">
-              {/* Grid Lines */}
-              <div className="absolute inset-0 pointer-events-none">
-                {[0, 10, 20, 30, 40, 50, 60, 70].map((value, idx) => {
-                  const position = ((70 - value) / 70) * 100; // Invert for top-down positioning
-                  return (
-                    <div 
-                      key={idx}
-                      className="absolute w-full border-t border-muted-foreground/20"
-                      style={{ top: `${position}%` }}
-                    />
-                  );
-                })}
-              </div>
-              
-              {/* Bars Container */}
-              <div className="flex items-end justify-between h-full relative">
-                {objectionData.metrics.map((metric, index) => {
-                  const heightPercentage = (metric.value / 70) * 100; // 70 is max value
-                  
-                  return (
-                    <div key={index} className="flex flex-col items-center w-16 group">
-                      {/* Value Label on Top */}
+              {/* Chart Container with proper dimensions */}
+              <div className="relative h-96 ml-16 mr-4 mb-16 mt-6">
+                {/* Grid Lines */}
+                <div className="absolute inset-0 pointer-events-none">
+                  {[0, 10, 20, 30, 40, 50, 60, 70].map((value, idx) => {
+                    const position = ((70 - value) / 70) * 100; // Invert for top-down positioning
+                    return (
                       <div 
-                        className="text-sm font-bold mb-1 transition-all duration-300 group-hover:scale-110"
-                        style={{ 
-                          color: metric.color,
-                          position: 'absolute',
-                          top: `${100 - heightPercentage - 8}%`, // Position above bar
-                          transform: 'translateY(-100%)'
-                        }}
-                      >
-                        {metric.value}
-                      </div>
-                      
-                      {/* Bar */}
-                      <div 
-                        className="w-10 rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer relative"
-                        style={{
-                          backgroundColor: metric.color,
-                          height: `${heightPercentage}%`,
-                          boxShadow: `0 -2px 10px ${metric.color}40`
-                        }}
-                      >
-                        {/* Highlight Effect */}
+                        key={idx}
+                        className="absolute w-full border-t border-muted-foreground/20"
+                        style={{ top: `${position}%` }}
+                      />
+                    );
+                  })}
+                </div>
+                
+                {/* Bars Container */}
+                <div className="flex items-end justify-between h-full relative">
+                  {objectionData.metrics.map((metric, index) => {
+                    const heightPercentage = (metric.value / 70) * 100; // 70 is max value
+                    
+                    return (
+                      <div key={index} className="flex flex-col items-center w-20 group">
+                        {/* Value Label on Top */}
                         <div 
-                          className="w-full h-2 rounded-t-lg opacity-40"
-                          style={{
-                            background: `linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)`
+                          className="text-sm font-bold mb-1 transition-all duration-300 group-hover:scale-110"
+                          style={{ 
+                            color: metric.color,
+                            position: 'absolute',
+                            top: `${100 - heightPercentage - 8}%`, // Position above bar
+                            transform: 'translateY(-100%)'
                           }}
-                        />
+                        >
+                          {metric.value}
+                        </div>
+                        
+                        {/* Bar */}
+                        <div 
+                          className="w-12 rounded-t-lg transition-all duration-300 group-hover:scale-105 cursor-pointer relative"
+                          style={{
+                            backgroundColor: metric.color,
+                            height: `${heightPercentage}%`,
+                            boxShadow: `0 -2px 10px ${metric.color}40`
+                          }}
+                        >
+                          {/* Highlight Effect */}
+                          <div 
+                            className="w-full h-2 rounded-t-lg opacity-40"
+                            style={{
+                              background: `linear-gradient(to bottom, rgba(255,255,255,0.8), transparent)`
+                            }}
+                          />
+                        </div>
+                        
+                        {/* Label at Bottom - Better spacing and wrapping */}
+                        <div className="text-xs font-medium text-center mt-4 leading-tight text-muted-foreground w-full px-1 break-words">
+                          {metric.label}
+                        </div>
                       </div>
-                      
-                      {/* Label at Bottom */}
-                      <div className="text-xs font-medium text-center mt-3 leading-tight text-muted-foreground w-full">
-                        {metric.label}
-                      </div>
-                    </div>
-                  );
-                })}
+                    );
+                  })}
+                </div>
               </div>
-            </div>
             
             {/* Y-Axis Labels */}
             <div className="absolute left-1 top-6 h-80 flex flex-col justify-between text-xs text-muted-foreground">
