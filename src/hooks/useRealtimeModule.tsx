@@ -16,6 +16,9 @@ interface ModuleData {
   file_url: string | null;
   module_link: string | null;
   english_audio_url: string | null;
+  category: string | null;
+  file_type: string | null;
+  trend: any;
   version: number;
   updated_at: string;
 }
