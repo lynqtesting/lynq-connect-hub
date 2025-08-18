@@ -60,7 +60,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
           {/* Bar Chart */}
           <div className="relative bg-gradient-to-br from-background to-muted/30 rounded-xl p-6 shadow-lg border border-border/50">
               {/* Chart Container with proper dimensions */}
-              <div className="relative h-96 ml-16 mr-4 mb-16 mt-6">
+              <div className="relative h-96 ml-20 mr-4 mb-20 mt-6">
                 {/* Grid Lines */}
                 <div className="absolute inset-0 pointer-events-none">
                   {[0, 10, 20, 30, 40, 50, 60, 70].map((value, idx) => {
@@ -76,12 +76,12 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                 </div>
                 
                 {/* Bars Container */}
-                <div className="flex items-end justify-between h-full relative">
+                <div className="flex items-end justify-between h-full relative gap-4">
                   {objectionData.metrics.map((metric, index) => {
                     const heightPercentage = (metric.value / 70) * 100; // 70 is max value
                     
                     return (
-                      <div key={index} className="flex flex-col items-center w-20 group">
+                      <div key={index} className="flex flex-col items-center w-24 group">
                         {/* Value Label on Top */}
                         <div 
                           className="text-sm font-bold mb-1 transition-all duration-300 group-hover:scale-110"
@@ -113,9 +113,9 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                           />
                         </div>
                         
-                        {/* Label at Bottom - Better spacing and wrapping */}
-                        <div className="text-xs font-medium text-center mt-4 leading-tight text-muted-foreground w-full px-1 break-words">
-                          {metric.label}
+                        {/* Label at Bottom - Better spacing and less wrapping */}
+                        <div className="text-xs font-medium text-center mt-6 leading-relaxed text-muted-foreground w-full px-2">
+                          {metric.label.length > 15 ? `${metric.label.slice(0, 15)}...` : metric.label}
                         </div>
                       </div>
                     );
