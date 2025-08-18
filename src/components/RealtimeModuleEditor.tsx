@@ -42,24 +42,28 @@ function MetricField({ label, value, onChange, suffix = "%" }: MetricFieldProps)
 
 interface ArrayFieldProps {
   label: string;
-  items: Array<{ name: string; value: number }>;
-  onChange: (items: Array<{ name: string; value: number }>) => void;
+  items: Array<{ label?: string; name?: string; value?: number; percent?: number }>;
+  onChange: (items: Array<{ label?: string; name?: string; value?: number; percent?: number }>) => void;
 }
 
 function ArrayField({ label, items, onChange }: ArrayFieldProps) {
-  const updateItem = (index: number, field: 'name' | 'value', newValue: string | number) => {
+  const updateItem = (index: number, field: string, newValue: string | number) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: newValue };
     onChange(newItems);
   };
 
   const addItem = () => {
-    onChange([...items, { name: '', value: 0 }]);
+    onChange([...items, { label: '', percent: 0 }]);
   };
 
   const removeItem = (index: number) => {
     onChange(items.filter((_, i) => i !== index));
   };
+
+  // Determine field names based on data structure
+  const nameField = items[0]?.label !== undefined ? 'label' : 'name';
+  const valueField = items[0]?.percent !== undefined ? 'percent' : 'value';
 
   return (
     <div className="space-y-3">
@@ -69,15 +73,15 @@ function ArrayField({ label, items, onChange }: ArrayFieldProps) {
           <div key={index} className="flex gap-2">
             <Input
               placeholder="Parameter name"
-              value={item.name}
-              onChange={(e) => updateItem(index, 'name', e.target.value)}
+              value={(item as any)[nameField] || ''}
+              onChange={(e) => updateItem(index, nameField, e.target.value)}
               className="flex-1"
             />
             <Input
               type="number"
               placeholder="Value"
-              value={item.value}
-              onChange={(e) => updateItem(index, 'value', Number(e.target.value) || 0)}
+              value={(item as any)[valueField] || 0}
+              onChange={(e) => updateItem(index, valueField, Number(e.target.value) || 0)}
               className="w-24"
             />
             <button
@@ -244,6 +248,15 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const objections = moduleData.objections || [];
   const adaptiveModules = moduleData.adaptive_modules || [];
   const trend = moduleData.trend || [];
+  
+  // Ensure proper data structure for KPIs
+  const ensureKPIs = {
+    completion: kpis.completion || 0,
+    engagement: kpis.engagement || 0,
+    opening: kpis.opening || 0,
+    avgRating: kpis.avgRating || kpis.rating || 0,
+    learners: kpis.learners || 0
+  };
 
   return (
     <div className="space-y-6">
@@ -369,28 +382,28 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <MetricField
               label="Completion Rate"
-              value={kpis.completion || 0}
+              value={ensureKPIs.completion}
               onChange={(value) => sendPatch({ kpis: { ...kpis, completion: value } })}
             />
             <MetricField
               label="Engagement Rate"
-              value={kpis.engagement || 0}
+              value={ensureKPIs.engagement}
               onChange={(value) => sendPatch({ kpis: { ...kpis, engagement: value } })}
             />
             <MetricField
               label="Opening Rate"
-              value={kpis.opening || 0}
+              value={ensureKPIs.opening}
               onChange={(value) => sendPatch({ kpis: { ...kpis, opening: value } })}
             />
             <MetricField
               label="Average Rating"
-              value={kpis.avgRating || 0}
+              value={ensureKPIs.avgRating}
               onChange={(value) => sendPatch({ kpis: { ...kpis, avgRating: value } })}
               suffix="/5"
             />
             <MetricField
               label="Learners Count"
-              value={kpis.learners || 0}
+              value={ensureKPIs.learners}
               onChange={(value) => sendPatch({ kpis: { ...kpis, learners: value } })}
               suffix=""
             />
