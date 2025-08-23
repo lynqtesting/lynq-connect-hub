@@ -9,13 +9,15 @@ import {
   Tooltip as ReTooltip,
   BarChart,
   Bar,
+  Cell,
 } from "recharts";
 import { Button } from "@/components/ui/button";
-import { ExternalLink } from "lucide-react";
+import { ExternalLink, HelpCircle } from "lucide-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import RequestLynqModal from "@/components/RequestLynqModal";
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Use design tokens for colors
 const cPrimary = "hsl(var(--primary))";
@@ -137,7 +139,8 @@ export default function LynqSleekView({
 
   return (
     <div className="min-h-screen bg-background text-foreground antialiased">
-      <div className="mx-auto max-w-md px-4 pb-8 pt-4">
+      <TooltipProvider>
+        <div className="mx-auto max-w-4xl px-4 pb-8 pt-4">
         {/* Header */}
         <header className="sticky top-0 z-20 -mx-4 px-4 pt-3 pb-2 bg-background/90 backdrop-blur supports-[backdrop-filter]:bg-background/80 border-b border-border">
           <div className="flex items-center justify-between">
@@ -180,6 +183,13 @@ export default function LynqSleekView({
           )}
         </Card>
 
+        {/* Graph Section Title */}
+        <div className="mt-6 mb-4">
+          <h2 className="text-lg font-bold text-center text-foreground">
+            What your employees and market is saying about your product/concept
+          </h2>
+        </div>
+
         {/* Tabs + Charts */}
         <div className="mt-3">
           <div className="grid grid-cols-4 gap-2 bg-muted p-1 rounded-2xl">
@@ -202,68 +212,91 @@ export default function LynqSleekView({
           </div>
 
           <Card
-            className="mt-2"
+            className="mt-2 w-full min-w-[60vw] max-w-full mx-auto"
             title={
-              tab === "trend" ? "Trend" : tab === "confusion" ? "Confusion" : tab === "perception" ? "Perception" : "Top Client Objections"
+              tab === "trend" ? "Trend" : 
+              tab === "confusion" ? "Confusion" : 
+              tab === "perception" ? "Perception (X-axis: High Sentiment Parameter, Y-axis: Product Variables)" : 
+              "Top Client Objections"
             }
           >
-            <div className="h-56">
+            <div className="h-80 w-full" style={{ pointerEvents: 'none' }}>
               {tab === "trend" && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <AreaChart data={trend} margin={{ top: 8, right: 0, left: 0, bottom: 0 }}>
-                    <defs>
-                      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
-                        <stop offset="95%" stopColor={cPrimary} stopOpacity={0} />
-                      </linearGradient>
-                    </defs>
-                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                    <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
-                    <YAxis hide domain={[60, 100]} />
-                    <ReTooltip cursor={{ fill: "#00000008" }} />
-                    <Area dataKey="completion" stroke={cPrimary} strokeWidth={2} fill="url(#g1)" type="monotone" />
-                    <Area dataKey="engagement" stroke={cAccent} strokeWidth={2} fillOpacity={0} type="monotone" />
-                  </AreaChart>
-                </ResponsiveContainer>
+                <div style={{ pointerEvents: 'auto' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <AreaChart data={trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                      <defs>
+                        <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                          <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
+                          <stop offset="95%" stopColor={cPrimary} stopOpacity={0} />
+                        </linearGradient>
+                      </defs>
+                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                      <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
+                      <YAxis hide domain={[60, 100]} />
+                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
+                      <Area dataKey="completion" stroke={cPrimary} strokeWidth={2} fill="url(#g1)" type="monotone" />
+                      <Area dataKey="engagement" stroke={cAccent} strokeWidth={2} fillOpacity={0} type="monotone" />
+                    </AreaChart>
+                  </ResponsiveContainer>
+                </div>
               )}
 
               {tab === "confusion" && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={confusionData} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                    <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
-                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
-                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cBar} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ pointerEvents: 'auto' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={confusionData} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
+                      <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
+                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar}>
+                        {confusionData.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={cBar} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               )}
 
               {tab === "perception" && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={perception} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                    <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis type="category" dataKey="metric" width={120} tick={{ fontSize: 12 }} />
-                    <ReTooltip
-                      cursor={{ fill: "#00000008" }}
-                      formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
-                    />
-                    <Bar dataKey="value" radius={[0, 10, 10, 0]} fill={cBar} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ pointerEvents: 'auto' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={perception} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
+                      <YAxis type="category" dataKey="metric" width={160} tick={{ fontSize: 11 }} />
+                      <ReTooltip
+                        cursor={{ fill: "#00000008" }}
+                        formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
+                      />
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar}>
+                        {perception.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={cBar} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               )}
 
               {tab === "objections" && (
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={objections} layout="vertical" margin={{ left: 0, right: 8, top: 8, bottom: 0 }}>
-                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                    <XAxis type="number" domain={[0, 100]} hide />
-                    <YAxis type="category" dataKey="name" width={150} tick={{ fontSize: 12 }} />
-                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
-                    <Bar dataKey="pct" radius={[0, 10, 10, 0]} fill={cBar} />
-                  </BarChart>
-                </ResponsiveContainer>
+                <div style={{ pointerEvents: 'auto' }}>
+                  <ResponsiveContainer width="100%" height="100%">
+                    <BarChart data={objections} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
+                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
+                      <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
+                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
+                      <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cBar}>
+                        {objections.map((entry, index) => (
+                          <Cell key={`cell-${index}`} fill={cBar} />
+                        ))}
+                      </Bar>
+                    </BarChart>
+                  </ResponsiveContainer>
+                </div>
               )}
             </div>
           </Card>
@@ -271,7 +304,21 @@ export default function LynqSleekView({
 
         {/* Actions & Improvements */}
         <Card title="Actions & Improvements" className="mt-3">
-          <div className="text-[13px] font-semibold text-foreground mb-2">Next Adaptive Lynqs</div>
+          <div className="text-[13px] font-semibold text-foreground mb-2 flex items-center gap-2">
+            Next Adaptive Lynqs
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm max-w-xs">
+                    📈 Create new bite-sized modules that sharpen learning and uncover fresh insights 🔍 on your product.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <div className="space-y-3">
             {Array.isArray(adaptiveModules) && adaptiveModules.filter(m => m?.added ?? true).length > 0 ? (
               adaptiveModules
@@ -297,7 +344,22 @@ export default function LynqSleekView({
         </Card>
 
         {/* Tweak the LYNQ */}
-        <Card title="Tweak the LYNQ" className="mt-3">
+        <Card className="mt-3">
+          <div className="flex items-center gap-2 mb-4">
+            <h3 className="text-[13px] font-semibold">Tweak the LYNQ</h3>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p className="text-sm max-w-xs">
+                    🛠️ Refine existing modules up to three times—improving clarity ✅ while gathering deeper insights 💡 on your team's understanding.
+                  </p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
+          </div>
           <div className="space-y-3">
             {tweakingQuestions.length > 0 ? (
               tweakingQuestions.map((question) => (
@@ -320,7 +382,8 @@ export default function LynqSleekView({
           open={requestModalOpen}
           onOpenChange={setRequestModalOpen}
         />
-      </div>
+        </div>
+      </TooltipProvider>
     </div>
   );
 }
