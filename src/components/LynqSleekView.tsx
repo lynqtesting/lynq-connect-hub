@@ -220,83 +220,121 @@ export default function LynqSleekView({
               "Top Client Objections"
             }
           >
-            <div className="h-80 w-full" style={{ pointerEvents: 'none' }}>
+            <div className="h-80 w-full bg-background rounded-lg">
               {tab === "trend" && (
-                <div style={{ pointerEvents: 'auto' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <AreaChart data={trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
-                      <defs>
-                        <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
-                          <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
-                          <stop offset="95%" stopColor={cPrimary} stopOpacity={0} />
-                        </linearGradient>
-                      </defs>
-                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                      <XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fontSize: 12 }} />
-                      <YAxis hide domain={[60, 100]} />
-                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
-                      <Area dataKey="completion" stroke={cPrimary} strokeWidth={2} fill="url(#g1)" type="monotone" />
-                      <Area dataKey="engagement" stroke={cAccent} strokeWidth={2} fillOpacity={0} type="monotone" />
-                    </AreaChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <AreaChart data={trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
+                        <stop offset="95%" stopColor={cPrimary} stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis 
+                      dataKey="day" 
+                      tickLine={false} 
+                      axisLine={false} 
+                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} 
+                    />
+                    <YAxis hide domain={[60, 100]} />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
+                    <Area dataKey="completion" stroke={cPrimary} strokeWidth={2} fill="url(#g1)" type="monotone" />
+                    <Area dataKey="engagement" stroke={cAccent} strokeWidth={2} fillOpacity={0} type="monotone" />
+                  </AreaChart>
+                </ResponsiveContainer>
               )}
 
               {tab === "confusion" && (
-                <div style={{ pointerEvents: 'auto' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={confusionData} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                      <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
-                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
-                        {confusionData.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={cBar} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={confusionData} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis 
+                      type="number" 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} 
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      width={200} 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cPrimary}>
+                      {confusionData.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={cPrimary} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
 
               {tab === "perception" && (
-                <div style={{ pointerEvents: 'auto' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={perception} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                      <YAxis type="category" dataKey="metric" width={160} tick={{ fontSize: 11 }} />
-                      <ReTooltip
-                        cursor={{ fill: "#00000008" }}
-                        formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
-                      />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
-                        {perception.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={cBar} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={perception} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis 
+                      type="number" 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                      label={{ value: 'High Sentiment Parameter', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }}
+                    />
+                    <YAxis 
+                      type="category" 
+                      dataKey="metric" 
+                      width={200} 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                      label={{ value: 'Product Variables', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }}
+                    />
+                    <ReTooltip
+                      cursor={{ fill: "#00000008" }}
+                      formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
+                    />
+                    <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cAccent}>
+                      {perception.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={cAccent} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
 
               {tab === "objections" && (
-                <div style={{ pointerEvents: 'auto' }}>
-                  <ResponsiveContainer width="100%" height="100%">
-                    <BarChart data={objections} layout="vertical" margin={{ left: 20, right: 40, top: 20, bottom: 0 }}>
-                      <CartesianGrid strokeDasharray="3 3" stroke={grid} />
-                      <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
-                      <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
-                      <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
-                      <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
-                        {objections.map((entry, index) => (
-                          <Cell key={`cell-${index}`} fill={cBar} />
-                        ))}
-                      </Bar>
-                    </BarChart>
-                  </ResponsiveContainer>
-                </div>
+                <ResponsiveContainer width="100%" height={320}>
+                  <BarChart data={objections} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke={grid} />
+                    <XAxis 
+                      type="number" 
+                      domain={[0, 100]} 
+                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      width={200} 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      axisLine={false}
+                      tickLine={false}
+                    />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
+                    <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cDestructive}>
+                      {objections.map((entry, index) => (
+                        <Cell key={`cell-${index}`} fill={cDestructive} />
+                      ))}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
               )}
             </div>
           </Card>
