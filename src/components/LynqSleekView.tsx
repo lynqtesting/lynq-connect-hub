@@ -250,7 +250,7 @@ export default function LynqSleekView({
                       <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
                       <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
                       <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar}>
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
                         {confusionData.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={cBar} />
                         ))}
@@ -271,7 +271,7 @@ export default function LynqSleekView({
                         cursor={{ fill: "#00000008" }}
                         formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
                       />
-                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar}>
+                      <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
                         {perception.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={cBar} />
                         ))}
@@ -289,7 +289,7 @@ export default function LynqSleekView({
                       <XAxis type="number" domain={[0, 100]} tick={{ fontSize: 12 }} />
                       <YAxis type="category" dataKey="name" width={180} tick={{ fontSize: 11 }} />
                       <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
-                      <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cBar}>
+                      <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cBar} label={{ position: 'right', fill: 'hsl(var(--foreground))', fontSize: 12 }}>
                         {objections.map((entry, index) => (
                           <Cell key={`cell-${index}`} fill={cBar} />
                         ))}
@@ -306,18 +306,16 @@ export default function LynqSleekView({
         <Card title="Actions & Improvements" className="mt-3">
           <div className="text-[13px] font-semibold text-foreground mb-2 flex items-center gap-2">
             Next Adaptive Lynqs
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm max-w-xs">
-                    📈 Create new bite-sized modules that sharpen learning and uncover fresh insights 🔍 on your product.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-muted-foreground cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm max-w-xs">
+                  📈 Create new bite-sized modules that sharpen learning and uncover fresh insights 🔍 on your product.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="space-y-3">
             {Array.isArray(adaptiveModules) && adaptiveModules.filter(m => m?.added ?? true).length > 0 ? (
@@ -347,18 +345,16 @@ export default function LynqSleekView({
         <Card className="mt-3">
           <div className="flex items-center gap-2 mb-4">
             <h3 className="text-[13px] font-semibold">Tweak the LYNQ</h3>
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <HelpCircle className="w-4 h-4 text-muted-foreground" />
-                </TooltipTrigger>
-                <TooltipContent>
-                  <p className="text-sm max-w-xs">
-                    🛠️ Refine existing modules up to three times—improving clarity ✅ while gathering deeper insights 💡 on your team's understanding.
-                  </p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger asChild>
+                <HelpCircle className="w-4 h-4 text-muted-foreground cursor-pointer" />
+              </TooltipTrigger>
+              <TooltipContent>
+                <p className="text-sm max-w-xs">
+                  🛠️ Refine existing modules up to three times—improving clarity ✅ while gathering deeper insights 💡 on your team's understanding.
+                </p>
+              </TooltipContent>
+            </Tooltip>
           </div>
           <div className="space-y-3">
             {tweakingQuestions.length > 0 ? (

@@ -28,25 +28,18 @@ interface InteractiveGraphProps {
 }
 
 export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
-  // Real objection data based on your reference image
-  const objectionData = {
+  // Use the actual data prop instead of hardcoded data
+  const chartData = data || {
     type: "bar",
-    title: "Confusion Areas Analysis",
-    metrics: [
-      { label: "Cost Objection", value: 65, color: "#ef4444" },
-      { label: "Investment Confusion", value: 35, color: "#f97316" },
-      { label: "Premium Too High", value: 45, color: "#ec4899" },
-      { label: "Poor Value Perception", value: 38, color: "#f472b6" },
-      { label: "Health & Wealth Mix", value: 28, color: "#facc15" },
-      { label: "Fund Performance", value: 22, color: "#eab308" }
-    ]
+    title: "Interactive Analysis",
+    metrics: []
   };
 
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Title with underline */}
       <div className="text-center">
-        <h3 className="text-xl font-bold text-foreground mb-2">{objectionData.title}</h3>
+        <h3 className="text-xl font-bold text-foreground mb-2">{chartData.title}</h3>
         <div className="w-20 h-1 bg-primary mx-auto rounded-full"></div>
       </div>
 
@@ -77,8 +70,9 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                 
                 {/* Bars Container */}
                 <div className="flex items-end justify-between h-full relative gap-6" style={{ pointerEvents: 'auto' }}>
-                  {objectionData.metrics.map((metric, index) => {
-                    const heightPercentage = (metric.value / 70) * 100; // 70 is max value
+                  {chartData.metrics.map((metric, index) => {
+                    const value = typeof metric.value === 'string' ? parseFloat(metric.value) : metric.value;
+                    const heightPercentage = (value / 70) * 100; // 70 is max value
                     
                     return (
                       <div key={index} className="flex flex-col items-center w-28 group relative">
@@ -93,7 +87,7 @@ export const InteractiveGraph: React.FC<InteractiveGraphProps> = ({ data }) => {
                             marginLeft: '-12px'
                           }}
                         >
-                          {metric.value}%
+                          {value}%
                         </div>
                         
                         {/* Bar */}
