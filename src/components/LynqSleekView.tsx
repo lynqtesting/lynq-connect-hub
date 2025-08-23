@@ -297,7 +297,7 @@ export default function LynqSleekView({
                     />
                     <ReTooltip
                       cursor={{ fill: "#00000008" }}
-                      formatter={(v: any, _n: any, ctx: any) => [`${v}% (target ${ctx?.payload?.target ?? 0}%)`, "Value"]}
+                      formatter={(v: any) => [`${v}%`, "Value"]}
                     />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cAccent}>
                       {perception.map((entry, index) => (
@@ -327,7 +327,7 @@ export default function LynqSleekView({
                       axisLine={false}
                       tickLine={false}
                     />
-                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Learners affected"]} />
+                    <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cDestructive}>
                       {objections.map((entry, index) => (
                         <Cell key={`cell-${index}`} fill={cDestructive} />
