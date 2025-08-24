@@ -110,30 +110,57 @@ const AssignModules = () => {
       console.log('AssignModules: Creating assignments with user IDs:', selectedUsers);
       console.log('AssignModules: Assignment data:', assignments);
 
+      // Check for existing assignments first
+      const { data: existingAssignments, error: checkError } = await supabase
+        .from('user_module_assignments')
+        .select('user_id, module_id')
+        .in('user_id', selectedUsers)
+        .in('module_id', selectedModules);
+
+      if (checkError) throw checkError;
+
+      // Filter out existing assignments
+      const existingSet = new Set(
+        existingAssignments?.map(a => `${a.user_id}-${a.module_id}`) || []
+      );
+      
+      const newAssignments = assignments.filter(
+        a => !existingSet.has(`${a.user_id}-${a.module_id}`)
+      );
+
+      if (newAssignments.length === 0) {
+        toast({
+          title: "Info",
+          description: "All selected assignments already exist",
+          variant: "default"
+        });
+        setSelectedModules([]);
+        setSelectedUsers([]);
+        return;
+      }
+
       const { error } = await supabase
         .from('user_module_assignments')
-        .insert(assignments);
+        .insert(newAssignments);
 
-      if (error) {
-        if (error.message.includes('duplicate key value')) {
-          toast({
-            title: "Warning",
-            description: "Some assignments already exist and were skipped",
-            variant: "default"
-          });
-        } else {
-          throw error;
-        }
-      } else {
-        toast({
-          title: "Success",
-          description: `Assigned ${selectedModules.length} modules to ${selectedUsers.length} users`
-        });
+      if (error) throw error;
+
+      const skippedCount = assignments.length - newAssignments.length;
+      let message = `Successfully assigned ${selectedModules.length} modules to ${selectedUsers.length} users`;
+      
+      if (skippedCount > 0) {
+        message += ` (${skippedCount} existing assignments skipped)`;
       }
+
+      toast({
+        title: "Success",
+        description: message
+      });
 
       setSelectedModules([]);
       setSelectedUsers([]);
     } catch (error) {
+      console.error('Assignment error:', error);
       toast({
         title: "Error",
         description: "Failed to assign modules",
