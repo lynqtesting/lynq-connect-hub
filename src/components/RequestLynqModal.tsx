@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -23,6 +23,27 @@ const RequestLynqModal: React.FC<RequestLynqModalProps> = ({
     description: '',
     type: ''
   });
+
+  // Check if there's a pre-selected adaptive idea
+  useEffect(() => {
+    if (open) {
+      const selectedIdea = localStorage.getItem('selectedAdaptiveIdea');
+      if (selectedIdea) {
+        try {
+          const idea = JSON.parse(selectedIdea);
+          setFormData(prev => ({
+            ...prev,
+            type: 'adaptive',
+            title: `Request: ${idea.title}`,
+            description: `Based on: ${idea.description}\n\nMy specific request: `
+          }));
+          localStorage.removeItem('selectedAdaptiveIdea');
+        } catch (error) {
+          console.error('Error parsing selected idea:', error);
+        }
+      }
+    }
+  }, [open]);
   const [loading, setLoading] = useState(false);
 
   const handleSubmit = async () => {
@@ -61,8 +82,10 @@ const RequestLynqModal: React.FC<RequestLynqModalProps> = ({
       if (error) throw error;
 
       toast({
-        title: "Request submitted",
-        description: "Your request has been sent to the admin team for review.",
+        title: formData.type === 'adaptive' ? "Request sent" : "Request submitted", 
+        description: formData.type === 'adaptive' 
+          ? "Your adaptive LYNQ request has been submitted!"
+          : "Your request has been sent to the admin team for review."
       });
 
       // Reset form and close modal

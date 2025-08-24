@@ -25,15 +25,13 @@ const ManageQuestions = () => {
 
   const fetchQuestions = async () => {
     try {
-      // TODO: Enable after types are updated
-      // const { data, error } = await supabase
-      //   .from('tweakable_questions')
-      //   .select('*')
-      //   .order('created_at', { ascending: false });
+      const { data, error } = await supabase
+        .from('tweakable_questions')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-      // if (error) throw error;
-      // setQuestions(data || []);
-      setQuestions([]);
+      if (error) throw error;
+      setQuestions(data || []);
     } catch (error) {
       console.error('Error fetching questions:', error);
       toast({
@@ -59,15 +57,14 @@ const ManageQuestions = () => {
     }
 
     try {
-      // TODO: Enable after types are updated
-      // const { error } = await supabase
-      //   .from('tweakable_questions')
-      //   .insert({
-      //     title: newQuestion.title.trim(),
-      //     category: newQuestion.category.trim() || null,
-      //   });
+      const { error } = await supabase
+        .from('tweakable_questions')
+        .insert({
+          title: newQuestion.title.trim(),
+          category: newQuestion.category.trim() || null,
+        });
 
-      // if (error) throw error;
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -88,13 +85,12 @@ const ManageQuestions = () => {
 
   const toggleQuestionStatus = async (questionId: string, isActive: boolean) => {
     try {
-      // TODO: Enable after types are updated
-      // const { error } = await supabase
-      //   .from('tweakable_questions')
-      //   .update({ is_active: !isActive })
-      //   .eq('id', questionId);
+      const { error } = await supabase
+        .from('tweakable_questions')
+        .update({ is_active: !isActive })
+        .eq('id', questionId);
 
-      // if (error) throw error;
+      if (error) throw error;
 
       toast({
         title: "Success",
@@ -116,13 +112,12 @@ const ManageQuestions = () => {
     if (!confirm('Are you sure you want to delete this question?')) return;
 
     try {
-      // TODO: Enable after types are updated
-      // const { error } = await supabase
-      //   .from('tweakable_questions')
-      //   .delete()
-      //   .eq('id', questionId);
+      const { error } = await supabase
+        .from('tweakable_questions')
+        .delete()
+        .eq('id', questionId);
 
-      // if (error) throw error;
+      if (error) throw error;
 
       toast({
         title: "Success",

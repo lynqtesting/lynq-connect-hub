@@ -25,6 +25,7 @@ import AdaptLynqs from "./pages/AdaptLynqs";
 import AdaptiveRequests from "./pages/AdaptiveRequests";
 import TweakRequests from "./pages/TweakRequests";
 import ManageQuestions from "./pages/ManageQuestions";
+import ManageAdaptiveIdeas from "./pages/ManageAdaptiveIdeas";
 import ClientRequests from "./pages/ClientRequests";
 import TweakRequestForm from "./pages/TweakRequestForm";
 
@@ -62,6 +63,7 @@ const App = () => (
             <Route path="/admin/adaptive-requests" element={<RouteGuard requireAdmin><AdaptiveRequests /></RouteGuard>} />
             <Route path="/admin/tweak-requests" element={<RouteGuard requireAdmin><TweakRequests /></RouteGuard>} />
             <Route path="/admin/manage-questions" element={<RouteGuard requireAdmin><ManageQuestions /></RouteGuard>} />
+            <Route path="/admin/manage-adaptive-ideas" element={<RouteGuard requireAdmin><ManageAdaptiveIdeas /></RouteGuard>} />
             
             <Route path="*" element={<NotFound />} />
           </Routes>

@@ -17,6 +17,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import RequestLynqModal from "@/components/RequestLynqModal";
+import TweakRequestModal from "@/components/TweakRequestModal";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 
 // Use design tokens for colors
@@ -93,6 +94,8 @@ export default function LynqSleekView({
   });
   const [tab, setTab] = useState<"trend" | "confusion" | "perception" | "objections">("objections");
   const [requestModalOpen, setRequestModalOpen] = useState(false);
+  const [tweakModalOpen, setTweakModalOpen] = useState(false);
+  const [selectedTweakQuestion, setSelectedTweakQuestion] = useState<any>(null);
   const [tweakingQuestions, setTweakingQuestions] = useState<any[]>([]);
   const { moduleId } = useParams();
 
@@ -220,10 +223,10 @@ export default function LynqSleekView({
               "Top Client Objections"
             }
           >
-            <div className="h-80 w-full bg-background rounded-lg">
+            <div className="h-80 w-full bg-background rounded-lg overflow-hidden">
               {tab === "trend" && (
-                <ResponsiveContainer width="100%" height={320}>
-                  <AreaChart data={trend} margin={{ top: 20, right: 30, left: 0, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <AreaChart data={trend} margin={{ top: 10, right: 10, left: 10, bottom: 10 }}>
                     <defs>
                       <linearGradient id="g1" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor={cPrimary} stopOpacity={0.28} />
@@ -235,7 +238,7 @@ export default function LynqSleekView({
                       dataKey="day" 
                       tickLine={false} 
                       axisLine={false} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} 
+                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }} 
                     />
                     <YAxis hide domain={[60, 100]} />
                     <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
@@ -246,23 +249,24 @@ export default function LynqSleekView({
               )}
 
               {tab === "confusion" && (
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={confusionData} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={confusionData} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }} 
+                      tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }} 
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis 
                       type="category" 
                       dataKey="name" 
-                      width={200} 
-                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      width={120} 
+                      tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
+                      className="break-words"
                     />
                     <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`, "Confusion"]} />
                     <Bar dataKey="value" radius={[0, 4, 4, 0]} fill={cPrimary}>
@@ -275,25 +279,24 @@ export default function LynqSleekView({
               )}
 
               {tab === "perception" && (
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={perception} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={perception} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                      tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
-                      label={{ value: 'High Sentiment Parameter', position: 'insideBottom', offset: -10, style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }}
                     />
                     <YAxis 
                       type="category" 
                       dataKey="metric" 
-                      width={200} 
-                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      width={120} 
+                      tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
-                      label={{ value: 'Product Variables', angle: -90, position: 'insideLeft', style: { textAnchor: 'middle', fill: 'hsl(var(--foreground))' } }}
+                      className="break-words"
                     />
                     <ReTooltip
                       cursor={{ fill: "#00000008" }}
@@ -309,23 +312,24 @@ export default function LynqSleekView({
               )}
 
               {tab === "objections" && (
-                <ResponsiveContainer width="100%" height={320}>
-                  <BarChart data={objections} layout="vertical" margin={{ left: 20, right: 60, top: 20, bottom: 0 }}>
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={objections} layout="vertical" margin={{ left: 10, right: 30, top: 10, bottom: 10 }}>
                     <CartesianGrid strokeDasharray="3 3" stroke={grid} />
                     <XAxis 
                       type="number" 
                       domain={[0, 100]} 
-                      tick={{ fontSize: 12, fill: 'hsl(var(--foreground))' }}
+                      tick={{ fontSize: 10, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
                     />
                     <YAxis 
                       type="category" 
                       dataKey="name" 
-                      width={200} 
-                      tick={{ fontSize: 11, fill: 'hsl(var(--foreground))' }}
+                      width={120} 
+                      tick={{ fontSize: 9, fill: 'hsl(var(--foreground))' }}
                       axisLine={false}
                       tickLine={false}
+                      className="break-words"
                     />
                     <ReTooltip cursor={{ fill: "#00000008" }} formatter={(v: any) => [`${v}%`]} />
                     <Bar dataKey="pct" radius={[0, 4, 4, 0]} fill={cDestructive}>
@@ -355,28 +359,7 @@ export default function LynqSleekView({
               </TooltipContent>
             </Tooltip>
           </div>
-          <div className="space-y-3">
-            {Array.isArray(adaptiveModules) && adaptiveModules.filter(m => m?.added ?? true).length > 0 ? (
-              adaptiveModules
-                .filter(m => m?.added ?? true)
-                .map((m) => (
-                       <ActionRow
-                        key={m.id}
-                        title={m.type}
-                        subtitle={m.description || "No description provided"}
-                        cta="Request Adaptive LYNQ"
-                        onClick={() => setRequestModalOpen(true)}
-                      />
-                ))
-            ) : (
-               <ActionRow
-                  title="No adaptive lynqs yet"
-                  subtitle="Request a new adaptive LYNQ to be created for this module."
-                  cta="Request Adaptive LYNQ"
-                  onClick={() => setRequestModalOpen(true)}
-                />
-            )}
-          </div>
+          <AdaptiveIdeasSection requestModalOpen={requestModalOpen} setRequestModalOpen={setRequestModalOpen} />
         </Card>
 
         {/* Tweak the LYNQ */}
@@ -402,7 +385,10 @@ export default function LynqSleekView({
                   title={question.title}
                   subtitle="Share materials or notes to refine this LYNQ"
                   cta="Submit Tweak"
-                  onClick={() => navigate(`/request-form/tweak/${moduleId}?questionId=${question.id}`)}
+                  onClick={() => {
+                    setSelectedTweakQuestion(question);
+                    setTweakModalOpen(true);
+                  }}
                 />
               ))
             ) : (
@@ -416,6 +402,16 @@ export default function LynqSleekView({
           open={requestModalOpen}
           onOpenChange={setRequestModalOpen}
         />
+        
+        {/* Tweak Modal */}
+        {selectedTweakQuestion && (
+          <TweakRequestModal
+            open={tweakModalOpen}
+            onOpenChange={setTweakModalOpen}
+            questionId={selectedTweakQuestion.id}
+            questionTitle={selectedTweakQuestion.title}
+          />
+        )}
         </div>
       </TooltipProvider>
     </div>
@@ -474,6 +470,67 @@ function ActionRow({ title, subtitle, cta, onClick }: any) {
       <Button onClick={onClick} className="w-full" size="sm" variant="destructive">
         {cta}
       </Button>
+    </div>
+  );
+}
+
+function AdaptiveIdeasSection({ requestModalOpen, setRequestModalOpen }: { requestModalOpen: boolean; setRequestModalOpen: (open: boolean) => void }) {
+  const [adaptiveIdeas, setAdaptiveIdeas] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const { toast } = useToast();
+
+  useEffect(() => {
+    fetchAdaptiveIdeas();
+  }, []);
+
+  const fetchAdaptiveIdeas = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('requests')
+        .select('*')
+        .eq('request_type', 'adaptive_idea_template')
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdaptiveIdeas(data || []);
+    } catch (error) {
+      console.error('Error fetching adaptive ideas:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRequestAdaptive = (idea: any) => {
+    // Store the selected idea in localStorage for the modal
+    localStorage.setItem('selectedAdaptiveIdea', JSON.stringify(idea));
+    setRequestModalOpen(true);
+  };
+
+  if (loading) {
+    return <div className="text-xs text-muted-foreground">Loading adaptive ideas...</div>;
+  }
+
+  return (
+    <div className="space-y-3">
+      {adaptiveIdeas.length > 0 ? (
+        adaptiveIdeas.map((idea) => (
+          <ActionRow
+            key={idea.id}
+            title={idea.title}
+            subtitle={idea.description || "No description provided"}
+            cta="Request Adaptive LYNQ"
+            onClick={() => handleRequestAdaptive(idea)}
+          />
+        ))
+      ) : (
+        <ActionRow
+          title="No adaptive ideas available"
+          subtitle="Contact admin to add adaptive LYNQ ideas."
+          cta="Request Custom LYNQ"
+          onClick={() => setRequestModalOpen(true)}
+        />
+      )}
     </div>
   );
 }
