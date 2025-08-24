@@ -300,6 +300,91 @@ function AdaptiveModulesField({ adaptiveModules, onChange }: {
   );
 }
 
+function TweakQuestionsField({ tweakQuestions, onChange }: {
+  tweakQuestions: Array<{ id?: string; title: string; category?: string }>;
+  onChange: (questions: Array<{ id?: string; title: string; category?: string }>) => void;
+}) {
+  const addQuestion = () => {
+    const newQuestion = {
+      id: `temp_${Date.now()}`, // Generate temporary ID
+      title: '',
+      category: ''
+    };
+    onChange([...tweakQuestions, newQuestion]);
+  };
+
+  const updateQuestion = (index: number, field: 'title' | 'category', value: string) => {
+    const newQuestions = [...tweakQuestions];
+    newQuestions[index] = { ...newQuestions[index], [field]: value };
+    onChange(newQuestions);
+  };
+
+  const removeQuestion = (index: number) => {
+    onChange(tweakQuestions.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label>Tweak Questions</Label>
+        <Button onClick={addQuestion} size="sm" variant="outline">
+          <Plus className="h-3 w-3 mr-1" />
+          Add Question
+        </Button>
+      </div>
+      <div className="space-y-4">
+        {tweakQuestions.map((question, index) => (
+          <div key={question.id || index} className="border border-border rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <h4 className="text-sm font-medium">Question {index + 1}</h4>
+              <Button
+                onClick={() => removeQuestion(index)}
+                size="sm"
+                variant="outline"
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Title</Label>
+                <Input
+                  placeholder="Question title"
+                  value={question.title || ''}
+                  onChange={(e) => updateQuestion(index, 'title', e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Category</Label>
+                <Select
+                  value={question.category || ''}
+                  onValueChange={(value) => updateQuestion(index, 'category', value)}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select category" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="CONTENT">Content</SelectItem>
+                    <SelectItem value="DELIVERY">Delivery</SelectItem>
+                    <SelectItem value="ENGAGEMENT">Engagement</SelectItem>
+                    <SelectItem value="ASSESSMENT">Assessment</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </div>
+        ))}
+        {tweakQuestions.length === 0 && (
+          <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
+            No tweak questions yet. Click "Add Question" to create one.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const { moduleData, loading, syncing, sendPatch } = useRealtimeModule(moduleId);
 
@@ -326,6 +411,17 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const objections = moduleData.objections || [];
   const adaptiveModules = moduleData.adaptive_modules || [];
   const trend = moduleData.trend || [];
+  
+  // Handle tweak questions - try to parse from tweak_content_request if it's JSON, otherwise create empty array
+  let tweakQuestions: Array<{ id?: string; title: string; category?: string }> = [];
+  try {
+    if (moduleData.tweak_content_request && moduleData.tweak_content_request.startsWith('[')) {
+      tweakQuestions = JSON.parse(moduleData.tweak_content_request);
+    }
+  } catch (e) {
+    // If parsing fails, keep empty array
+    tweakQuestions = [];
+  }
   
   // Ensure proper data structure for KPIs
   const ensureKPIs = {
@@ -548,14 +644,12 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <Card>
           <CardHeader>
-            <CardTitle>Tweak Content Request</CardTitle>
+            <CardTitle>Tweak Questions</CardTitle>
           </CardHeader>
           <CardContent>
-            <Textarea
-              value={moduleData.tweak_content_request || ''}
-              onChange={(e) => sendPatch({ tweak_content_request: e.target.value })}
-              placeholder="Enter tweak request content"
-              rows={8}
+            <TweakQuestionsField
+              tweakQuestions={tweakQuestions}
+              onChange={(questions) => sendPatch({ tweak_content_request: JSON.stringify(questions) })}
             />
           </CardContent>
         </Card>
