@@ -222,6 +222,84 @@ function TrendDataField({ trend, onChange }: {
   );
 }
 
+function AdaptiveModulesField({ adaptiveModules, onChange }: {
+  adaptiveModules: Array<{ id?: number; type: string; description: string; added?: boolean }>;
+  onChange: (modules: Array<{ id?: number; type: string; description: string; added?: boolean }>) => void;
+}) {
+  const addModule = () => {
+    const newModule = {
+      id: Date.now(), // Generate temporary ID
+      type: '',
+      description: '',
+      added: true
+    };
+    onChange([...adaptiveModules, newModule]);
+  };
+
+  const updateModule = (index: number, field: 'type' | 'description', value: string) => {
+    const newModules = [...adaptiveModules];
+    newModules[index] = { ...newModules[index], [field]: value };
+    onChange(newModules);
+  };
+
+  const removeModule = (index: number) => {
+    onChange(adaptiveModules.filter((_, i) => i !== index));
+  };
+
+  return (
+    <div className="space-y-3">
+      <div className="flex items-center justify-between">
+        <Label>Adaptive Modules</Label>
+        <Button onClick={addModule} size="sm" variant="outline">
+          <Plus className="h-3 w-3 mr-1" />
+          Add Module
+        </Button>
+      </div>
+      <div className="space-y-4">
+        {adaptiveModules.map((module, index) => (
+          <div key={module.id || index} className="border border-border rounded-lg p-4 space-y-3">
+            <div className="flex justify-between items-start">
+              <h4 className="text-sm font-medium">Module {index + 1}</h4>
+              <Button
+                onClick={() => removeModule(index)}
+                size="sm"
+                variant="outline"
+                className="h-6 w-6 p-0"
+              >
+                <X className="h-3 w-3" />
+              </Button>
+            </div>
+            <div className="space-y-2">
+              <div>
+                <Label className="text-xs">Title</Label>
+                <Input
+                  placeholder="Module title"
+                  value={module.type || ''}
+                  onChange={(e) => updateModule(index, 'type', e.target.value)}
+                />
+              </div>
+              <div>
+                <Label className="text-xs">Description</Label>
+                <Textarea
+                  placeholder="Module description"
+                  value={module.description || ''}
+                  onChange={(e) => updateModule(index, 'description', e.target.value)}
+                  rows={3}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+        {adaptiveModules.length === 0 && (
+          <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
+            No adaptive modules yet. Click "Add Module" to create one.
+          </div>
+        )}
+      </div>
+    </div>
+  );
+}
+
 export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const { moduleData, loading, syncing, sendPatch } = useRealtimeModule(moduleId);
 
@@ -487,10 +565,9 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
             <CardTitle>Adaptive Modules</CardTitle>
           </CardHeader>
           <CardContent>
-            <ArrayField
-              label="Adaptive Modules"
-              items={adaptiveModules}
-              onChange={(items) => sendPatch({ adaptive_modules: items })}
+            <AdaptiveModulesField
+              adaptiveModules={adaptiveModules}
+              onChange={(modules) => sendPatch({ adaptive_modules: modules })}
             />
           </CardContent>
         </Card>
