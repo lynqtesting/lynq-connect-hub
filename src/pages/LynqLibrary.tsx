@@ -64,13 +64,34 @@ export default function LynqLibrary() {
 
   const fetchModules = async () => {
     try {
-      const { data, error } = await supabase
-        .from('modules')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        navigate('/login');
+        return;
+      }
+
+      // Fetch only assigned modules for this user
+      const { data: assignments, error } = await supabase
+        .from('user_module_assignments')
+        .select(`
+          modules (
+            id,
+            title,
+            description,
+            category,
+            file_url,
+            screenshot_url,
+            created_at
+          )
+        `)
+        .eq('user_id', user.id);
 
       if (error) throw error;
-      setModules(data || []);
+      
+      // Extract modules from assignments
+      const assignedModules = assignments?.map(a => a.modules).filter(Boolean) || [];
+      setModules(assignedModules);
     } catch (error) {
       console.error('Error fetching modules:', error);
       toast.error('Failed to load modules');

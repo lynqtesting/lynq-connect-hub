@@ -109,10 +109,29 @@ export default function LynqSleekView({
 
   const fetchTweakingQuestions = async () => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First get assigned module IDs
+      const { data: assignments } = await supabase
+        .from('user_module_assignments')
+        .select('module_id')
+        .eq('user_id', user.id);
+
+      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
+      
+      if (assignedModuleIds.length === 0) {
+        setTweakingQuestions([]);
+        return;
+      }
+
+      // Fetch tweakable questions only from assigned modules
       const { data, error } = await supabase
-        .from('tweakable_questions')
+        .from('tweakable_questions') 
         .select('*')
         .eq('is_active', true)
+        .in('module_id', assignedModuleIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -485,11 +504,29 @@ function AdaptiveIdeasSection({ requestModalOpen, setRequestModalOpen }: { reque
 
   const fetchAdaptiveIdeas = async () => {
     try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First get assigned module IDs
+      const { data: assignments } = await supabase
+        .from('user_module_assignments')
+        .select('module_id')
+        .eq('user_id', user.id);
+
+      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
+      
+      if (assignedModuleIds.length === 0) {
+        setAdaptiveIdeas([]);
+        setLoading(false);
+        return;
+      }
+
+      // Fetch adaptive ideas only from assigned modules
       const { data, error } = await supabase
-        .from('requests')
+        .from('adaptive_ideas')
         .select('*')
-        .eq('request_type', 'adaptive_idea_template')
-        .eq('status', 'active')
+        .in('module_id', assignedModuleIds)
         .order('created_at', { ascending: false });
 
       if (error) throw error;

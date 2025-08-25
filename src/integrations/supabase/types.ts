@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      adaptive_ideas: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          module_id: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          module_id: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          module_id?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       module_adaptations: {
         Row: {
           adaptation_type: string
@@ -346,6 +373,7 @@ export type Database = {
           created_at: string
           id: string
           is_active: boolean
+          module_id: string | null
           title: string
           updated_at: string
         }
@@ -354,6 +382,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          module_id?: string | null
           title: string
           updated_at?: string
         }
@@ -362,6 +391,7 @@ export type Database = {
           created_at?: string
           id?: string
           is_active?: boolean
+          module_id?: string | null
           title?: string
           updated_at?: string
         }
