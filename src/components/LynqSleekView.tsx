@@ -97,6 +97,7 @@ export default function LynqSleekView({
   const [tweakModalOpen, setTweakModalOpen] = useState(false);
   const [selectedTweakQuestion, setSelectedTweakQuestion] = useState<any>(null);
   const [tweakingQuestions, setTweakingQuestions] = useState<any[]>([]);
+  const [adaptiveIdeas, setAdaptiveIdeas] = useState<any[]>([]);
   const { moduleId } = useParams();
 
   useEffect(() => {
@@ -105,7 +106,41 @@ export default function LynqSleekView({
 
   useEffect(() => {
     fetchTweakingQuestions();
+    fetchAdaptiveIdeas();
   }, []);
+
+  const fetchAdaptiveIdeas = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First get assigned module IDs
+      const { data: assignments } = await supabase
+        .from('user_module_assignments')
+        .select('module_id')
+        .eq('user_id', user.id);
+
+      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
+      
+      if (assignedModuleIds.length === 0) {
+        setAdaptiveIdeas([]);
+        return;
+      }
+
+      // Fetch adaptive ideas only from assigned modules
+      const { data, error } = await supabase
+        .from('adaptive_ideas')
+        .select('*')
+        .in('module_id', assignedModuleIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdaptiveIdeas(data || []);
+    } catch (error) {
+      console.error('Error fetching adaptive ideas:', error);
+    }
+  };
 
   const fetchTweakingQuestions = async () => {
     try {
@@ -378,7 +413,11 @@ export default function LynqSleekView({
               </TooltipContent>
             </Tooltip>
           </div>
-          <AdaptiveIdeasSection requestModalOpen={requestModalOpen} setRequestModalOpen={setRequestModalOpen} />
+          <AdaptiveIdeasSection 
+            adaptiveIdeas={adaptiveIdeas}
+            requestModalOpen={requestModalOpen} 
+            setRequestModalOpen={setRequestModalOpen} 
+          />
         </Card>
 
         {/* Tweak the LYNQ */}
@@ -493,60 +532,22 @@ function ActionRow({ title, subtitle, cta, onClick }: any) {
   );
 }
 
-function AdaptiveIdeasSection({ requestModalOpen, setRequestModalOpen }: { requestModalOpen: boolean; setRequestModalOpen: (open: boolean) => void }) {
-  const [adaptiveIdeas, setAdaptiveIdeas] = useState([]);
-  const [loading, setLoading] = useState(true);
+function AdaptiveIdeasSection({ 
+  adaptiveIdeas,
+  requestModalOpen, 
+  setRequestModalOpen 
+}: { 
+  adaptiveIdeas: any[];
+  requestModalOpen: boolean; 
+  setRequestModalOpen: (open: boolean) => void 
+}) {
   const { toast } = useToast();
-
-  useEffect(() => {
-    fetchAdaptiveIdeas();
-  }, []);
-
-  const fetchAdaptiveIdeas = async () => {
-    try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
-
-      // First get assigned module IDs
-      const { data: assignments } = await supabase
-        .from('user_module_assignments')
-        .select('module_id')
-        .eq('user_id', user.id);
-
-      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
-      
-      if (assignedModuleIds.length === 0) {
-        setAdaptiveIdeas([]);
-        setLoading(false);
-        return;
-      }
-
-      // Fetch adaptive ideas only from assigned modules
-      const { data, error } = await supabase
-        .from('adaptive_ideas')
-        .select('*')
-        .in('module_id', assignedModuleIds)
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      setAdaptiveIdeas(data || []);
-    } catch (error) {
-      console.error('Error fetching adaptive ideas:', error);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleRequestAdaptive = (idea: any) => {
     // Store the selected idea in localStorage for the modal
     localStorage.setItem('selectedAdaptiveIdea', JSON.stringify(idea));
     setRequestModalOpen(true);
   };
-
-  if (loading) {
-    return <div className="text-xs text-muted-foreground">Loading adaptive ideas...</div>;
-  }
 
   return (
     <div className="space-y-3">
@@ -556,7 +557,7 @@ function AdaptiveIdeasSection({ requestModalOpen, setRequestModalOpen }: { reque
             key={idea.id}
             title={idea.title}
             subtitle={idea.description || "No description provided"}
-            cta="Request Adaptive LYNQ"
+            cta="Request Custom LYNQ"
             onClick={() => handleRequestAdaptive(idea)}
           />
         ))
