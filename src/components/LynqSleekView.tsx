@@ -105,40 +105,43 @@ export default function LynqSleekView({
   }, [moduleTitle]);
 
   useEffect(() => {
-    fetchTweakingQuestions();
-    fetchAdaptiveIdeas();
-  }, []);
+    if (moduleId) {
+      fetchTweakingQuestions();
+      fetchAdaptiveIdeas();
+    }
+  }, [moduleId]);
 
   const fetchAdaptiveIdeas = async () => {
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !moduleId) return;
 
-      // First get assigned module IDs
-      const { data: assignments } = await supabase
+      // Check if user is assigned to this specific module
+      const { data: assignment } = await supabase
         .from('user_module_assignments')
-        .select('module_id')
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('module_id', moduleId)
+        .single();
 
-      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
-      
-      if (assignedModuleIds.length === 0) {
+      if (!assignment) {
         setAdaptiveIdeas([]);
         return;
       }
 
-      // Fetch adaptive ideas only from assigned modules
+      // Fetch adaptive ideas ONLY for the current module
       const { data, error } = await supabase
         .from('adaptive_ideas')
         .select('*')
-        .in('module_id', assignedModuleIds)
+        .eq('module_id', moduleId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setAdaptiveIdeas(data || []);
     } catch (error) {
       console.error('Error fetching adaptive ideas:', error);
+      setAdaptiveIdeas([]);
     }
   };
 
@@ -146,33 +149,34 @@ export default function LynqSleekView({
     try {
       // Get current user
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user || !moduleId) return;
 
-      // First get assigned module IDs
-      const { data: assignments } = await supabase
+      // Check if user is assigned to this specific module
+      const { data: assignment } = await supabase
         .from('user_module_assignments')
-        .select('module_id')
-        .eq('user_id', user.id);
+        .select('id')
+        .eq('user_id', user.id)
+        .eq('module_id', moduleId)
+        .single();
 
-      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
-      
-      if (assignedModuleIds.length === 0) {
+      if (!assignment) {
         setTweakingQuestions([]);
         return;
       }
 
-      // Fetch tweakable questions only from assigned modules
+      // Fetch tweakable questions ONLY for the current module
       const { data, error } = await supabase
         .from('tweakable_questions') 
         .select('*')
         .eq('is_active', true)
-        .in('module_id', assignedModuleIds)
+        .eq('module_id', moduleId)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
       setTweakingQuestions(data || []);
     } catch (error) {
       console.error('Error fetching tweaking questions:', error);
+      setTweakingQuestions([]);
     }
   };
 

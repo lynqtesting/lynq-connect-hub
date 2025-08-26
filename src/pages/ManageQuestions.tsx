@@ -173,7 +173,7 @@ const ManageQuestions = () => {
                   id="title"
                   value={newQuestion.title}
                   onChange={(e) => setNewQuestion({ ...newQuestion, title: e.target.value })}
-                  placeholder="e.g., Why are insurance premiums so high?"
+                  placeholder="Enter your question title"
                   required
                 />
               </div>

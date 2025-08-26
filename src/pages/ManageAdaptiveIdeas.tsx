@@ -195,7 +195,7 @@ const ManageAdaptiveIdeas = () => {
                   id="title"
                   value={newIdea.title}
                   onChange={(e) => setNewIdea({ ...newIdea, title: e.target.value })}
-                  placeholder="e.g., Overcoming Price Objections & Value Positioning"
+                  placeholder="Enter adaptive idea title"
                   required
                 />
               </div>
