@@ -67,6 +67,7 @@ const UserDashboard = () => {
       console.log('UserDashboard: Starting fetch process...');
       
       // Fetch assigned modules for this user with manual joins
+      // userId here is auth.uid() from the session
       const { data: assignments, error: assignmentError } = await supabase
         .from('user_module_assignments')
         .select('id, module_id, user_id, assigned_at')
@@ -77,6 +78,7 @@ const UserDashboard = () => {
       console.log('UserDashboard: Found assignments:', assignments);
 
       if (!assignments || assignments.length === 0) {
+        console.log('UserDashboard: No assignments found, showing 0 modules');
         setUserModules([]);
         setLoading(false);
         return;
