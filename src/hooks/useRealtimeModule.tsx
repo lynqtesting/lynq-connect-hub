@@ -80,27 +80,31 @@ export function useRealtimeModule(moduleId: string) {
         // Get latest version to check for conflicts
         const { data: currentData, error: fetchError } = await supabase
           .from('modules')
-          .select('version')
+          .select('version, updated_at')
           .eq('id', moduleId)
           .single();
 
         if (fetchError) throw fetchError;
 
+        // If no version exists, default to 1
+        const currentVersion = currentData.version || 1;
+
         const { data, error } = await supabase
           .from('modules')
           .update({
             ...patch,
-            version: currentData.version + 1,
+            // Don't manually increment version - let the trigger handle it
             updated_at: new Date().toISOString()
           })
           .eq('id', moduleId)
-          .eq('version', currentData.version) // Optimistic concurrency control
+          .eq('version', currentVersion) // Optimistic concurrency control
           .select()
           .single();
 
         if (error) {
-          // Handle version conflict
-          if (error.code === 'PGRST116') {
+          console.error('Update error:', error);
+          // Handle version conflict or no rows returned
+          if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
             toast({
               title: "Sync Conflict",
               description: "Another user modified this field. Refreshing...",
@@ -111,6 +115,8 @@ export function useRealtimeModule(moduleId: string) {
             throw error;
           }
         } else if (data) {
+          // Update with the latest data from server
+          setModuleData(data);
           // Remove from optimistic updates since it's now confirmed
           optimisticUpdatesRef.current.delete(patchKey);
         }
@@ -118,25 +124,18 @@ export function useRealtimeModule(moduleId: string) {
         console.error('Error updating module:', error);
         // Revert optimistic update on error
         optimisticUpdatesRef.current.delete(patchKey);
-        setModuleData(prev => {
-          if (!prev) return null;
-          const reverted = { ...prev };
-          Object.keys(patch).forEach(key => {
-            delete (reverted as any)[key];
-          });
-          return reverted;
-        });
+        await fetchModuleData(); // Refresh to get latest state
         
         toast({
           title: "Error",
-          description: "Failed to save changes",
+          description: "Failed to save changes. Refreshed to latest version.",
           variant: "destructive"
         });
       } finally {
         setSyncing(false);
         debouncedPatchRef.current.delete(patchKey);
       }
-    }, 500); // 500ms debounce
+    }, 300); // Reduced debounce for better responsiveness
 
     debouncedPatchRef.current.set(patchKey, timeoutId);
   }, [moduleData, moduleId, toast, fetchModuleData]);

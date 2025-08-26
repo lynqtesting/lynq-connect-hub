@@ -8,6 +8,8 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Loader2, Users, Wifi, Upload, Plus, X } from 'lucide-react';
 import { useRealtimeModule } from '@/hooks/useRealtimeModule';
+import { useModuleAdaptiveIdeas } from '@/hooks/useModuleAdaptiveIdeas';
+import { useModuleTweakQuestions } from '@/hooks/useModuleTweakQuestions';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MetricFieldProps {
@@ -222,49 +224,92 @@ function TrendDataField({ trend, onChange }: {
   );
 }
 
-function AdaptiveModulesField({ adaptiveModules, onChange }: {
-  adaptiveModules: Array<{ id?: number; type: string; description: string; added?: boolean }>;
-  onChange: (modules: Array<{ id?: number; type: string; description: string; added?: boolean }>) => void;
-}) {
-  const addModule = () => {
-    const newModule = {
-      id: Date.now(), // Generate temporary ID
-      type: '',
-      description: '',
-      added: true
-    };
-    onChange([...adaptiveModules, newModule]);
+function AdaptiveIdeasField({ moduleId }: { moduleId: string }) {
+  const { ideas, loading, syncing, createIdea, updateIdea, deleteIdea } = useModuleAdaptiveIdeas(moduleId);
+  const [newIdea, setNewIdea] = useState({ title: '', description: '' });
+
+  const handleAddIdea = async () => {
+    if (!newIdea.title.trim()) return;
+    
+    try {
+      await createIdea(newIdea.title, newIdea.description);
+      setNewIdea({ title: '', description: '' });
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const updateModule = (index: number, field: 'type' | 'description', value: string) => {
-    const newModules = [...adaptiveModules];
-    newModules[index] = { ...newModules[index], [field]: value };
-    onChange(newModules);
+  const handleUpdateIdea = async (id: string, field: 'title' | 'description', value: string) => {
+    try {
+      await updateIdea(id, { [field]: value });
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const removeModule = (index: number) => {
-    onChange(adaptiveModules.filter((_, i) => i !== index));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        Loading adaptive ideas...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label>Adaptive Modules</Label>
-        <Button onClick={addModule} size="sm" variant="outline">
-          <Plus className="h-3 w-3 mr-1" />
-          Add Module
-        </Button>
+        <div className="flex items-center gap-2">
+          {syncing && <Loader2 className="h-3 w-3 animate-spin" />}
+        </div>
       </div>
+      
+      {/* Add new idea form */}
+      <div className="border border-dashed border-border rounded-lg p-4 space-y-3">
+        <h4 className="text-sm font-medium">Add New Adaptive Module</h4>
+        <div className="space-y-2">
+          <div>
+            <Label className="text-xs">Title</Label>
+            <Input
+              placeholder="Module title"
+              value={newIdea.title}
+              onChange={(e) => setNewIdea(prev => ({ ...prev, title: e.target.value }))}
+            />
+          </div>
+          <div>
+            <Label className="text-xs">Description</Label>
+            <Textarea
+              placeholder="Module description"
+              value={newIdea.description}
+              onChange={(e) => setNewIdea(prev => ({ ...prev, description: e.target.value }))}
+              rows={3}
+            />
+          </div>
+          <Button 
+            onClick={handleAddIdea} 
+            size="sm" 
+            disabled={!newIdea.title.trim() || syncing}
+            className="w-full"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Module
+          </Button>
+        </div>
+      </div>
+
+      {/* Existing ideas */}
       <div className="space-y-4">
-        {adaptiveModules.map((module, index) => (
-          <div key={module.id || index} className="border border-border rounded-lg p-4 space-y-3">
+        {ideas.map((idea, index) => (
+          <div key={idea.id} className="border border-border rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
               <h4 className="text-sm font-medium">Module {index + 1}</h4>
               <Button
-                onClick={() => removeModule(index)}
+                onClick={() => deleteIdea(idea.id)}
                 size="sm"
                 variant="outline"
                 className="h-6 w-6 p-0"
+                disabled={syncing}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -274,25 +319,27 @@ function AdaptiveModulesField({ adaptiveModules, onChange }: {
                 <Label className="text-xs">Title</Label>
                 <Input
                   placeholder="Module title"
-                  value={module.type || ''}
-                  onChange={(e) => updateModule(index, 'type', e.target.value)}
+                  value={idea.title}
+                  onChange={(e) => handleUpdateIdea(idea.id, 'title', e.target.value)}
+                  disabled={syncing}
                 />
               </div>
               <div>
                 <Label className="text-xs">Description</Label>
                 <Textarea
                   placeholder="Module description"
-                  value={module.description || ''}
-                  onChange={(e) => updateModule(index, 'description', e.target.value)}
+                  value={idea.description || ''}
+                  onChange={(e) => handleUpdateIdea(idea.id, 'description', e.target.value)}
                   rows={3}
+                  disabled={syncing}
                 />
               </div>
             </div>
           </div>
         ))}
-        {adaptiveModules.length === 0 && (
+        {ideas.length === 0 && (
           <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
-            No adaptive modules yet. Click "Add Module" to create one.
+            No adaptive modules yet. Add one using the form above.
           </div>
         )}
       </div>
@@ -300,48 +347,83 @@ function AdaptiveModulesField({ adaptiveModules, onChange }: {
   );
 }
 
-function TweakQuestionsField({ tweakQuestions, onChange }: {
-  tweakQuestions: Array<{ id?: string; title: string; description?: string }>;
-  onChange: (questions: Array<{ id?: string; title: string; description?: string }>) => void;
-}) {
-  const addQuestion = () => {
-    const newQuestion = {
-      id: `temp_${Date.now()}`, // Generate temporary ID
-      title: '',
-      description: ''
-    };
-    onChange([...tweakQuestions, newQuestion]);
+function TweakQuestionsField({ moduleId }: { moduleId: string }) {
+  const { questions, loading, syncing, createQuestion, updateQuestion, deleteQuestion } = useModuleTweakQuestions(moduleId);
+  const [newQuestionTitle, setNewQuestionTitle] = useState('');
+
+  const handleAddQuestion = async () => {
+    if (!newQuestionTitle.trim()) return;
+    
+    try {
+      await createQuestion(newQuestionTitle);
+      setNewQuestionTitle('');
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const updateQuestion = (index: number, field: 'title' | 'description', value: string) => {
-    const newQuestions = [...tweakQuestions];
-    newQuestions[index] = { ...newQuestions[index], [field]: value };
-    onChange(newQuestions);
+  const handleUpdateQuestion = async (id: string, title: string) => {
+    try {
+      await updateQuestion(id, { title });
+    } catch (error) {
+      // Error handled in hook
+    }
   };
 
-  const removeQuestion = (index: number) => {
-    onChange(tweakQuestions.filter((_, i) => i !== index));
-  };
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-4">
+        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+        Loading tweak questions...
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
         <Label>Tweak Questions</Label>
-        <Button onClick={addQuestion} size="sm" variant="outline">
-          <Plus className="h-3 w-3 mr-1" />
-          Add Question
-        </Button>
+        <div className="flex items-center gap-2">
+          {syncing && <Loader2 className="h-3 w-3 animate-spin" />}
+        </div>
       </div>
+
+      {/* Add new question form */}
+      <div className="border border-dashed border-border rounded-lg p-4 space-y-3">
+        <h4 className="text-sm font-medium">Add New Question</h4>
+        <div className="space-y-2">
+          <div>
+            <Label className="text-xs">Title</Label>
+            <Input
+              placeholder="Question title"
+              value={newQuestionTitle}
+              onChange={(e) => setNewQuestionTitle(e.target.value)}
+            />
+          </div>
+          <Button 
+            onClick={handleAddQuestion} 
+            size="sm" 
+            disabled={!newQuestionTitle.trim() || syncing}
+            className="w-full"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            Add Question
+          </Button>
+        </div>
+      </div>
+
+      {/* Existing questions */}
       <div className="space-y-4">
-        {tweakQuestions.map((question, index) => (
-          <div key={question.id || index} className="border border-border rounded-lg p-4 space-y-3">
+        {questions.map((question, index) => (
+          <div key={question.id} className="border border-border rounded-lg p-4 space-y-3">
             <div className="flex justify-between items-start">
               <h4 className="text-sm font-medium">Question {index + 1}</h4>
               <Button
-                onClick={() => removeQuestion(index)}
+                onClick={() => deleteQuestion(question.id)}
                 size="sm"
                 variant="outline"
                 className="h-6 w-6 p-0"
+                disabled={syncing}
               >
                 <X className="h-3 w-3" />
               </Button>
@@ -351,25 +433,17 @@ function TweakQuestionsField({ tweakQuestions, onChange }: {
                 <Label className="text-xs">Title</Label>
                 <Input
                   placeholder="Question title"
-                  value={question.title || ''}
-                  onChange={(e) => updateQuestion(index, 'title', e.target.value)}
-                />
-              </div>
-              <div>
-                <Label className="text-xs">Description</Label>
-                <Textarea
-                  placeholder="Question description"
-                  value={question.description || ''}
-                  onChange={(e) => updateQuestion(index, 'description', e.target.value)}
-                  rows={2}
+                  value={question.title}
+                  onChange={(e) => handleUpdateQuestion(question.id, e.target.value)}
+                  disabled={syncing}
                 />
               </div>
             </div>
           </div>
         ))}
-        {tweakQuestions.length === 0 && (
+        {questions.length === 0 && (
           <div className="text-center py-6 text-muted-foreground border border-dashed rounded-lg">
-            No tweak questions yet. Click "Add Question" to create one.
+            No tweak questions yet. Add one using the form above.
           </div>
         )}
       </div>
@@ -401,19 +475,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const confusionData = moduleData.confusion_data || [];
   const perception = moduleData.perception || [];
   const objections = moduleData.objections || [];
-  const adaptiveModules = moduleData.adaptive_modules || [];
   const trend = moduleData.trend || [];
-  
-  // Handle tweak questions - try to parse from tweak_content_request if it's JSON, otherwise create empty array
-  let tweakQuestions: Array<{ id?: string; title: string; description?: string }> = [];
-  try {
-    if (moduleData.tweak_content_request && moduleData.tweak_content_request.startsWith('[')) {
-      tweakQuestions = JSON.parse(moduleData.tweak_content_request);
-    }
-  } catch (e) {
-    // If parsing fails, keep empty array
-    tweakQuestions = [];
-  }
   
   // Ensure proper data structure for KPIs
   const ensureKPIs = {
@@ -639,10 +701,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
             <CardTitle>Tweak Questions</CardTitle>
           </CardHeader>
           <CardContent>
-            <TweakQuestionsField
-              tweakQuestions={tweakQuestions}
-              onChange={(questions) => sendPatch({ tweak_content_request: JSON.stringify(questions) })}
-            />
+            <TweakQuestionsField moduleId={moduleId} />
           </CardContent>
         </Card>
 
@@ -651,10 +710,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
             <CardTitle>Adaptive Modules</CardTitle>
           </CardHeader>
           <CardContent>
-            <AdaptiveModulesField
-              adaptiveModules={adaptiveModules}
-              onChange={(modules) => sendPatch({ adaptive_modules: modules })}
-            />
+            <AdaptiveIdeasField moduleId={moduleId} />
           </CardContent>
         </Card>
       </div>
