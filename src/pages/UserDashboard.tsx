@@ -65,27 +65,43 @@ const UserDashboard = () => {
     try {
       console.log('UserDashboard: Fetching modules for auth user ID:', userId);
       
-      // Fetch assigned modules for this user
-      const { data: assignments, error } = await supabase
+      // Fetch assigned modules for this user with manual joins
+      const { data: assignments, error: assignmentError } = await supabase
         .from('user_module_assignments')
-        .select(`
-          id,
-          module_id,
-          user_id,
-          modules (
-            id,
-            title,
-            description,
-            file_url,
-            screenshot_url
-          )
-        `)
+        .select('id, module_id, user_id, assigned_at')
         .eq('user_id', userId);
 
-      if (error) throw error;
+      if (assignmentError) throw assignmentError;
 
       console.log('UserDashboard: Found assignments:', assignments);
-      setUserModules(assignments || []);
+
+      if (!assignments || assignments.length === 0) {
+        setUserModules([]);
+        setLoading(false);
+        return;
+      }
+
+      // Get modules for the assignments
+      const moduleIds = [...new Set(assignments.map(a => a.module_id).filter(Boolean))];
+      const { data: modules, error: moduleError } = await supabase
+        .from('modules')
+        .select('id, title, description, file_url, screenshot_url')
+        .in('id', moduleIds);
+
+      if (moduleError) throw moduleError;
+
+      // Combine the data
+      const combinedAssignments = assignments.map(assignment => {
+        const module = modules?.find(m => m.id === assignment.module_id);
+        
+        return {
+          ...assignment,
+          modules: module || null
+        };
+      }).filter(assignment => assignment.modules); // Filter out assignments with no matching module
+
+      console.log('UserDashboard: Combined assignments:', combinedAssignments);
+      setUserModules(combinedAssignments);
     } catch (error) {
       console.error('Error fetching modules:', error);
     } finally {
