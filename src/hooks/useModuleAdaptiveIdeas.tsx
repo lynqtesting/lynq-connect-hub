@@ -22,7 +22,7 @@ export function useModuleAdaptiveIdeas(moduleId: string) {
     try {
       const { data, error } = await supabase
         .from('adaptive_ideas')
-        .select('*')
+        .select('id, module_id, title, description, version, created_at, updated_at')
         .eq('module_id', moduleId)
         .order('created_at', { ascending: true });
 
@@ -50,7 +50,7 @@ export function useModuleAdaptiveIdeas(moduleId: string) {
           title,
           description: description || null
         })
-        .select()
+        .select('id, module_id, title, description, version, created_at, updated_at')
         .single();
 
       if (error) throw error;
@@ -75,12 +75,13 @@ export function useModuleAdaptiveIdeas(moduleId: string) {
       const currentIdea = ideas.find(idea => idea.id === id);
       if (!currentIdea) throw new Error('Idea not found');
 
+      const currentVersion = currentIdea.version || 1;
       const { data, error } = await supabase
         .from('adaptive_ideas')
         .update(updates)
         .eq('id', id)
-        .eq('version', currentIdea.version) // Optimistic concurrency
-        .select()
+        .eq('version', currentVersion) // Optimistic concurrency
+        .select('id, module_id, title, description, version, created_at, updated_at')
         .single();
 
       if (error) {

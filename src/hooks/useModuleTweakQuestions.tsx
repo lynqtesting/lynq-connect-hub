@@ -22,7 +22,7 @@ export function useModuleTweakQuestions(moduleId: string) {
     try {
       const { data, error } = await supabase
         .from('tweakable_questions')
-        .select('*')
+        .select('id, module_id, title, is_active, version, created_at, updated_at')
         .eq('module_id', moduleId)
         .eq('is_active', true)
         .order('created_at', { ascending: true });
@@ -51,7 +51,7 @@ export function useModuleTweakQuestions(moduleId: string) {
           title,
           is_active: true
         })
-        .select()
+        .select('id, module_id, title, is_active, version, created_at, updated_at')
         .single();
 
       if (error) throw error;
@@ -76,12 +76,13 @@ export function useModuleTweakQuestions(moduleId: string) {
       const currentQuestion = questions.find(q => q.id === id);
       if (!currentQuestion) throw new Error('Question not found');
 
+      const currentVersion = currentQuestion.version || 1;
       const { data, error } = await supabase
         .from('tweakable_questions')
         .update(updates)
         .eq('id', id)
-        .eq('version', currentQuestion.version) // Optimistic concurrency
-        .select()
+        .eq('version', currentVersion) // Optimistic concurrency
+        .select('id, module_id, title, is_active, version, created_at, updated_at')
         .single();
 
       if (error) {
