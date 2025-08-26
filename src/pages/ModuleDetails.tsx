@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
@@ -15,23 +16,36 @@ const ModuleDetails = () => {
   const [activeTab, setActiveTab] = useState<'analysis' | 'audio'>('analysis');
 
   useEffect(() => {
-    fetchModuleData();
+    console.log('ModuleDetails: Component mounted with moduleId:', moduleId);
+    console.log('ModuleDetails: moduleId type:', typeof moduleId);
+    
+    if (moduleId) {
+      fetchModuleData();
+    } else {
+      console.error('ModuleDetails: No moduleId provided');
+      setLoading(false);
+    }
   }, [moduleId]);
 
   const fetchModuleData = async () => {
     try {
+      console.log('ModuleDetails: Fetching data for module:', moduleId);
+      
       const { data, error } = await supabase
         .from('modules')
         .select('*')
         .eq('id', moduleId)
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('ModuleDetails: Supabase error:', error);
+        throw error;
+      }
       
-      console.log('Module data fetched:', data); // Debug log
+      console.log('ModuleDetails: Module data fetched successfully:', data);
       setModuleData(data);
     } catch (error) {
-      console.error('Error fetching module:', error); // Debug log
+      console.error('ModuleDetails: Error fetching module:', error);
       toast({
         title: "Error",
         description: "Failed to load module data",
@@ -42,12 +56,15 @@ const ModuleDetails = () => {
     }
   };
 
-
   if (loading) {
     return (
       <div className="min-h-screen bg-background">
         <div className="p-4 max-w-md mx-auto">
-          <div className="text-center py-8">Loading module...</div>
+          <div className="text-center py-8">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+            Loading module...
+            <div className="text-xs text-muted-foreground mt-2">Module ID: {moduleId}</div>
+          </div>
         </div>
       </div>
     );
@@ -57,17 +74,27 @@ const ModuleDetails = () => {
     return (
       <div className="min-h-screen bg-background">
         <div className="p-4 max-w-md mx-auto">
-          <div className="text-center py-8">Module not found</div>
+          <div className="text-center py-8">
+            <div className="text-lg font-semibold mb-2">Module not found</div>
+            <div className="text-sm text-muted-foreground">
+              Module ID: {moduleId}
+            </div>
+            <div className="text-xs text-muted-foreground mt-2">
+              Please check if this module exists and you have access to it.
+            </div>
+          </div>
         </div>
       </div>
     );
   }
 
+  console.log('ModuleDetails: Rendering module data:', moduleData);
+
   return (
     <div className="min-h-screen bg-background">
       <LynqSleekView
         moduleTitle={moduleData?.title || 'Lynq'}
-        moduleLink={moduleData?.module_link}
+        moduleLink={moduleData?.file_url || moduleData?.module_link}
         kpis={moduleData?.kpis || undefined}
         trend={moduleData?.trend || undefined}
         confusionData={(moduleData?.confusion_data || [])?.map((i: any) => ({ name: i.name || i.label, value: i.value ?? i.percent }))}

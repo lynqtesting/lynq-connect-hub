@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card } from "@/components/ui/card";
@@ -71,6 +72,8 @@ export default function LynqLibrary() {
         return;
       }
 
+      console.log('LynqLibrary: Fetching modules for user:', user.id);
+
       // Fetch only assigned modules for this user
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
@@ -89,8 +92,13 @@ export default function LynqLibrary() {
 
       if (error) throw error;
       
+      console.log('LynqLibrary: Raw assignments data:', assignments);
+      
       // Extract modules from assignments
       const assignedModules = assignments?.map(a => a.modules).filter(Boolean) || [];
+      console.log('LynqLibrary: Extracted modules:', assignedModules);
+      console.log('LynqLibrary: Total module count:', assignedModules.length);
+      
       setModules(assignedModules);
     } catch (error) {
       console.error('Error fetching modules:', error);
@@ -101,12 +109,14 @@ export default function LynqLibrary() {
   };
 
   const getModulesByCategory = (category: string) => {
-    return modules.filter(module => 
+    const filteredModules = modules.filter(module => 
       module.category === category &&
       (searchTerm === '' || 
        module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
        module.description?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
+    console.log(`LynqLibrary: Modules in ${category}:`, filteredModules);
+    return filteredModules;
   };
 
   const getFilteredCategories = () => {
@@ -122,11 +132,26 @@ export default function LynqLibrary() {
   };
 
   const handleCategoryClick = (category: string) => {
+    console.log('LynqLibrary: Category clicked:', category);
     setSelectedCategory(category);
     setModalOpen(true);
   };
 
   const handleModuleClick = (moduleId: string) => {
+    console.log('LynqLibrary: Module clicked, navigating to:', `/module/${moduleId}`);
+    console.log('LynqLibrary: Module ID type:', typeof moduleId);
+    
+    // Ensure we have a valid module ID
+    if (!moduleId || moduleId === 'undefined' || moduleId === 'null') {
+      console.error('LynqLibrary: Invalid module ID:', moduleId);
+      toast.error('Invalid module selected');
+      return;
+    }
+    
+    // Close modal first
+    setModalOpen(false);
+    
+    // Navigate to module details
     navigate(`/module/${moduleId}`);
   };
 
@@ -240,20 +265,26 @@ export default function LynqLibrary() {
             </Button>
           </DialogHeader>
           <div className="overflow-y-auto max-h-[60vh] space-y-3">
-            {selectedCategory && getModulesByCategory(selectedCategory).map((module) => (
-              <Card
-                key={module.id}
-                className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                onClick={() => handleModuleClick(module.id)}
-              >
-                <div className="font-medium text-foreground text-sm leading-tight">
-                  {module.title}
-                </div>
-                <div className="text-xs text-muted-foreground mt-1 leading-tight">
-                  {module.description}
-                </div>
-              </Card>
-            ))}
+            {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
+              console.log('LynqLibrary: Rendering module in modal:', module);
+              return (
+                <Card
+                  key={module.id}
+                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                  onClick={() => handleModuleClick(module.id)}
+                >
+                  <div className="font-medium text-foreground text-sm leading-tight">
+                    {module.title}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-1 leading-tight">
+                    {module.description}
+                  </div>
+                  <div className="text-xs text-muted-foreground mt-2">
+                    ID: {module.id}
+                  </div>
+                </Card>
+              );
+            })}
             {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
               <div className="text-center py-8 text-muted-foreground">
                 <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
