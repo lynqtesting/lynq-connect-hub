@@ -88,16 +88,24 @@ const UserDashboard = () => {
 
       // Get modules for the assignments
       const moduleIds = [...new Set(assignments.map(a => a.module_id).filter(Boolean))];
+      console.log('UserDashboard: Module IDs to fetch:', moduleIds);
+      
       const { data: modules, error: moduleError } = await supabase
         .from('modules')
         .select('id, title, description, file_url, screenshot_url')
         .in('id', moduleIds);
 
       if (moduleError) throw moduleError;
+      
+      console.log('UserDashboard: Fetched modules:', modules);
 
       // Combine the data
       const combinedAssignments = assignments.map(assignment => {
         const module = modules?.find(m => m.id === assignment.module_id);
+        
+        if (!module) {
+          console.warn('UserDashboard: No module found for assignment:', assignment);
+        }
         
         return {
           ...assignment,
@@ -106,6 +114,7 @@ const UserDashboard = () => {
       }).filter(assignment => assignment.modules); // Filter out assignments with no matching module
 
       console.log('UserDashboard: Combined assignments:', combinedAssignments);
+      console.log('UserDashboard: Final module count:', combinedAssignments.length);
       setUserModules(combinedAssignments);
     } catch (error) {
       console.error('Error fetching modules:', error);
