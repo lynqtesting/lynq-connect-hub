@@ -115,7 +115,8 @@ const UploadModule = () => {
       }
 
 
-      const { error: dbError } = await supabase
+      // Insert module first
+      const { data: moduleData, error: dbError } = await supabase
         .from('modules')
         .insert({
           title: formData.title,
@@ -126,7 +127,6 @@ const UploadModule = () => {
           category: formData.category,
           module_link: formData.moduleLink || null,
           
-          
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
           
@@ -134,9 +134,33 @@ const UploadModule = () => {
           perception: perceptionParameters,
           objections: objectionParameters,
           summary_text: summaryText || null,
-        });
+        })
+        .select('id')
+        .single();
 
       if (dbError) throw dbError;
+
+      // Create tweakable questions if any
+      if (tweakTopics.length > 0 && tweakTopics[0].topic.trim()) {
+        const questionsToInsert = tweakTopics
+          .filter(topic => topic.topic.trim())
+          .map(topic => ({
+            module_id: moduleData.id,
+            title: topic.topic.trim(),
+            description: topic.description?.trim() || null,
+            is_active: true
+          }));
+
+        if (questionsToInsert.length > 0) {
+          const { error: questionsError } = await supabase
+            .from('tweakable_questions')
+            .insert(questionsToInsert);
+
+          if (questionsError) {
+            console.error('Error creating tweakable questions:', questionsError);
+          }
+        }
+      }
 
       toast({
         title: "Success",
@@ -286,7 +310,7 @@ const UploadModule = () => {
                   <div key={index} className="grid grid-cols-12 gap-2 mb-2">
                     <div className="col-span-4">
                       <Input
-                        placeholder="Topic"
+                        placeholder="Title"
                         value={item.topic}
                         onChange={(e) => {
                           const newTopics = [...tweakTopics];

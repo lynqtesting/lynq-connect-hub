@@ -301,19 +301,19 @@ function AdaptiveModulesField({ adaptiveModules, onChange }: {
 }
 
 function TweakQuestionsField({ tweakQuestions, onChange }: {
-  tweakQuestions: Array<{ id?: string; title: string; category?: string }>;
-  onChange: (questions: Array<{ id?: string; title: string; category?: string }>) => void;
+  tweakQuestions: Array<{ id?: string; title: string; description?: string }>;
+  onChange: (questions: Array<{ id?: string; title: string; description?: string }>) => void;
 }) {
   const addQuestion = () => {
     const newQuestion = {
       id: `temp_${Date.now()}`, // Generate temporary ID
       title: '',
-      category: ''
+      description: ''
     };
     onChange([...tweakQuestions, newQuestion]);
   };
 
-  const updateQuestion = (index: number, field: 'title' | 'category', value: string) => {
+  const updateQuestion = (index: number, field: 'title' | 'description', value: string) => {
     const newQuestions = [...tweakQuestions];
     newQuestions[index] = { ...newQuestions[index], [field]: value };
     onChange(newQuestions);
@@ -356,21 +356,13 @@ function TweakQuestionsField({ tweakQuestions, onChange }: {
                 />
               </div>
               <div>
-                <Label className="text-xs">Category</Label>
-                <Select
-                  value={question.category || ''}
-                  onValueChange={(value) => updateQuestion(index, 'category', value)}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="CONTENT">Content</SelectItem>
-                    <SelectItem value="DELIVERY">Delivery</SelectItem>
-                    <SelectItem value="ENGAGEMENT">Engagement</SelectItem>
-                    <SelectItem value="ASSESSMENT">Assessment</SelectItem>
-                  </SelectContent>
-                </Select>
+                <Label className="text-xs">Description</Label>
+                <Textarea
+                  placeholder="Question description"
+                  value={question.description || ''}
+                  onChange={(e) => updateQuestion(index, 'description', e.target.value)}
+                  rows={2}
+                />
               </div>
             </div>
           </div>
@@ -413,7 +405,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
   const trend = moduleData.trend || [];
   
   // Handle tweak questions - try to parse from tweak_content_request if it's JSON, otherwise create empty array
-  let tweakQuestions: Array<{ id?: string; title: string; category?: string }> = [];
+  let tweakQuestions: Array<{ id?: string; title: string; description?: string }> = [];
   try {
     if (moduleData.tweak_content_request && moduleData.tweak_content_request.startsWith('[')) {
       tweakQuestions = JSON.parse(moduleData.tweak_content_request);

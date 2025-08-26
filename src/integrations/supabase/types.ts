@@ -369,7 +369,6 @@ export type Database = {
       }
       tweakable_questions: {
         Row: {
-          category: string | null
           created_at: string
           id: string
           is_active: boolean
@@ -378,7 +377,6 @@ export type Database = {
           updated_at: string
         }
         Insert: {
-          category?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
@@ -387,7 +385,6 @@ export type Database = {
           updated_at?: string
         }
         Update: {
-          category?: string | null
           created_at?: string
           id?: string
           is_active?: boolean
