@@ -68,21 +68,55 @@ const AssignModules = () => {
 
   const fetchCurrentAssignments = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch assignments with manual joins
+      const { data: assignments, error: assignmentError } = await supabase
         .from('user_module_assignments')
-        .select(`
-          id,
-          user_id,
-          module_id,
-          assigned_at,
-          profiles!inner(username),
-          modules!inner(title, description)
-        `)
+        .select('id, user_id, module_id, assigned_at')
         .order('assigned_at', { ascending: false });
 
-      if (error) throw error;
-      setCurrentAssignments(data || []);
+      if (assignmentError) throw assignmentError;
+
+      if (!assignments || assignments.length === 0) {
+        setCurrentAssignments([]);
+        return;
+      }
+
+      // Get user profiles for the assignments
+      const userIds = [...new Set(assignments.map(a => a.user_id))];
+      const { data: profiles, error: profileError } = await supabase
+        .from('profiles')
+        .select('user_id, username')
+        .in('user_id', userIds);
+
+      if (profileError) throw profileError;
+
+      // Get modules for the assignments
+      const moduleIds = [...new Set(assignments.map(a => a.module_id).filter(Boolean))];
+      const { data: modules, error: moduleError } = await supabase
+        .from('modules')
+        .select('id, title, description')
+        .in('id', moduleIds);
+
+      if (moduleError) throw moduleError;
+
+      // Combine the data
+      const combinedAssignments = assignments.map(assignment => {
+        const profile = profiles?.find(p => p.user_id === assignment.user_id);
+        const module = modules?.find(m => m.id === assignment.module_id);
+        
+        return {
+          ...assignment,
+          profiles: { username: profile?.username || 'Unknown User' },
+          modules: { 
+            title: module?.title || 'Unknown Module',
+            description: module?.description || ''
+          }
+        };
+      });
+
+      setCurrentAssignments(combinedAssignments);
     } catch (error) {
+      console.error('Fetch assignments error:', error);
       toast({
         title: "Error",
         description: "Failed to fetch current assignments",
