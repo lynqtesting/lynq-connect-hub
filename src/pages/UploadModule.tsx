@@ -127,6 +127,7 @@ const UploadModule = () => {
           category: formData.category,
           module_link: formData.moduleLink || null,
           
+          // Store legacy format for compatibility but use dedicated tables as primary
           adaptive_modules: adaptiveModules.filter(m => m.added),
           kpis: kpis,
           
@@ -140,14 +141,13 @@ const UploadModule = () => {
 
       if (dbError) throw dbError;
 
-      // Create tweakable questions if any
+      // Create tweakable questions in dedicated table
       if (tweakTopics.length > 0 && tweakTopics[0].topic.trim()) {
         const questionsToInsert = tweakTopics
           .filter(topic => topic.topic.trim())
           .map(topic => ({
             module_id: moduleData.id,
             title: topic.topic.trim(),
-            description: topic.description?.trim() || null,
             is_active: true
           }));
 
@@ -159,6 +159,25 @@ const UploadModule = () => {
           if (questionsError) {
             console.error('Error creating tweakable questions:', questionsError);
           }
+        }
+      }
+
+      // Create adaptive ideas in dedicated table
+      const adaptiveIdeasToInsert = adaptiveModules
+        .filter(module => module.added && module.type?.trim())
+        .map(module => ({
+          module_id: moduleData.id,
+          title: module.type.trim(),
+          description: module.description || null
+        }));
+
+      if (adaptiveIdeasToInsert.length > 0) {
+        const { error: ideasError } = await supabase
+          .from('adaptive_ideas')
+          .insert(adaptiveIdeasToInsert);
+
+        if (ideasError) {
+          console.error('Error creating adaptive ideas:', ideasError);
         }
       }
 
