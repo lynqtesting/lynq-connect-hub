@@ -20,20 +20,42 @@ const TweakRequests = () => {
   const fetchTweakRequests = async () => {
     try {
       console.log('Fetching tweak requests...');
-      const { data, error } = await supabase
+      
+      // First get all tweak requests
+      const { data: requestsData, error: requestsError } = await supabase
         .from('tweak_requests')
-        .select(`
-          *,
-          profiles!inner (
-            username
-          )
-        `)
+        .select('*')
         .order('created_at', { ascending: false });
 
-      console.log('Tweak requests query result:', { data, error });
+      if (requestsError) throw requestsError;
 
-      if (error) throw error;
-      setRequests(data || []);
+      console.log('Raw tweak requests:', requestsData);
+
+      // Then get user profiles for the requests
+      if (requestsData && requestsData.length > 0) {
+        const userIds = [...new Set(requestsData.map(req => req.user_id).filter(Boolean))];
+        
+        const { data: profilesData, error: profilesError } = await supabase
+          .from('profiles')
+          .select('user_id, username')
+          .in('user_id', userIds);
+
+        if (profilesError) throw profilesError;
+
+        console.log('User profiles:', profilesData);
+
+        // Manually join the data
+        const requestsWithProfiles = requestsData.map(request => ({
+          ...request,
+          profiles: profilesData?.find(profile => profile.user_id === request.user_id) || { username: 'Unknown' }
+        }));
+
+        console.log('Requests with profiles:', requestsWithProfiles);
+        setRequests(requestsWithProfiles);
+      } else {
+        setRequests([]);
+      }
+
     } catch (error) {
       console.error('Error fetching tweak requests:', error);
       toast({
