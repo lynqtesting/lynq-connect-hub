@@ -23,7 +23,7 @@ const TweakRequests = () => {
         .from('tweak_requests')
         .select(`
           *,
-          profiles!tweak_requests_user_id_fkey (
+          profiles (
             username
           )
         `)
