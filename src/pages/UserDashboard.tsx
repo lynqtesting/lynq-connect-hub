@@ -18,6 +18,7 @@ const UserDashboard = () => {
   const [userModules, setUserModules] = useState<any[]>([]);
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [tweakableQuestions, setTweakableQuestions] = useState<any[]>([]);
+  const [adaptiveIdeas, setAdaptiveIdeas] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
   const [session, setSession] = useState<Session | null>(null);
@@ -51,6 +52,7 @@ const UserDashboard = () => {
       fetchUserModules(session.user.id);
       fetchRecommendations(session.user.id);
       fetchTweakableQuestions();
+      fetchAdaptiveIdeas();
     });
 
     return () => subscription.unsubscribe();
@@ -163,6 +165,40 @@ const UserDashboard = () => {
     }
   };
 
+  const fetchAdaptiveIdeas = async () => {
+    try {
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      // First get assigned module IDs
+      const { data: assignments } = await supabase
+        .from('user_module_assignments')
+        .select('module_id')
+        .eq('user_id', user.id);
+
+      const assignedModuleIds = assignments?.map(a => a.module_id).filter(Boolean) || [];
+      
+      if (assignedModuleIds.length === 0) {
+        setAdaptiveIdeas([]);
+        return;
+      }
+
+      // Fetch adaptive ideas only from assigned modules
+      const { data, error } = await supabase
+        .from('adaptive_ideas')
+        .select('*')
+        .in('module_id', assignedModuleIds)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setAdaptiveIdeas(data || []);
+    } catch (error) {
+      console.error('Error fetching adaptive ideas:', error);
+      setAdaptiveIdeas([]);
+    }
+  };
+
   const handleCreateAdaptiveRequest = () => {
     setRequestModalOpen(true);
   };
@@ -207,6 +243,7 @@ const UserDashboard = () => {
       setUserModules([]);
       setRecommendations([]);
       setTweakableQuestions([]);
+      setAdaptiveIdeas([]);
       
       // Navigate to login
       navigate('/login');
@@ -316,26 +353,63 @@ const UserDashboard = () => {
           </section>
         )}
 
-        {/* Adaptive LYNQ Requests Section */}
+        {/* Adaptive Ideas Section */}
         <section className="mt-8">
           <h2 className="text-sm font-semibold text-muted-foreground mb-2">Adaptive LYNQs</h2>
-          <Card className="rounded-2xl">
-            <CardContent className="p-6 text-center">
-              <div className="size-12 rounded-2xl bg-primary/10 grid place-items-center mx-auto mb-3">
-                <BarChart3 className="h-6 w-6 text-primary" />
-              </div>
-              <h3 className="font-semibold mb-2">Create Custom LYNQ</h3>
-              <p className="text-sm text-muted-foreground mb-4">
-                Request a personalized LYNQ module tailored to your needs
-              </p>
-              <Button 
-                className="w-full" 
-                onClick={handleCreateAdaptiveRequest}
-              >
-                Request Adaptive LYNQ
-              </Button>
-            </CardContent>
-          </Card>
+          {adaptiveIdeas.length === 0 ? (
+            <Card className="rounded-2xl">
+              <CardContent className="p-6 text-center">
+                <div className="size-12 rounded-2xl bg-primary/10 grid place-items-center mx-auto mb-3">
+                  <BarChart3 className="h-6 w-6 text-primary" />
+                </div>
+                <h3 className="font-semibold mb-2">Create Custom LYNQ</h3>
+                <p className="text-sm text-muted-foreground mb-4">
+                  Request a personalized LYNQ module tailored to your needs
+                </p>
+                <Button 
+                  className="w-full" 
+                  onClick={handleCreateAdaptiveRequest}
+                >
+                  Request Adaptive LYNQ
+                </Button>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {adaptiveIdeas.map((idea) => (
+                <Card key={idea.id} className="rounded-2xl">
+                  <CardContent className="p-4">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex-1">
+                        <h3 className="font-medium text-sm">{idea.title}</h3>
+                        {idea.description && (
+                          <p className="text-xs text-muted-foreground mt-1">{idea.description}</p>
+                        )}
+                      </div>
+                      <Button 
+                        size="sm" 
+                        variant="outline"
+                        onClick={handleCreateAdaptiveRequest}
+                      >
+                        Request Custom LYNQ
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+              <Card className="rounded-2xl border-dashed">
+                <CardContent className="p-4 text-center">
+                  <Button 
+                    variant="ghost" 
+                    className="w-full"
+                    onClick={handleCreateAdaptiveRequest}
+                  >
+                    + Request New Adaptive LYNQ
+                  </Button>
+                </CardContent>
+              </Card>
+            </div>
+          )}
         </section>
 
         {/* Quick Request Section */}
