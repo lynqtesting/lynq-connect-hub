@@ -22,6 +22,7 @@ export type Database = {
           module_id: string
           title: string
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
@@ -30,6 +31,7 @@ export type Database = {
           module_id: string
           title: string
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
@@ -38,6 +40,7 @@ export type Database = {
           module_id?: string
           title?: string
           updated_at?: string
+          version?: number | null
         }
         Relationships: []
       }
@@ -375,6 +378,7 @@ export type Database = {
           module_id: string | null
           title: string
           updated_at: string
+          version: number | null
         }
         Insert: {
           created_at?: string
@@ -383,6 +387,7 @@ export type Database = {
           module_id?: string | null
           title: string
           updated_at?: string
+          version?: number | null
         }
         Update: {
           created_at?: string
@@ -391,6 +396,7 @@ export type Database = {
           module_id?: string | null
           title?: string
           updated_at?: string
+          version?: number | null
         }
         Relationships: []
       }
