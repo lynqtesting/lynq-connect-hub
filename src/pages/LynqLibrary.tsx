@@ -5,8 +5,10 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
+import { useIsMobile } from "@/hooks/use-mobile";
 import { Package, Shield, Users, BookOpen, Heart, Search, X, LogOut } from "lucide-react";
 import { toast } from "sonner";
 
@@ -58,6 +60,7 @@ export default function LynqLibrary() {
   const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     fetchModules();
@@ -250,50 +253,95 @@ export default function LynqLibrary() {
         </div>
       </div>
 
-      {/* Module Details Modal */}
-      <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-        <DialogContent className="max-h-[80vh] overflow-hidden">
-          <DialogHeader className="flex flex-row items-center justify-between">
-            <DialogTitle>{selectedCategory}</DialogTitle>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => setModalOpen(false)}
-              className="h-8 w-8 p-0"
-            >
-              <X className="h-4 w-4" />
-            </Button>
-          </DialogHeader>
-          <div className="overflow-y-auto max-h-[60vh] space-y-3">
-            {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
-              console.log('LynqLibrary: Rendering module in modal:', module);
-              return (
-                <Card
-                  key={module.id}
-                  className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                  onClick={() => handleModuleClick(module.id)}
-                >
-                  <div className="font-medium text-foreground text-sm leading-tight">
-                    {module.title}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-1 leading-tight">
-                    {module.description}
-                  </div>
-                  <div className="text-xs text-muted-foreground mt-2">
-                    ID: {module.id}
-                  </div>
-                </Card>
-              );
-            })}
-            {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
-              <div className="text-center py-8 text-muted-foreground">
-                <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                <p>No modules found in this category</p>
+      {/* Module Details Modal/Drawer */}
+      {isMobile ? (
+        <Drawer open={modalOpen} onOpenChange={setModalOpen}>
+          <DrawerContent>
+            <DrawerHeader className="pb-4">
+              <div className="flex items-center justify-between">
+                <DrawerTitle>{selectedCategory}</DrawerTitle>
+                <DrawerClose asChild>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <X className="h-4 w-4" />
+                  </Button>
+                </DrawerClose>
               </div>
-            )}
-          </div>
-        </DialogContent>
-      </Dialog>
+            </DrawerHeader>
+            <div className="px-4 pb-8 max-h-[60vh] overflow-y-auto space-y-3">
+              {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
+                console.log('LynqLibrary: Rendering module in drawer:', module);
+                return (
+                  <Card
+                    key={module.id}
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors active:bg-muted"
+                    onClick={() => handleModuleClick(module.id)}
+                  >
+                    <div className="font-medium text-foreground text-sm leading-tight">
+                      {module.title}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 leading-tight">
+                      {module.description}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      ID: {module.id}
+                    </div>
+                  </Card>
+                );
+              })}
+              {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No modules found in this category</p>
+                </div>
+              )}
+            </div>
+          </DrawerContent>
+        </Drawer>
+      ) : (
+        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
+          <DialogContent className="max-h-[80vh] overflow-hidden">
+            <DialogHeader className="flex flex-row items-center justify-between">
+              <DialogTitle>{selectedCategory}</DialogTitle>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => setModalOpen(false)}
+                className="h-8 w-8 p-0"
+              >
+                <X className="h-4 w-4" />
+              </Button>
+            </DialogHeader>
+            <div className="overflow-y-auto max-h-[60vh] space-y-3">
+              {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
+                console.log('LynqLibrary: Rendering module in modal:', module);
+                return (
+                  <Card
+                    key={module.id}
+                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
+                    onClick={() => handleModuleClick(module.id)}
+                  >
+                    <div className="font-medium text-foreground text-sm leading-tight">
+                      {module.title}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-1 leading-tight">
+                      {module.description}
+                    </div>
+                    <div className="text-xs text-muted-foreground mt-2">
+                      ID: {module.id}
+                    </div>
+                  </Card>
+                );
+              })}
+              {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
+                <div className="text-center py-8 text-muted-foreground">
+                  <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
+                  <p>No modules found in this category</p>
+                </div>
+              )}
+            </div>
+          </DialogContent>
+        </Dialog>
+      )}
     </div>
   );
 }
