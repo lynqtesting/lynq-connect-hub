@@ -64,6 +64,7 @@ const UserDashboard = () => {
   const fetchUserModules = async (userId: string) => {
     try {
       console.log('UserDashboard: Fetching modules for auth user ID:', userId);
+      console.log('UserDashboard: Starting fetch process...');
       
       // Fetch assigned modules for this user with manual joins
       const { data: assignments, error: assignmentError } = await supabase
@@ -173,7 +174,7 @@ const UserDashboard = () => {
         .insert({
           user_id: user.id,
           question_id: questionId,
-          note: 'User submitted a tweak request',
+          notes: 'User submitted a tweak request',
         });
 
       if (error) throw error;
