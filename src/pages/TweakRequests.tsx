@@ -19,15 +19,18 @@ const TweakRequests = () => {
 
   const fetchTweakRequests = async () => {
     try {
+      console.log('Fetching tweak requests...');
       const { data, error } = await supabase
         .from('tweak_requests')
         .select(`
           *,
-          profiles (
+          profiles!inner (
             username
           )
         `)
         .order('created_at', { ascending: false });
+
+      console.log('Tweak requests query result:', { data, error });
 
       if (error) throw error;
       setRequests(data || []);
