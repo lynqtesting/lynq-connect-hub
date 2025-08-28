@@ -116,30 +116,46 @@ function FileUploadField({ label, currentUrl, onUpload, accept }: {
   accept?: string;
 }) {
   const [uploading, setUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState<string>('');
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
     setUploading(true);
+    setUploadProgress('Preparing upload...');
+    
     try {
       const fileExt = file.name.split('.').pop();
       const fileName = `${Date.now()}-${Math.random().toString(36).slice(2)}.${fileExt}`;
       const filePath = `modules/${fileName}`;
 
+      setUploadProgress('Uploading file...');
       const { error: uploadError } = await supabase.storage
         .from('modules')
         .upload(filePath, file);
 
-      if (uploadError) throw uploadError;
+      if (uploadError) {
+        console.error('Upload error:', uploadError);
+        setUploadProgress('Upload failed. Please try again.');
+        return;
+      }
 
+      setUploadProgress('Getting file URL...');
       const { data } = supabase.storage
         .from('modules')
         .getPublicUrl(filePath);
 
+      setUploadProgress('Saving...');
       onUpload(data.publicUrl);
+      setUploadProgress('Upload complete!');
+      
+      // Clear progress after a short delay
+      setTimeout(() => setUploadProgress(''), 2000);
     } catch (error) {
       console.error('Upload error:', error);
+      setUploadProgress('Upload failed. Please try again.');
+      setTimeout(() => setUploadProgress(''), 3000);
     } finally {
       setUploading(false);
     }
@@ -156,8 +172,20 @@ function FileUploadField({ label, currentUrl, onUpload, accept }: {
           disabled={uploading}
           className="flex-1"
         />
-        {uploading && <Loader2 className="h-4 w-4 animate-spin mt-2" />}
+        {uploading && (
+          <div className="flex items-center gap-2 mt-2">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            {uploadProgress && (
+              <span className="text-xs text-muted-foreground">{uploadProgress}</span>
+            )}
+          </div>
+        )}
       </div>
+      {!uploading && uploadProgress && (
+        <div className="text-xs text-green-600 font-medium">
+          {uploadProgress}
+        </div>
+      )}
       {currentUrl && (
         <div className="text-xs text-muted-foreground">
           Current: {currentUrl.split('/').pop()}

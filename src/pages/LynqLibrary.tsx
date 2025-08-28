@@ -81,7 +81,8 @@ export default function LynqLibrary() {
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
         .select(`
-          modules (
+          module_id,
+          modules!user_module_assignments_module_id_fkey (
             id,
             title,
             description,

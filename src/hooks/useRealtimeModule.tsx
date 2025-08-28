@@ -72,12 +72,12 @@ export function useRealtimeModule(moduleId: string) {
     setModuleData(prev => prev ? { ...prev, ...patch } : null);
     optimisticUpdatesRef.current.set(patchKey, patch);
 
-    // Debounce the actual database update with longer delay for stability
+    // Debounce the actual database update with shorter delay for better UX
     const timeoutId = setTimeout(async () => {
       try {
         setSyncing(true);
         
-        // Simplified update without version checking for better stability
+        // Use UPDATE to ensure we're modifying the existing record, not creating a new one
         const { data, error } = await supabase
           .from('modules')
           .update({
@@ -90,38 +90,55 @@ export function useRealtimeModule(moduleId: string) {
 
         if (error) {
           console.error('Update error:', error);
-          // Only show errors for genuine failures, not conflicts
-          if (error.code !== 'PGRST116') {
+          
+          // Show user-friendly error messages
+          if (error.code === 'PGRST116') {
             toast({
-              title: "Sync Error",
-              description: "Changes may not have been saved. Please try again.",
+              title: "Sync Conflict",
+              description: "Module was updated elsewhere. Refreshing...",
+              variant: "default"
+            });
+          } else {
+            toast({
+              title: "Sync Error", 
+              description: "Failed to save changes. Retrying...",
               variant: "destructive"
             });
           }
-          // Refresh data to get latest state
+          
+          // Always refresh to get latest state on error
           await fetchModuleData();
         } else if (data) {
-          // Update with the latest data from server
+          // Successfully updated - use server response as source of truth
           setModuleData(data);
-          // Remove from optimistic updates since it's now confirmed
           optimisticUpdatesRef.current.delete(patchKey);
+          
+          // Show success feedback for file uploads
+          if (patch.english_audio_url && !moduleData.english_audio_url) {
+            toast({
+              title: "Upload Complete",
+              description: "Audio file has been saved successfully.",
+              variant: "default"
+            });
+          }
         }
       } catch (error) {
         console.error('Error updating module:', error);
-        // Revert optimistic update on error
+        
+        // Revert optimistic update and refresh
         optimisticUpdatesRef.current.delete(patchKey);
-        await fetchModuleData(); // Refresh to get latest state
+        await fetchModuleData();
         
         toast({
-          title: "Sync Failed",
-          description: "Unable to save changes. Please try again.",
+          title: "Connection Error",
+          description: "Unable to connect. Please check your internet connection.",
           variant: "destructive"
         });
       } finally {
         setSyncing(false);
         debouncedPatchRef.current.delete(patchKey);
       }
-    }, 800); // Longer debounce for better stability
+    }, 500); // Shorter debounce for better responsiveness
 
     debouncedPatchRef.current.set(patchKey, timeoutId);
   }, [moduleData, moduleId, toast, fetchModuleData]);

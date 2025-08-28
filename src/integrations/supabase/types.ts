@@ -424,6 +424,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_user_module_assignments_module_id"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "user_module_assignments_module_id_fkey"
             columns: ["module_id"]
             isOneToOne: false
