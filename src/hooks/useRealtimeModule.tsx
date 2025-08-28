@@ -23,18 +23,31 @@ interface ModuleData {
   updated_at: string;
 }
 
+interface QueuedOperation {
+  id: string;
+  patch: Partial<ModuleData>;
+  timestamp: number;
+  retries: number;
+  resolve: (value?: any) => void;
+  reject: (reason?: any) => void;
+}
+
 export function useRealtimeModule(moduleId: string) {
   const [moduleData, setModuleData] = useState<ModuleData | null>(null);
   const [loading, setLoading] = useState(true);
   const [syncing, setSyncing] = useState(false);
+  const [connectionStatus, setConnectionStatus] = useState<'connected' | 'reconnecting' | 'offline'>('connected');
   const { toast } = useToast();
-  const optimisticUpdatesRef = useRef<Map<string, any>>(new Map());
+
+  // Refs for managing operations
+  const operationQueueRef = useRef<QueuedOperation[]>([]);
   const channelRef = useRef<any>(null);
+  const processingRef = useRef(false);
+  const currentUserUpdateRef = useRef<string | null>(null);
+  const backoffRef = useRef(1000); // Start with 1 second backoff
 
-  // Debounced patch function to avoid too many updates
-  const debouncedPatchRef = useRef<Map<string, NodeJS.Timeout>>(new Map());
-
-  const fetchModuleData = useCallback(async () => {
+  // Fetch module data with error recovery
+  const fetchModuleData = useCallback(async (showError = true) => {
     try {
       const { data, error } = await supabase
         .from('modules')
@@ -43,45 +56,60 @@ export function useRealtimeModule(moduleId: string) {
         .single();
 
       if (error) throw error;
+      
       setModuleData(data);
-    } catch (error) {
+      setConnectionStatus('connected');
+      backoffRef.current = 1000; // Reset backoff on success
+      
+      return data;
+    } catch (error: any) {
       console.error('Error fetching module:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load module data",
-        variant: "destructive"
-      });
+      
+      if (showError) {
+        // Only show auth errors, not network errors during reconnection
+        if (error?.code === 'PGRST301' || error?.message?.includes('JWT')) {
+          toast({
+            title: "Authentication Error",
+            description: "Please refresh the page and log in again.",
+            variant: "destructive"
+          });
+        } else if (error?.code !== 'ECONNABORTED') {
+          toast({
+            title: "Failed to Load Module",
+            description: "Unable to load module data. Retrying...",
+            variant: "destructive"
+          });
+        }
+      }
+      
+      setConnectionStatus('offline');
+      throw error;
     } finally {
       setLoading(false);
     }
   }, [moduleId, toast]);
 
-  // Send patch with optimistic updates and conflict resolution
-  const sendPatch = useCallback(async (patch: Partial<ModuleData>) => {
-    if (!moduleData) return;
-
-    const patchKey = JSON.stringify(patch);
-    
-    // Clear existing debounced update for this patch
-    const existingTimeout = debouncedPatchRef.current.get(patchKey);
-    if (existingTimeout) {
-      clearTimeout(existingTimeout);
+  // Process operation queue with exponential backoff and conflict resolution
+  const processQueue = useCallback(async () => {
+    if (processingRef.current || operationQueueRef.current.length === 0) {
+      return;
     }
 
-    // Apply optimistic update immediately
-    setModuleData(prev => prev ? { ...prev, ...patch } : null);
-    optimisticUpdatesRef.current.set(patchKey, patch);
+    processingRef.current = true;
+    setSyncing(true);
+    setConnectionStatus('reconnecting');
 
-    // Debounce the actual database update with shorter delay for better UX
-    const timeoutId = setTimeout(async () => {
+    while (operationQueueRef.current.length > 0) {
+      const operation = operationQueueRef.current[0];
+      
       try {
-        setSyncing(true);
+        // Mark this as our update to prevent self-conflicts in realtime
+        currentUserUpdateRef.current = operation.id;
         
-        // Use UPDATE to ensure we're modifying the existing record, not creating a new one
         const { data, error } = await supabase
           .from('modules')
           .update({
-            ...patch,
+            ...operation.patch,
             updated_at: new Date().toISOString()
           })
           .eq('id', moduleId)
@@ -89,61 +117,111 @@ export function useRealtimeModule(moduleId: string) {
           .single();
 
         if (error) {
-          console.error('Update error:', error);
-          
-          // Show user-friendly error messages
-          if (error.code === 'PGRST116') {
-            toast({
-              title: "Sync Conflict",
-              description: "Module was updated elsewhere. Refreshing...",
-              variant: "default"
-            });
-          } else {
-            toast({
-              title: "Sync Error", 
-              description: "Failed to save changes. Retrying...",
-              variant: "destructive"
-            });
-          }
-          
-          // Always refresh to get latest state on error
-          await fetchModuleData();
-        } else if (data) {
-          // Successfully updated - use server response as source of truth
-          setModuleData(data);
-          optimisticUpdatesRef.current.delete(patchKey);
-          
-          // Show success feedback for file uploads
-          if (patch.english_audio_url && !moduleData.english_audio_url) {
-            toast({
-              title: "Upload Complete",
-              description: "Audio file has been saved successfully.",
-              variant: "default"
-            });
+          throw error;
+        }
+
+        // Success - update local state and remove from queue
+        setModuleData(data);
+        setConnectionStatus('connected');
+        backoffRef.current = 1000; // Reset backoff
+        
+        // Remove successful operation
+        operationQueueRef.current.shift();
+        operation.resolve(data);
+
+        // Show success for file uploads
+        if (operation.patch.english_audio_url) {
+          toast({
+            title: "Upload Complete",
+            description: "Audio file saved successfully.",
+            variant: "default"
+          });
+        }
+
+      } catch (error: any) {
+        console.error('Queue processing error:', error);
+        
+        operation.retries++;
+        
+        // Handle different error types
+        if (error?.code === 'PGRST116') {
+          // Conflict - refresh and retry
+          try {
+            await fetchModuleData(false);
+            if (operation.retries < 3) {
+              // Retry with fresh data
+              continue;
+            }
+          } catch (refreshError) {
+            // If refresh fails, treat as network error
           }
         }
-      } catch (error) {
-        console.error('Error updating module:', error);
         
-        // Revert optimistic update and refresh
-        optimisticUpdatesRef.current.delete(patchKey);
-        await fetchModuleData();
-        
-        toast({
-          title: "Connection Error",
-          description: "Unable to connect. Please check your internet connection.",
-          variant: "destructive"
-        });
+        if (operation.retries >= 5) {
+          // Max retries reached - remove from queue and notify
+          operationQueueRef.current.shift();
+          operation.reject(new Error('Max retries exceeded'));
+          
+          toast({
+            title: "Sync Failed",
+            description: "Unable to save changes after multiple attempts.",
+            variant: "destructive"
+          });
+        } else {
+          // Wait with exponential backoff before retry
+          const delay = Math.min(backoffRef.current * Math.pow(2, operation.retries - 1), 30000);
+          backoffRef.current = delay;
+          
+          setConnectionStatus('reconnecting');
+          
+          if (operation.retries === 1) {
+            toast({
+              title: "Retrying Save",
+              description: `Attempt ${operation.retries + 1} of 5...`,
+              variant: "default"
+            });
+          }
+          
+          setTimeout(() => processQueue(), delay);
+          break; // Exit loop to wait for retry
+        }
       } finally {
-        setSyncing(false);
-        debouncedPatchRef.current.delete(patchKey);
+        currentUserUpdateRef.current = null;
       }
-    }, 500); // Shorter debounce for better responsiveness
+    }
 
-    debouncedPatchRef.current.set(patchKey, timeoutId);
-  }, [moduleData, moduleId, toast, fetchModuleData]);
+    processingRef.current = false;
+    setSyncing(operationQueueRef.current.length > 0);
+    
+    if (operationQueueRef.current.length === 0) {
+      setConnectionStatus('connected');
+    }
+  }, [moduleId, fetchModuleData, toast]);
 
-  // Set up realtime subscription
+  // Send patch with conflict-free queueing
+  const sendPatch = useCallback(async (patch: Partial<ModuleData>) => {
+    if (!moduleData) return;
+
+    return new Promise<ModuleData>((resolve, reject) => {
+      const operation: QueuedOperation = {
+        id: `${Date.now()}-${Math.random()}`,
+        patch,
+        timestamp: Date.now(),
+        retries: 0,
+        resolve,
+        reject
+      };
+
+      // Apply optimistic update immediately
+      setModuleData(prev => prev ? { ...prev, ...patch } : null);
+      
+      // Add to queue and process
+      operationQueueRef.current.push(operation);
+      processQueue();
+    });
+  }, [moduleData, processQueue]);
+
+  // Set up realtime subscription with improved conflict handling
   useEffect(() => {
     if (!moduleId) return;
 
@@ -163,15 +241,36 @@ export function useRealtimeModule(moduleId: string) {
         (payload) => {
           const newData = payload.new as ModuleData;
           
-          // Only update if this change wasn't from our optimistic update
-          // and if we're not currently syncing
-          const hasOptimisticUpdates = optimisticUpdatesRef.current.size > 0;
-          if (!hasOptimisticUpdates && !syncing) {
+          // Ignore updates that we triggered ourselves
+          if (currentUserUpdateRef.current) {
+            return;
+          }
+          
+          // Only update if we're not currently syncing our own changes
+          if (!processingRef.current || operationQueueRef.current.length === 0) {
+            console.log('Received external update, applying...', newData.updated_at);
             setModuleData(newData);
+            setConnectionStatus('connected');
+            
+            // Show notification for external updates
+            toast({
+              title: "Module Updated",
+              description: "Changes from another user have been applied.",
+              variant: "default"
+            });
+          } else {
+            console.log('Ignoring external update during sync');
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          setConnectionStatus('connected');
+        } else if (status === 'CHANNEL_ERROR') {
+          setConnectionStatus('offline');
+        }
+      });
 
     channelRef.current = channel;
 
@@ -179,16 +278,45 @@ export function useRealtimeModule(moduleId: string) {
       if (channelRef.current) {
         supabase.removeChannel(channelRef.current);
       }
-      // Clear any pending debounced updates
-      debouncedPatchRef.current.forEach(timeout => clearTimeout(timeout));
-      debouncedPatchRef.current.clear();
+      
+      // Cancel any pending operations
+      operationQueueRef.current.forEach(op => {
+        op.reject(new Error('Component unmounted'));
+      });
+      operationQueueRef.current = [];
+      processingRef.current = false;
     };
-  }, [moduleId, fetchModuleData]);
+  }, [moduleId, fetchModuleData, toast]);
+
+  // Auto-retry connection on network recovery
+  useEffect(() => {
+    const handleOnline = () => {
+      console.log('Network recovered, retrying operations...');
+      setConnectionStatus('reconnecting');
+      processQueue();
+    };
+
+    const handleOffline = () => {
+      console.log('Network offline detected');
+      setConnectionStatus('offline');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [processQueue]);
 
   return {
     moduleData,
     loading,
     syncing,
-    sendPatch
+    connectionStatus,
+    sendPatch,
+    queueSize: operationQueueRef.current.length,
+    refetch: () => fetchModuleData()
   };
 }

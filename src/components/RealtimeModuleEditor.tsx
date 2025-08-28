@@ -10,6 +10,7 @@ import { Loader2, Users, Wifi, Upload, Plus, X } from 'lucide-react';
 import { useRealtimeModule } from '@/hooks/useRealtimeModule';
 import { useModuleAdaptiveIdeas } from '@/hooks/useModuleAdaptiveIdeas';
 import { useModuleTweakQuestions } from '@/hooks/useModuleTweakQuestions';
+import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MetricFieldProps {
@@ -480,7 +481,7 @@ function TweakQuestionsField({ moduleId }: { moduleId: string }) {
 }
 
 export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
-  const { moduleData, loading, syncing, sendPatch } = useRealtimeModule(moduleId);
+  const { moduleData, loading, syncing, connectionStatus, sendPatch, queueSize, refetch } = useRealtimeModule(moduleId);
 
   if (loading) {
     return (
@@ -522,22 +523,12 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           <Users className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold">Real-time Module Editor</h2>
         </div>
-        <div className="flex items-center gap-2">
-          {syncing ? (
-            <Badge variant="secondary" className="gap-1">
-              <Loader2 className="h-3 w-3 animate-spin" />
-              Syncing...
-            </Badge>
-          ) : (
-            <Badge variant="outline" className="gap-1">
-              <Wifi className="h-3 w-3" />
-              Live
-            </Badge>
-          )}
-          <span className="text-sm text-muted-foreground">
-            v{moduleData.version}
-          </span>
-        </div>
+        <RealtimeStatusIndicator 
+          connectionStatus={connectionStatus}
+          syncing={syncing}
+          queueSize={queueSize}
+          onRetry={refetch}
+        />
       </div>
 
       {/* Basic Information */}
