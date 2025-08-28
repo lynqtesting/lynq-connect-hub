@@ -558,10 +558,10 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
                   <SelectValue placeholder="Select category" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="PRODUCT">Product</SelectItem>
-                  <SelectItem value="COMPLIANCE">Compliance</SelectItem>
-                  <SelectItem value="SOFT_SKILLS">Soft Skills</SelectItem>
-                  <SelectItem value="CUSTOMER_AWARENESS">Customer Awareness</SelectItem>
+                  <SelectItem value="Product">Product</SelectItem>
+                  <SelectItem value="Compliance">Compliance</SelectItem>
+                  <SelectItem value="Soft Skills">Soft Skills</SelectItem>
+                  <SelectItem value="Customer Awareness">Customer Awareness</SelectItem>
                 </SelectContent>
               </Select>
             </div>

@@ -64,6 +64,28 @@ export default function LynqLibrary() {
 
   useEffect(() => {
     fetchModules();
+    
+    // Set up real-time subscription for module updates
+    const channel = supabase
+      .channel('modules-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'modules'
+        },
+        (payload) => {
+          console.log('LynqLibrary: Real-time module change detected:', payload);
+          // Refresh modules when any module is updated
+          fetchModules();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   const fetchModules = async () => {
