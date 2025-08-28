@@ -10,6 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/hooks/useAuth";
 
 interface RequestFormProps {
   type: 'new' | 'adapt';
@@ -19,6 +20,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
   const navigate = useNavigate();
   const { moduleId } = useParams();
   const { toast: showToast } = useToast();
+  const { user, loading } = useAuth();
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
@@ -28,20 +30,19 @@ const RequestForm = ({ type }: RequestFormProps) => {
   });
 
   useEffect(() => {
-    fetchRecommendations();
-  }, []);
+    if (user) {
+      fetchRecommendations();
+    }
+  }, [user]);
 
   const fetchRecommendations = async () => {
+    if (!user) return;
+    
     try {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) return;
-
-      const userData = JSON.parse(currentUser);
-      
       const { data, error } = await supabase
         .from('recommendations')
         .select('*')
-        .eq('user_id', userData.id)
+        .eq('user_id', user.id)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -65,23 +66,19 @@ const RequestForm = ({ type }: RequestFormProps) => {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
+    if (!user) {
+      showToast({
+        title: "Error",
+        description: "Please log in to submit a request",
+        variant: "destructive"
+      });
+      navigate('/login');
+      return;
+    }
+    
     try {
-      const currentUser = localStorage.getItem('currentUser');
-      if (!currentUser) {
-        showToast({
-          title: "Error",
-          description: "Please log in to submit a request",
-          variant: "destructive"
-        });
-        return;
-      }
-
-      const userData = JSON.parse(currentUser);
-      console.log('User data:', userData);
-      console.log('Form data:', formData);
-
       const requestData = {
-        user_id: userData.id,
+        user_id: user.id,
         module_id: moduleId || null,
         request_type: type,
         title: formData.title,
@@ -90,14 +87,10 @@ const RequestForm = ({ type }: RequestFormProps) => {
         duration: parseInt(formData.duration)
       };
 
-      console.log('Request data to be inserted:', requestData);
-
       const { error, data } = await supabase
         .from('requests')
         .insert(requestData)
         .select();
-
-      console.log('Supabase response:', { error, data });
 
       if (error) {
         console.error('Supabase error:', error);
@@ -119,6 +112,24 @@ const RequestForm = ({ type }: RequestFormProps) => {
       });
     }
   };
+
+  // Show loading state while checking authentication
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <div className="text-lg font-semibold">Loading...</div>
+          <div className="text-sm text-muted-foreground">Checking authentication...</div>
+        </div>
+      </div>
+    );
+  }
+
+  // Redirect to login if not authenticated
+  if (!user) {
+    navigate('/login');
+    return null;
+  }
 
   return (
     <div className="min-h-screen bg-background">
