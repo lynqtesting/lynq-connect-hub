@@ -72,48 +72,34 @@ export function useRealtimeModule(moduleId: string) {
     setModuleData(prev => prev ? { ...prev, ...patch } : null);
     optimisticUpdatesRef.current.set(patchKey, patch);
 
-    // Debounce the actual database update
+    // Debounce the actual database update with longer delay for stability
     const timeoutId = setTimeout(async () => {
       try {
         setSyncing(true);
         
-        // Get latest version to check for conflicts
-        const { data: currentData, error: fetchError } = await supabase
-          .from('modules')
-          .select('version, updated_at')
-          .eq('id', moduleId)
-          .single();
-
-        if (fetchError) throw fetchError;
-
-        // If no version exists, default to 1
-        const currentVersion = currentData.version || 1;
-
+        // Simplified update without version checking for better stability
         const { data, error } = await supabase
           .from('modules')
           .update({
             ...patch,
-            // Don't manually increment version - let the trigger handle it
             updated_at: new Date().toISOString()
           })
           .eq('id', moduleId)
-          .eq('version', currentVersion) // Optimistic concurrency control
           .select()
           .single();
 
         if (error) {
           console.error('Update error:', error);
-          // Handle version conflict or no rows returned
-          if (error.code === 'PGRST116' || error.message?.includes('No rows')) {
+          // Only show errors for genuine failures, not conflicts
+          if (error.code !== 'PGRST116') {
             toast({
-              title: "Sync Conflict",
-              description: "Another user modified this field. Refreshing...",
+              title: "Sync Error",
+              description: "Changes may not have been saved. Please try again.",
               variant: "destructive"
             });
-            await fetchModuleData();
-          } else {
-            throw error;
           }
+          // Refresh data to get latest state
+          await fetchModuleData();
         } else if (data) {
           // Update with the latest data from server
           setModuleData(data);
@@ -127,15 +113,15 @@ export function useRealtimeModule(moduleId: string) {
         await fetchModuleData(); // Refresh to get latest state
         
         toast({
-          title: "Error",
-          description: "Failed to save changes. Refreshed to latest version.",
+          title: "Sync Failed",
+          description: "Unable to save changes. Please try again.",
           variant: "destructive"
         });
       } finally {
         setSyncing(false);
         debouncedPatchRef.current.delete(patchKey);
       }
-    }, 300); // Reduced debounce for better responsiveness
+    }, 800); // Longer debounce for better stability
 
     debouncedPatchRef.current.set(patchKey, timeoutId);
   }, [moduleData, moduleId, toast, fetchModuleData]);
@@ -161,8 +147,9 @@ export function useRealtimeModule(moduleId: string) {
           const newData = payload.new as ModuleData;
           
           // Only update if this change wasn't from our optimistic update
+          // and if we're not currently syncing
           const hasOptimisticUpdates = optimisticUpdatesRef.current.size > 0;
-          if (!hasOptimisticUpdates) {
+          if (!hasOptimisticUpdates && !syncing) {
             setModuleData(newData);
           }
         }

@@ -25,6 +25,10 @@ const UploadModule = () => {
     tweakingTopics: ''
   });
 
+  // Separate state for file inputs to prevent refresh issues
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedAudioFile, setSelectedAudioFile] = useState<File | null>(null);
+
   // Analytics fields for client dashboard linkage
   const [kpis, setKpis] = useState({ completion: 0, engagement: 0, opening: 0, rating: 0, learners: 0 });
   const [summaryText, setSummaryText] = useState('');
@@ -44,6 +48,7 @@ const UploadModule = () => {
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       setFormData(prev => ({ ...prev, file }));
     }
   };
@@ -51,6 +56,7 @@ const UploadModule = () => {
   const handleAudioOverviewChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedAudioFile(file);
       setFormData(prev => ({ ...prev, audioOverview: file }));
     }
   };
@@ -74,14 +80,14 @@ const UploadModule = () => {
       if (formData.youtubeUrl) {
         publicUrl = formData.youtubeUrl;
         fileType = 'video';
-      } else if (formData.file) {
+      } else if (selectedFile) {
         // Upload file to storage
-        const fileExt = formData.file.name.split('.').pop();
+        const fileExt = selectedFile.name.split('.').pop();
         const fileName = `${Date.now()}.${fileExt}`;
         
         const { error: uploadError } = await supabase.storage
           .from('modules')
-          .upload(fileName, formData.file);
+          .upload(fileName, selectedFile);
 
         if (uploadError) throw uploadError;
 
@@ -91,21 +97,24 @@ const UploadModule = () => {
           .getPublicUrl(fileName);
         
         publicUrl = filePublicUrl;
-        fileType = formData.file.type.includes('video') ? 'video' : 
-                  formData.file.type.includes('image') ? 'image' : 'document';
+        fileType = selectedFile.type.includes('video') ? 'video' : 
+                  selectedFile.type.includes('image') ? 'image' : 'document';
       }
 
       // Upload audio overview if provided
       let audioOverviewUrl = null;
-      if (formData.audioOverview) {
-        const audioExt = formData.audioOverview.name.split('.').pop();
+      if (selectedAudioFile) {
+        const audioExt = selectedAudioFile.name.split('.').pop();
         const audioFileName = `audio_overview_${Date.now()}.${audioExt}`;
         
         const { error: audioUploadError } = await supabase.storage
           .from('modules')
-          .upload(audioFileName, formData.audioOverview);
+          .upload(audioFileName, selectedAudioFile);
 
-        if (audioUploadError) throw audioUploadError;
+        if (audioUploadError) {
+          console.error('Audio upload error:', audioUploadError);
+          throw new Error(`Audio upload failed: ${audioUploadError.message}`);
+        }
 
         const { data: { publicUrl: audioPublicUrl } } = supabase.storage
           .from('modules')
