@@ -507,7 +507,7 @@ function KPIGrid({ kpis }: { kpis: typeof defaultKpis }) {
       </div>
       <div className="mt-3 rounded-3xl p-6 text-primary-foreground text-center bg-primary shadow-[inset_0_1px_0_rgba(255,255,255,0.3)]">
         <div className="text-6xl font-extrabold leading-none">{kpis.learners}</div>
-        <div className="mt-2 text-base font-semibold opacity-90">Learners Completed</div>
+        <div className="mt-2 text-base font-semibold opacity-90">Employees Engaged</div>
       </div>
     </section>
   );
