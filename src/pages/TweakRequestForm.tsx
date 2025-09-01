@@ -6,7 +6,7 @@ import { useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 
 const TweakRequestForm = () => {
   const navigate = useNavigate();
@@ -14,7 +14,7 @@ const TweakRequestForm = () => {
   const [searchParams] = useSearchParams();
   const questionId = searchParams.get('questionId');
   const { toast } = useToast();
-  const { user } = useAuth();
+  const { user } = useAuthPersistence();
   
   const [formData, setFormData] = useState({
     notes: ''

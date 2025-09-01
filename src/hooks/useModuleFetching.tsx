@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { useToast } from '@/hooks/use-toast';
 
 interface Module {
@@ -28,7 +28,7 @@ export function useModuleFetching() {
     isEmpty: false
   });
   
-  const { user, session } = useAuth();
+  const { user, session } = useAuthPersistence();
   const { toast } = useToast();
 
   const fetchModules = useCallback(async (retryCount = 0): Promise<Module[]> => {

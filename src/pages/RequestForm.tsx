@@ -10,7 +10,7 @@ import { ArrowLeft } from 'lucide-react';
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { useAuth } from "@/hooks/useAuth";
+import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 
 interface RequestFormProps {
   type: 'new' | 'adapt';
@@ -20,7 +20,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
   const navigate = useNavigate();
   const { moduleId } = useParams();
   const { toast: showToast } = useToast();
-  const { user, loading } = useAuth();
+  const { user, loading } = useAuthPersistence();
   const [recommendations, setRecommendations] = useState<any[]>([]);
   const [formData, setFormData] = useState({
     title: '',
