@@ -11,6 +11,9 @@ import { useRealtimeModule } from '@/hooks/useRealtimeModule';
 import { useModuleAdaptiveIdeas } from '@/hooks/useModuleAdaptiveIdeas';
 import { useModuleTweakQuestions } from '@/hooks/useModuleTweakQuestions';
 import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
+import { ConnectionHealthIndicator } from '@/components/ConnectionHealthIndicator';
+import { useDebouncedInput } from '@/hooks/useDebouncedInput';
+import { DebouncedTextInput } from '@/components/DebouncedTextInput';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MetricFieldProps {
@@ -523,12 +526,19 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           <Users className="h-5 w-5 text-primary" />
           <h2 className="text-xl font-semibold">Real-time Module Editor</h2>
         </div>
-        <RealtimeStatusIndicator 
-          connectionStatus={connectionStatus}
-          syncing={syncing}
-          queueSize={queueSize}
-          onRetry={refetch}
-        />
+        <div className="flex items-center gap-4">
+          <ConnectionHealthIndicator
+            status={connectionStatus}
+            pendingOperations={queueSize}
+            onRetry={refetch}
+          />
+          <RealtimeStatusIndicator 
+            connectionStatus={connectionStatus}
+            syncing={syncing}
+            queueSize={queueSize}
+            onRetry={refetch}
+          />
+        </div>
       </div>
 
       {/* Basic Information */}
@@ -540,10 +550,10 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="title">Module Title *</Label>
-              <Input
+              <DebouncedTextInput
                 id="title"
                 value={moduleData.title || ''}
-                onChange={(e) => sendPatch({ title: e.target.value })}
+                onChange={(value) => sendPatch({ title: value })}
                 placeholder="Enter module title"
               />
             </div>
@@ -569,11 +579,12 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           
           <div>
             <Label htmlFor="description">Description</Label>
-            <Textarea
+            <DebouncedTextInput
               id="description"
               value={moduleData.description || ''}
-              onChange={(e) => sendPatch({ description: e.target.value })}
+              onChange={(value) => sendPatch({ description: value })}
               placeholder="Enter module description"
+              multiline
               rows={3}
             />
           </div>
@@ -581,20 +592,20 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           <div className="grid md:grid-cols-2 gap-4">
             <div>
               <Label htmlFor="file_url">Content URL</Label>
-              <Input
+              <DebouncedTextInput
                 id="file_url"
                 value={moduleData.file_url || ''}
-                onChange={(e) => sendPatch({ file_url: e.target.value })}
+                onChange={(value) => sendPatch({ file_url: value })}
                 placeholder="https://youtube.com/watch?v=..."
               />
             </div>
 
             <div>
               <Label htmlFor="module_link">Module Link</Label>
-              <Input
+              <DebouncedTextInput
                 id="module_link"
                 value={moduleData.module_link || ''}
-                onChange={(e) => sendPatch({ module_link: e.target.value })}
+                onChange={(value) => sendPatch({ module_link: value })}
                 placeholder="https://courses.skillopp.com/example"
               />
             </div>
@@ -609,11 +620,12 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
 
           <div>
             <Label htmlFor="summary_text">Summary Text</Label>
-            <Textarea
+            <DebouncedTextInput
               id="summary_text"
               value={moduleData.summary_text || ''}
-              onChange={(e) => sendPatch({ summary_text: e.target.value })}
+              onChange={(value) => sendPatch({ summary_text: value })}
               placeholder="Enter module summary"
+              multiline
               rows={4}
             />
           </div>

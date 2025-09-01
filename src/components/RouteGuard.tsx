@@ -1,5 +1,5 @@
 import { ReactNode, useEffect } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { useNavigate } from 'react-router-dom';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
@@ -10,7 +10,7 @@ interface RouteGuardProps {
 }
 
 export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) {
-  const { user, loading } = useAuth();
+  const { user, loading, isAdmin } = useAuthPersistence();
   const navigate = useNavigate();
   const { toast } = useToast();
 
@@ -18,34 +18,16 @@ export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) 
     if (!loading && typeof navigate === 'function') {
       if (!user) {
         navigate('/login');
-      } else if (requireAdmin) {
-        // Check admin status only when required
-        const checkAdminStatus = async () => {
-          try {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('is_admin')
-              .eq('user_id', user.id)
-              .single();
-
-            if (!profile?.is_admin) {
-              toast({
-                title: "Access Denied",
-                description: "Admin access required",
-                variant: "destructive"
-              });
-              navigate('/lynq-library');
-            }
-          } catch (error) {
-            console.error('Error checking admin status:', error);
-            navigate('/lynq-library');
-          }
-        };
-        
-        checkAdminStatus();
+      } else if (requireAdmin && !isAdmin) {
+        toast({
+          title: "Access Denied",
+          description: "Admin access required",
+          variant: "destructive"
+        });
+        navigate('/lynq-library');
       }
     }
-  }, [user, loading, requireAdmin, navigate, toast]);
+  }, [user, loading, requireAdmin, isAdmin, navigate, toast]);
 
   const authLoading = loading;
 
