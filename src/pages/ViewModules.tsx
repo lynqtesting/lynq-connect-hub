@@ -1,16 +1,49 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from 'react-router-dom';
-import { ArrowLeft, Eye, FileText, Video, Image, Edit, RefreshCw, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Eye, FileText, Video, Image, Edit, RefreshCw, AlertCircle, Trash2 } from 'lucide-react';
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useModuleFetching } from '@/hooks/useModuleFetching';
+import { DeleteModuleDialog } from '@/components/DeleteModuleDialog';
 
 const ViewModules = () => {
   const navigate = useNavigate();
-  const { modules, loading, error, isEmpty, refetch } = useModuleFetching();
+  const { modules, loading, error, isEmpty, refetch, deleteModule } = useModuleFetching();
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    moduleId: string;
+    moduleTitle: string;
+  }>({
+    open: false,
+    moduleId: '',
+    moduleTitle: ''
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const handleDeleteClick = (moduleId: string, moduleTitle: string) => {
+    setDeleteDialog({
+      open: true,
+      moduleId,
+      moduleTitle
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.moduleId) return;
+    
+    setIsDeleting(true);
+    try {
+      await deleteModule(deleteDialog.moduleId);
+      setDeleteDialog({ open: false, moduleId: '', moduleTitle: '' });
+    } catch (error) {
+      // Error is already handled in deleteModule
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   const getFileTypeIcon = (fileType: string) => {
     if (fileType === 'video') return Video;
@@ -131,13 +164,25 @@ const ViewModules = () => {
                         <FileIcon className="mr-2 h-5 w-5" />
                         {module.title}
                       </CardTitle>
-                      <div className="flex gap-2">
-                        <Badge variant="secondary">
-                          {module.file_type}
-                        </Badge>
-                        {isYouTubeUrl(module.file_url) && (
-                          <Badge variant="outline">YouTube</Badge>
-                        )}
+                      <div className="flex items-center gap-2">
+                        <div className="flex gap-2">
+                          <Badge variant="secondary">
+                            {module.file_type}
+                          </Badge>
+                          {isYouTubeUrl(module.file_url) && (
+                            <Badge variant="outline">YouTube</Badge>
+                          )}
+                        </div>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => handleDeleteClick(module.id, module.title)}
+                          className="h-8 w-8 p-0 text-destructive hover:text-destructive hover:bg-destructive/10"
+                          disabled={isDeleting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Delete module</span>
+                        </Button>
                       </div>
                     </div>
                   </CardHeader>
@@ -186,6 +231,16 @@ const ViewModules = () => {
             })}
           </div>
         )}
+
+        <DeleteModuleDialog
+          open={deleteDialog.open}
+          onOpenChange={(open) => 
+            setDeleteDialog(prev => ({ ...prev, open }))
+          }
+          onConfirm={handleDeleteConfirm}
+          moduleTitle={deleteDialog.moduleTitle}
+          isDeleting={isDeleting}
+        />
       </div>
     </div>
   );

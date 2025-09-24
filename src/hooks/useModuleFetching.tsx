@@ -105,6 +105,47 @@ export function useModuleFetching() {
     }
   }, [user, session, toast]);
 
+  const deleteModule = useCallback(async (moduleId: string): Promise<void> => {
+    try {
+      if (!user || !session) {
+        throw new Error('Authentication required');
+      }
+
+      const { error } = await supabase
+        .from('modules')
+        .delete()
+        .eq('id', moduleId);
+
+      if (error) {
+        console.error('Error deleting module:', error);
+        throw error;
+      }
+
+      // Optimistically update the state
+      setState(prev => ({
+        ...prev,
+        modules: prev.modules.filter(module => module.id !== moduleId),
+        isEmpty: prev.modules.length <= 1
+      }));
+
+      toast({
+        title: "Module Deleted",
+        description: "The module has been successfully deleted.",
+      });
+
+    } catch (error: any) {
+      console.error('Error deleting module:', error);
+      
+      toast({
+        title: "Delete Failed",
+        description: `Failed to delete module: ${error.message}`,
+        variant: "destructive"
+      });
+      
+      throw error;
+    }
+  }, [user, session, toast]);
+
   const refetch = useCallback(() => {
     return fetchModules(0);
   }, [fetchModules]);
@@ -126,6 +167,7 @@ export function useModuleFetching() {
   return {
     ...state,
     refetch,
-    fetchModules
+    fetchModules,
+    deleteModule
   };
 }
