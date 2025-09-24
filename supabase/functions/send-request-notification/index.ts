@@ -132,7 +132,7 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email via Resend
     const emailResponse = await resend.emails.send({
       from: "Platform Notifications <notifications@resend.dev>",
-      to: ["admin@example.com"],
+      to: ["Ishanibehl@skillopp.com"],
       subject: `New Client Request Submitted - ${requestTypeDisplay}`,
       html: emailHtml,
     });
