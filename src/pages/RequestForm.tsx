@@ -90,11 +90,31 @@ const RequestForm = ({ type }: RequestFormProps) => {
       const { error, data } = await supabase
         .from('requests')
         .insert(requestData)
-        .select();
+        .select()
+        .single();
 
       if (error) {
         console.error('Supabase error:', error);
         throw error;
+      }
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-request-notification', {
+          body: {
+            requestId: data.id,
+            userId: user.id,
+            moduleId: moduleId || null,
+            requestType: type,
+            title: formData.title,
+            description: formData.description + (formData.reason ? `\n\nReason: ${formData.reason}` : ''),
+            duration: parseInt(formData.duration),
+            createdAt: data.created_at
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't block the user flow if email fails
       }
 
       showToast({

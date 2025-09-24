@@ -34,15 +34,37 @@ const AdaptLynqModal = ({ open, onOpenChange, moduleId, moduleTitle }: AdaptLynq
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error('User not authenticated');
 
-      const { error } = await supabase
+      const { data: requestData, error } = await supabase
         .from('requests')
         .insert([{
           ...formData,
           user_id: user.id,
           module_id: moduleId
-        }]);
+        }])
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-request-notification', {
+          body: {
+            requestId: requestData.id,
+            userId: user.id,
+            moduleId: moduleId,
+            requestType: formData.request_type,
+            title: formData.title,
+            description: formData.description,
+            duration: formData.duration,
+            quantity: formData.quantity,
+            createdAt: requestData.created_at
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't block the user flow if email fails
+      }
 
       toast({
         title: "Success",

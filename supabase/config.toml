@@ -1,1 +1,7 @@
 project_id = "swipchvhpwdomewoxivp"
+
+[functions.create-user]
+verify_jwt = false
+
+[functions.send-request-notification]
+verify_jwt = false

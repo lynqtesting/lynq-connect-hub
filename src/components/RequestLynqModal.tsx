@@ -69,7 +69,7 @@ const RequestLynqModal: React.FC<RequestLynqModalProps> = ({
         return;
       }
 
-      const { error } = await supabase
+      const { data: requestData, error } = await supabase
         .from('requests')
         .insert({
           user_id: user.id,
@@ -77,9 +77,28 @@ const RequestLynqModal: React.FC<RequestLynqModalProps> = ({
           title: formData.title,
           description: formData.description || '',
           status: 'pending'
-        });
+        })
+        .select()
+        .single();
 
       if (error) throw error;
+
+      // Send email notification
+      try {
+        await supabase.functions.invoke('send-request-notification', {
+          body: {
+            requestId: requestData.id,
+            userId: user.id,
+            requestType: formData.type,
+            title: formData.title,
+            description: formData.description,
+            createdAt: requestData.created_at
+          }
+        });
+      } catch (emailError) {
+        console.error('Failed to send email notification:', emailError);
+        // Don't block the user flow if email fails
+      }
 
       toast({
         title: formData.type === 'adaptive' ? "Request sent" : "Request submitted", 
