@@ -131,7 +131,7 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send email via Resend
     const emailResponse = await resend.emails.send({
-      from: "Platform Notifications <notifications@resend.dev>",
+      from: "Platform Notifications <onboarding@resend.dev>",
       to: ["soubhik1971@gmail.com"],
       subject: `New Client Request Submitted - ${requestTypeDisplay}`,
       html: emailHtml,
