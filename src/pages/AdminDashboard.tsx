@@ -34,13 +34,11 @@ const AdminDashboard = () => {
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Eye, label: 'View All Users', action: () => navigate('/view-users') },
     { icon: Users, label: 'Assign Modules to Users', action: () => navigate('/assign-modules') },
-    { icon: Upload, label: 'New Adaptation Lynqs', action: () => navigate('/adapt-lynqs') },
     { icon: Eye, label: 'Client Requests', action: () => navigate('/admin/client-requests') },
     { icon: Eye, label: 'View Requests', action: () => navigate('/view-requests') },
     { icon: Eye, label: 'Adaptive Requests', action: () => navigate('/admin/adaptive-requests') },
     { icon: Eye, label: 'Tweak Requests', action: () => navigate('/admin/tweak-requests') },
     { icon: Upload, label: 'Manage Questions', action: () => navigate('/admin/manage-questions') },
-    { icon: Calendar, label: 'Update Calendly Link', action: () => {} },
   ];
 
   return (

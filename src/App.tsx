@@ -21,7 +21,7 @@ import ViewRequests from "./pages/ViewRequests";
 import WriteRecommendations from "./pages/WriteRecommendations";
 import EditModule from "./pages/EditModule";
 import LynqLibrary from "./pages/LynqLibrary";
-import AdaptLynqs from "./pages/AdaptLynqs";
+
 import AdaptiveRequests from "./pages/AdaptiveRequests";
 import TweakRequests from "./pages/TweakRequests";
 import ManageQuestions from "./pages/ManageQuestions";
@@ -58,7 +58,7 @@ const App = () => (
             <Route path="/view-requests" element={<RouteGuard requireAdmin><ViewRequests /></RouteGuard>} />
             <Route path="/write-recommendations" element={<RouteGuard requireAdmin><WriteRecommendations /></RouteGuard>} />
             <Route path="/edit-module/:moduleId" element={<RouteGuard requireAdmin><EditModule /></RouteGuard>} />
-            <Route path="/adapt-lynqs" element={<RouteGuard requireAdmin><AdaptLynqs /></RouteGuard>} />
+            
             <Route path="/admin/client-requests" element={<RouteGuard requireAdmin><ClientRequests /></RouteGuard>} />
             <Route path="/admin/adaptive-requests" element={<RouteGuard requireAdmin><AdaptiveRequests /></RouteGuard>} />
             <Route path="/admin/tweak-requests" element={<RouteGuard requireAdmin><TweakRequests /></RouteGuard>} />
