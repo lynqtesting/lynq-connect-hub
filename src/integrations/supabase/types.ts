@@ -44,50 +44,6 @@ export type Database = {
         }
         Relationships: []
       }
-      module_adaptations: {
-        Row: {
-          adaptation_type: string
-          adapted_content: string
-          created_at: string
-          created_by: string
-          description: string | null
-          id: string
-          original_module_id: string
-          title: string
-          updated_at: string
-        }
-        Insert: {
-          adaptation_type: string
-          adapted_content: string
-          created_at?: string
-          created_by: string
-          description?: string | null
-          id?: string
-          original_module_id: string
-          title: string
-          updated_at?: string
-        }
-        Update: {
-          adaptation_type?: string
-          adapted_content?: string
-          created_at?: string
-          created_by?: string
-          description?: string | null
-          id?: string
-          original_module_id?: string
-          title?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "module_adaptations_original_module_id_fkey"
-            columns: ["original_module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       modules: {
         Row: {
           adapted_module_name: string | null
