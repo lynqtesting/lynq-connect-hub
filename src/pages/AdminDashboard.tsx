@@ -6,6 +6,7 @@ import { useNavigate } from 'react-router-dom';
 import { Upload, Users, Calendar, Eye } from 'lucide-react';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
+import EmailTestButton from "@/components/EmailTestButton";
 
 const AdminDashboard = () => {
   const navigate = useNavigate();
@@ -67,6 +68,15 @@ const AdminDashboard = () => {
               </Card>
             );
           })}
+          
+          <Card className="mt-4">
+            <CardContent className="p-4">
+              <div className="mb-2">
+                <h3 className="text-sm font-medium text-muted-foreground">Email System Test</h3>
+              </div>
+              <EmailTestButton />
+            </CardContent>
+          </Card>
           
           <Button 
             variant="outline" 

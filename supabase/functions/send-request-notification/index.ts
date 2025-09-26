@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.190.0/http/server.ts";
-import { Resend } from "https://esm.sh/resend@2.1.0";
+import { Resend } from "npm:resend@4.0.0";
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2';
 
 const resend = new Resend(Deno.env.get("RESEND_API_KEY"));
@@ -130,6 +130,13 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email via Resend
+    console.log("Attempting to send email with payload:", {
+      from: "Platform Notifications <onboarding@resend.dev>",
+      to: ["soubhik1971@gmail.com"],
+      subject: `New Client Request Submitted - ${requestTypeDisplay}`,
+      hasHtml: !!emailHtml
+    });
+
     const emailResponse = await resend.emails.send({
       from: "Platform Notifications <onboarding@resend.dev>",
       to: ["soubhik1971@gmail.com"],
@@ -137,7 +144,12 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailHtml,
     });
 
-    console.log("Email sent successfully:", emailResponse);
+    console.log("Resend API response:", {
+      success: !!emailResponse.data,
+      emailId: emailResponse.data?.id,
+      error: emailResponse.error,
+      fullResponse: emailResponse
+    });
 
     return new Response(JSON.stringify({ 
       success: true, 

@@ -100,7 +100,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
 
       // Send email notification
       try {
-        await supabase.functions.invoke('send-request-notification', {
+        const { data: emailData, error: emailError } = await supabase.functions.invoke('send-request-notification', {
           body: {
             requestId: data.id,
             userId: user.id,
@@ -112,9 +112,22 @@ const RequestForm = ({ type }: RequestFormProps) => {
             createdAt: data.created_at
           }
         });
+        
+        console.log('Email notification result:', { emailData, emailError });
+        
+        if (emailError) {
+          console.error('Email notification failed:', emailError);
+          showToast({
+            title: "Request submitted",
+            description: "Request saved successfully, but email notification failed. Admin will still see your request."
+          });
+        }
       } catch (emailError) {
         console.error('Failed to send email notification:', emailError);
-        // Don't block the user flow if email fails
+        showToast({
+          title: "Request submitted", 
+          description: "Request saved successfully, but email notification failed. Admin will still see your request."
+        });
       }
 
       showToast({
