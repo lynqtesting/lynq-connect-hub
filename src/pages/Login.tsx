@@ -8,7 +8,7 @@ import Logo from "@/components/Logo";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
-import type { User, Session } from '@supabase/supabase-js';
+import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { Sparkles, Lock, ArrowRight } from "lucide-react";
 
 const Login = () => {
@@ -16,62 +16,16 @@ const Login = () => {
   const [password, setPassword] = useState('');
   const [username, setUsername] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, isAdmin, loading: authLoading } = useAuthPersistence();
 
+  // Redirect authenticated users using the auth provider
   useEffect(() => {
-    // Set up auth state listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        
-        if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('is_admin')
-              .eq('user_id', session.user.id)
-              .single();
-            
-            if (profile?.is_admin) {
-              navigate('/admin-dashboard');
-            } else {
-              navigate('/lynq-library');
-            }
-          }, 0);
-        }
-      }
-    );
-
-    // THEN check for existing session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user) {
-        // Redirect authenticated users
-        setTimeout(async () => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
-            .eq('user_id', session.user.id)
-            .single();
-          
-          if (profile?.is_admin) {
-            navigate('/admin-dashboard');
-          } else {
-            navigate('/lynq-library');
-          }
-        }, 0);
-      }
-    });
-
-    return () => subscription.unsubscribe();
-  }, [navigate]);
+    if (!authLoading && user) {
+      navigate(isAdmin ? '/admin-dashboard' : '/lynq-library');
+    }
+  }, [user, isAdmin, authLoading, navigate]);
 
   // SEO: set page title
   useEffect(() => {
