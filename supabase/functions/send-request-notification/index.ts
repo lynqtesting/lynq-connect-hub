@@ -132,14 +132,14 @@ const handler = async (req: Request): Promise<Response> => {
     // Send email via Resend
     console.log("Attempting to send email with payload:", {
       from: "Platform Notifications <onboarding@resend.dev>",
-      to: ["soubhik1971@gmail.com"],
+      to: ["ishanibehl@skillopp.com"],
       subject: `New Client Request Submitted - ${requestTypeDisplay}`,
       hasHtml: !!emailHtml
     });
 
     const emailResponse = await resend.emails.send({
       from: "Platform Notifications <onboarding@resend.dev>",
-      to: ["soubhik1971@gmail.com"],
+      to: ["ishanibehl@skillopp.com"],
       subject: `New Client Request Submitted - ${requestTypeDisplay}`,
       html: emailHtml,
     });
