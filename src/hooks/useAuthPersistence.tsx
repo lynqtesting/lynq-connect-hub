@@ -70,43 +70,55 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+  // Admin check with timeout to avoid blocking UI deadlocks
+  const checkAdminWithTimeout = async (userId: string): Promise<boolean> => {
+    try {
+      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Role check timeout')), 3000));
+      const query = supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .eq('role', 'admin')
+        .maybeSingle();
+      const { data, error } = await Promise.race([query, timeout]) as any;
+      if (error) {
+        console.error('Admin status error:', error);
+        return false;
+      }
+      return data?.role === 'admin';
+    } catch (e) {
+      console.error('Admin status failed:', e);
+      return false;
+    }
+  };
+
   useEffect(() => {
     let mounted = true;
 
     // Enhanced auth state listener with better error handling
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         if (!mounted) return;
 
         console.log('Auth state change:', event, session?.user?.id);
         
         setSession(session);
         setUser(session?.user ?? null);
-        
-        if (session?.user && mounted) {
-          // Fetch admin status with proper error handling
-          try {
-            const adminStatus = await fetchAdminStatus(session.user.id);
-            if (mounted) {
-              setIsAdmin(adminStatus);
-            }
-          } catch (error) {
-            console.error('Failed to fetch admin status:', error);
-            if (mounted) {
-              setIsAdmin(false);
-            }
-          }
+
+        // Flip loading off immediately to avoid blocking UI
+        setLoading(false);
+
+        if (session?.user) {
+          // Defer role check to prevent deadlocks
+          setTimeout(async () => {
+            const adminStatus = await checkAdminWithTimeout(session.user!.id);
+            if (mounted) setIsAdmin(adminStatus);
+          }, 0);
         } else {
-          if (mounted) {
-            setIsAdmin(false);
-          }
-        }
-        
-        if (mounted) {
-          setLoading(false);
+          setIsAdmin(false);
         }
 
-        // Handle session expiration
+        // Handle session events
         if (event === 'TOKEN_REFRESHED') {
           console.log('Token refreshed successfully');
         } else if (event === 'SIGNED_OUT') {
@@ -120,51 +132,42 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
       }
     );
 
-    // Get initial session with enhanced error handling
+    // Get initial session without blocking on admin check
     const getInitialSession = async () => {
       try {
         const { data: { session }, error } = await supabase.auth.getSession();
-        
+
         if (error) {
           console.error('Initial session error:', error);
-          // Try to refresh if initial session fails
+          // Ensure loading doesn't get stuck
+          if (mounted) setLoading(false);
+          // Try to refresh in the background
           try {
             await refreshSession();
           } catch (refreshError) {
             console.error('Session refresh failed:', refreshError);
-            if (mounted) {
-              setLoading(false);
-            }
           }
           return;
         }
 
-        if (session && mounted) {
-          setSession(session);
-          setUser(session.user);
-          
-          // Fetch admin status
-          try {
-            const adminStatus = await fetchAdminStatus(session.user.id);
-            if (mounted) {
-              setIsAdmin(adminStatus);
-            }
-          } catch (error) {
-            console.error('Failed to fetch admin status:', error);
-            if (mounted) {
-              setIsAdmin(false);
-            }
-          }
-        }
-        
         if (mounted) {
-          setLoading(false);
+          setSession(session ?? null);
+          setUser(session?.user ?? null);
+          setLoading(false); // Important: do not await role checks
+        }
+
+        if (session?.user) {
+          // Defer role check to keep UI responsive
+          setTimeout(async () => {
+            const adminStatus = await checkAdminWithTimeout(session.user!.id);
+            if (mounted) setIsAdmin(adminStatus);
+          }, 0);
+        } else {
+          if (mounted) setIsAdmin(false);
         }
       } catch (error) {
         console.error('Failed to get initial session:', error);
-        if (mounted) {
-          setLoading(false);
-        }
+        if (mounted) setLoading(false);
       }
     };
 

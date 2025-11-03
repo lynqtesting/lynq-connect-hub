@@ -11,6 +11,7 @@ import { useNavigate } from "react-router-dom";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Package, Shield, Users, BookOpen, Heart, Search, X, LogOut } from "lucide-react";
 import { toast } from "sonner";
+import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 
 interface Module {
   id: string;
@@ -61,9 +62,16 @@ export default function LynqLibrary() {
   const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+  const { user, loading: authLoading } = useAuthPersistence();
 
   useEffect(() => {
-    fetchModules();
+    if (authLoading) return; // wait for auth to resolve
+    if (!user) {
+      navigate('/login');
+      return;
+    }
+
+    fetchModules(user.id);
     
     // Set up real-time subscription for module updates
     const channel = supabase
@@ -78,7 +86,7 @@ export default function LynqLibrary() {
         (payload) => {
           console.log('LynqLibrary: Real-time module change detected:', payload);
           // Refresh modules when any module is updated
-          fetchModules();
+          fetchModules(user.id);
         }
       )
       .subscribe();
@@ -86,18 +94,11 @@ export default function LynqLibrary() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user?.id, authLoading, navigate]);
 
-  const fetchModules = async () => {
+  const fetchModules = async (userId: string) => {
     try {
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        navigate('/login');
-        return;
-      }
-
-      console.log('LynqLibrary: Fetching modules for user:', user.id);
+      console.log('LynqLibrary: Fetching modules for user:', userId);
 
       // Fetch only assigned modules for this user
       const { data: assignments, error } = await supabase
@@ -114,7 +115,7 @@ export default function LynqLibrary() {
             created_at
           )
         `)
-        .eq('user_id', user.id);
+        .eq('user_id', userId);
 
       if (error) throw error;
       
