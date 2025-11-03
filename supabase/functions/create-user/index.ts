@@ -35,6 +35,15 @@ serve(async (req) => {
 
     // Use the caller's JWT to verify admin status
     const authHeader = req.headers.get("Authorization") ?? "";
+    
+    if (!authHeader) {
+      console.log("No authorization header provided");
+      return new Response(JSON.stringify({ error: "Unauthorized: No authorization header" }), {
+        status: 401,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+
     const userClient = createClient(SUPABASE_URL, ANON_KEY, {
       global: { headers: { Authorization: authHeader } },
     });
@@ -45,22 +54,27 @@ serve(async (req) => {
     } = await userClient.auth.getUser();
 
     if (userErr || !user) {
-      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+      console.error("Failed to get user:", userErr);
+      return new Response(JSON.stringify({ error: "Unauthorized: Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("User authenticated:", user.id);
 
     // Check admin using secured SQL function
     const { data: isAdmin, error: adminErr } = await userClient.rpc("is_admin_user");
 
     if (adminErr) {
       console.error("Admin check error:", adminErr);
-      return new Response(JSON.stringify({ error: "Failed to verify permissions" }), {
+      return new Response(JSON.stringify({ error: "Failed to verify permissions", details: adminErr.message }), {
         status: 500,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("Admin check result:", isAdmin);
 
     if (!isAdmin) {
       return new Response(JSON.stringify({ error: "Forbidden: Admins only" }), {
