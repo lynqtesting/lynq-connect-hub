@@ -72,57 +72,52 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
   useEffect(() => {
     let mounted = true;
 
-  // Synchronous auth state listener to prevent race conditions
-  const { data: { subscription } } = supabase.auth.onAuthStateChange(
-    (event, session) => {
-      if (!mounted) return;
+    // Enhanced auth state listener with better error handling
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
 
-      console.log('Auth state change:', event, session?.user?.id);
-      
-      // Only synchronous state updates here
-      setSession(session);
-      setUser(session?.user ?? null);
-      
-      if (session?.user && mounted) {
-        // Defer admin status fetch to prevent auth deadlock
-        setTimeout(() => {
-          if (!mounted) return;
-          fetchAdminStatus(session.user.id)
-            .then(adminStatus => {
-              if (mounted) {
-                console.log('Admin status set:', adminStatus);
-                setIsAdmin(adminStatus);
-                setLoading(false);
-              }
-            })
-            .catch(error => {
-              console.error('Failed to fetch admin status:', error);
-              if (mounted) {
-                setIsAdmin(false);
-                setLoading(false);
-              }
-            });
-        }, 0);
-      } else {
+        console.log('Auth state change:', event, session?.user?.id);
+        
+        setSession(session);
+        setUser(session?.user ?? null);
+        
+        if (session?.user && mounted) {
+          // Fetch admin status with proper error handling
+          try {
+            const adminStatus = await fetchAdminStatus(session.user.id);
+            if (mounted) {
+              setIsAdmin(adminStatus);
+            }
+          } catch (error) {
+            console.error('Failed to fetch admin status:', error);
+            if (mounted) {
+              setIsAdmin(false);
+            }
+          }
+        } else {
+          if (mounted) {
+            setIsAdmin(false);
+          }
+        }
+        
         if (mounted) {
-          setIsAdmin(false);
           setLoading(false);
         }
-      }
 
-      // Handle session events
-      if (event === 'TOKEN_REFRESHED') {
-        console.log('Token refreshed successfully');
-      } else if (event === 'SIGNED_OUT') {
-        console.log('User signed out');
-        if (mounted) {
-          setUser(null);
-          setSession(null);
-          setIsAdmin(false);
+        // Handle session expiration
+        if (event === 'TOKEN_REFRESHED') {
+          console.log('Token refreshed successfully');
+        } else if (event === 'SIGNED_OUT') {
+          console.log('User signed out');
+          if (mounted) {
+            setUser(null);
+            setSession(null);
+            setIsAdmin(false);
+          }
         }
       }
-    }
-  );
+    );
 
     // Get initial session with enhanced error handling
     const getInitialSession = async () => {
