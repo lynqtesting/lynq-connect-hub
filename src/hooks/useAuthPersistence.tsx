@@ -48,21 +48,22 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Secure admin status fetching
+  // Secure admin status fetching using user_roles table
   const fetchAdminStatus = async (userId: string): Promise<boolean> => {
     try {
-      const { data: profile, error } = await supabase
-        .from('profiles')
-        .select('is_admin')
+      const { data, error } = await supabase
+        .from('user_roles')
+        .select('role')
         .eq('user_id', userId)
-        .single();
+        .eq('role', 'admin')
+        .maybeSingle();
       
       if (error) {
         console.error('Error fetching admin status:', error);
         return false;
       }
       
-      return profile?.is_admin || false;
+      return data !== null; // User has admin role
     } catch (error) {
       console.error('Admin status fetch failed:', error);
       return false;

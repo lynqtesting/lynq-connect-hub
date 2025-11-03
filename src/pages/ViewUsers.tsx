@@ -20,7 +20,7 @@ const ViewUsers = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_id, username, created_at, is_admin')
+        .select('user_id, username, created_at')
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -81,9 +81,6 @@ const ViewUsers = () => {
                       <p className="text-sm text-muted-foreground">
                         Created: {new Date(user.created_at).toLocaleDateString()}
                       </p>
-                      {user.is_admin && (
-                        <span className="text-xs bg-primary/10 text-primary px-2 py-1 rounded">Admin</span>
-                      )}
                     </div>
                   </div>
                 ))}

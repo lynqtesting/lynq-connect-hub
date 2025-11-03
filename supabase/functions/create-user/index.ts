@@ -96,6 +96,19 @@ serve(async (req) => {
       );
     }
 
+    // Add 'user' role to the new user
+    const { error: roleErr } = await adminClient
+      .from('user_roles')
+      .insert({
+        user_id: created.user!.id,
+        role: 'user'
+      });
+
+    if (roleErr) {
+      console.error("Create role error:", roleErr);
+      // Don't fail the request, just log the error
+    }
+
     return new Response(
       JSON.stringify({ success: true, userId: created.user?.id, email: fakeEmail, username }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }

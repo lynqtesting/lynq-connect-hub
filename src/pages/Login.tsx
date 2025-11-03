@@ -31,13 +31,14 @@ const Login = () => {
         if (session?.user) {
           // Check if user is admin
           setTimeout(async () => {
-            const { data: profile } = await supabase
-              .from('profiles')
-              .select('is_admin')
+            const { data } = await supabase
+              .from('user_roles')
+              .select('role')
               .eq('user_id', session.user.id)
-              .single();
+              .eq('role', 'admin')
+              .maybeSingle();
             
-            if (profile?.is_admin) {
+            if (data) {
               navigate('/admin-dashboard');
             } else {
               navigate('/lynq-library');
@@ -55,13 +56,14 @@ const Login = () => {
       if (session?.user) {
         // Redirect authenticated users
         setTimeout(async () => {
-          const { data: profile } = await supabase
-            .from('profiles')
-            .select('is_admin')
+          const { data } = await supabase
+            .from('user_roles')
+            .select('role')
             .eq('user_id', session.user.id)
-            .single();
+            .eq('role', 'admin')
+            .maybeSingle();
           
-          if (profile?.is_admin) {
+          if (data) {
             navigate('/admin-dashboard');
           } else {
             navigate('/lynq-library');
