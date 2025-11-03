@@ -21,29 +21,57 @@ const Login = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
 
+  // Helper function to check admin status with timeout and error handling
+  const checkAdminAndRedirect = async (userId: string) => {
+    try {
+      // Add timeout to prevent hanging
+      const timeoutPromise = new Promise((_, reject) => 
+        setTimeout(() => reject(new Error('Role check timeout')), 3000)
+      );
+      
+      const queryPromise = supabase
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', userId)
+        .maybeSingle();
+      
+      const { data, error } = await Promise.race([queryPromise, timeoutPromise]) as any;
+      
+      if (error) {
+        console.error('Role check error:', error);
+        // Default to non-admin on error
+        navigate('/lynq-library');
+        return;
+      }
+      
+      if (data?.role === 'admin') {
+        navigate('/admin-dashboard');
+      } else {
+        navigate('/lynq-library');
+      }
+    } catch (err) {
+      console.error('Admin check failed:', err);
+      // Default to non-admin on timeout/error
+      navigate('/lynq-library');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   useEffect(() => {
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
+      (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         
         if (session?.user) {
-          // Check if user is admin
-          setTimeout(async () => {
-            const { data } = await supabase
-              .from('user_roles')
-              .select('role')
-              .eq('user_id', session.user.id)
-              .eq('role', 'admin')
-              .maybeSingle();
-            
-            if (data) {
-              navigate('/admin-dashboard');
-            } else {
-              navigate('/lynq-library');
-            }
+          // Use setTimeout to defer the async operation
+          setTimeout(() => {
+            checkAdminAndRedirect(session.user.id);
           }, 0);
+        } else {
+          setLoading(false);
         }
       }
     );
@@ -55,20 +83,11 @@ const Login = () => {
       
       if (session?.user) {
         // Redirect authenticated users
-        setTimeout(async () => {
-          const { data } = await supabase
-            .from('user_roles')
-            .select('role')
-            .eq('user_id', session.user.id)
-            .eq('role', 'admin')
-            .maybeSingle();
-          
-          if (data) {
-            navigate('/admin-dashboard');
-          } else {
-            navigate('/lynq-library');
-          }
+        setTimeout(() => {
+          checkAdminAndRedirect(session.user.id);
         }, 0);
+      } else {
+        setLoading(false);
       }
     });
 
