@@ -44,17 +44,17 @@ serve(async (req) => {
       });
     }
 
-    const userClient = createClient(SUPABASE_URL, ANON_KEY, {
-      global: { headers: { Authorization: authHeader } },
-    });
+    // Extract the JWT token from "Bearer <token>"
+    const token = authHeader.replace("Bearer ", "");
 
-    const {
-      data: { user },
-      error: userErr,
-    } = await userClient.auth.getUser();
+    // Use service role client to verify the token
+    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+
+    // Verify token and get user
+    const { data: { user }, error: userErr } = await adminClient.auth.getUser(token);
 
     if (userErr || !user) {
-      console.error("Failed to get user:", userErr);
+      console.error("Failed to verify token:", userErr);
       return new Response(JSON.stringify({ error: "Unauthorized: Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -63,25 +63,23 @@ serve(async (req) => {
 
     console.log("User authenticated:", user.id);
 
-    // Check admin using secured SQL function
-    const { data: isAdmin, error: adminErr } = await userClient.rpc("is_admin_user");
+    // Check if user is admin using the service role client
+    const { data: roles, error: roleErr } = await adminClient
+      .from('user_roles')
+      .select('role')
+      .eq('user_id', user.id)
+      .eq('role', 'admin')
+      .single();
 
-    if (adminErr) {
-      console.error("Admin check error:", adminErr);
-      return new Response(JSON.stringify({ error: "Failed to verify permissions", details: adminErr.message }), {
-        status: 500,
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    console.log("Admin check result:", isAdmin);
-
-    if (!isAdmin) {
+    if (roleErr || !roles) {
+      console.log("Admin check failed:", roleErr);
       return new Response(JSON.stringify({ error: "Forbidden: Admins only" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    console.log("Admin verified:", user.id);
 
     const rawUsername = String(username).trim().toLowerCase();
     const sanitizedUsername = rawUsername.includes("@")
@@ -93,8 +91,7 @@ serve(async (req) => {
 
     const fakeEmail = `${sanitizedUsername}@${sanitizedDomain}`;
 
-    // Use service role for admin user creation
-    const adminClient = createClient(SUPABASE_URL, SERVICE_ROLE_KEY);
+    // Create user using the admin client
     const { data: created, error: createErr } = await adminClient.auth.admin.createUser({
       email: fakeEmail,
       password,
