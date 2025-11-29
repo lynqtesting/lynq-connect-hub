@@ -45,7 +45,7 @@ const UserDashboardNew = () => {
       setError(null);
       const { data: assignments, error: assignmentsError } = await supabase
         .from('user_module_assignments')
-        .select('*, modules(*)')
+        .select('*, modules!module_id(*)')
         .eq('user_id', user?.id);
 
       if (assignmentsError) throw assignmentsError;
