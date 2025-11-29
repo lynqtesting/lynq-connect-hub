@@ -26,12 +26,12 @@ export function DashboardChart({
   action
 }: DashboardChartProps) {
   return (
-    <Card className="bg-card border-border">
-      <CardHeader className="flex flex-row items-center justify-between">
-        <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+    <Card className="bg-card border-border hover:shadow-lg transition-all">
+      <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+        <CardTitle className="text-base sm:text-lg font-semibold">{title}</CardTitle>
         {action}
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-2 sm:px-6 pb-4 sm:pb-6">
         <ResponsiveContainer width="100%" height={height}>
           {type === 'area' ? (
             <AreaChart data={data}>
@@ -47,19 +47,20 @@ export function DashboardChart({
               <XAxis 
                 dataKey="name" 
                 stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
+                fontSize={11}
                 tickLine={false}
               />
               <YAxis 
                 stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
+                fontSize={11}
                 tickLine={false}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--popover))',
                   border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  fontSize: '12px'
                 }}
               />
               {dataKeys.map((key, index) => (
@@ -79,19 +80,20 @@ export function DashboardChart({
               <XAxis 
                 dataKey="name" 
                 stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
+                fontSize={11}
                 tickLine={false}
               />
               <YAxis 
                 stroke="hsl(var(--muted-foreground))"
-                fontSize={12}
+                fontSize={11}
                 tickLine={false}
               />
               <Tooltip 
                 contentStyle={{ 
                   backgroundColor: 'hsl(var(--popover))',
                   border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  fontSize: '12px'
                 }}
               />
               {dataKeys.map((key, index) => (

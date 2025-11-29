@@ -82,20 +82,20 @@ const UserDashboardNew = () => {
 
   return (
     <DashboardLayout role="user">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-muted-foreground mt-1">Welcome back, {user?.email?.split('@')[0] || 'User'}</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
+            <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split('@')[0] || 'User'}</p>
           </div>
-          <Button onClick={() => navigate('/lynq-library')} variant="outline">
+          <Button onClick={() => navigate('/lynq-library')} variant="outline" className="w-full sm:w-auto">
             View All Modules
           </Button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <StatCard
             title="Objective Score"
             value={`${stats.objectiveScore}%`}
@@ -123,18 +123,18 @@ const UserDashboardNew = () => {
         </div>
 
         {/* AI Insights & Performance Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2">
-            <Card className="bg-card border-border">
-              <CardHeader className="flex flex-row items-center gap-2">
-                <Sparkles className="h-5 w-5 text-primary" />
-                <CardTitle className="text-lg font-semibold">AI Strategic Insights</CardTitle>
-                <Button size="sm" className="ml-auto">
+            <Card className="bg-card border-border hover:shadow-lg transition-all">
+              <CardHeader className="flex flex-row items-center gap-2 p-4 sm:p-6">
+                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
+                <CardTitle className="text-base sm:text-lg font-semibold">AI Strategic Insights</CardTitle>
+                <Button size="sm" className="ml-auto text-xs sm:text-sm">
                   Generate Analysis
                 </Button>
               </CardHeader>
-              <CardContent>
-                <div className="text-center py-8 text-muted-foreground">
+              <CardContent className="p-4 sm:p-6">
+                <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
                   <p>Click generate to receive a deep-dive analysis of your module</p>
                   <p>performance using our multi-agent AI system.</p>
                 </div>
@@ -142,7 +142,7 @@ const UserDashboardNew = () => {
             </Card>
           </div>
           
-          <div className="space-y-6">
+          <div className="space-y-4 sm:space-y-6">
             <StatCard
               title="Avg Rating"
               value="4.8"
