@@ -311,67 +311,61 @@ const UserDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 md:gap-4"
         >
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
               info="Overall learning effectiveness based on module completion and assessments"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
               showDecoration
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="STR Score"
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
               info="Single Strength Rating - measures individual performance"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Engagement Rate"
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
               info="Module interaction and participation rate"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Completion Rate"
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
               info="Percentage of assigned modules completed"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Average Rating"
               value={stats.avgRating}
               subtitle="out of 5 stars"
               trend={{ value: 0, direction: 'neutral' }}
-              colSpan="col-span-1 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Time Saved"
               value={stats.timeSaved}
               subtitle="this month"
               trend={{ value: 15, direction: 'up' }}
               info="Estimated time saved through efficient learning"
-              colSpan="col-span-1 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
@@ -394,7 +388,6 @@ const UserDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="CSR Hotspots"
-              colSpan="col-span-full"
             >
               <div className="space-y-3">
                 {csrHotspots.map((item, i) => (
@@ -420,7 +413,6 @@ const UserDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Top Client Objections"
-              colSpan="col-span-full"
             >
               <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
                 <BarChart data={clientObjections} layout="vertical">
@@ -444,7 +436,6 @@ const UserDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Confusion Areas"
-              colSpan="col-span-full"
             >
               <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
                 <BarChart data={confusionAreas} layout="vertical">
@@ -468,7 +459,6 @@ const UserDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Regional STR"
-              colSpan="col-span-full"
             >
               <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
                 <BarChart data={regionalSTR}>

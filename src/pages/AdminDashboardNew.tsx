@@ -297,52 +297,48 @@ const AdminDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 md:gap-4"
         >
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Total Modules"
               value={stats.totalModules}
               trend={{ value: 8, direction: 'up' }}
               info="Total number of learning modules in the system"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
               showDecoration
             >
               <Layers className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Active Users"
               value={stats.activeUsers}
               trend={{ value: 12, direction: 'up' }}
               info="Users with active role assignments"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <Users className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Pending Requests"
               value={stats.pendingRequests}
               trend={{ value: 5, direction: 'down' }}
               info="Requests awaiting review or action"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <Clock className="h-8 w-8 text-amber-500 opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
             <MetricCard
               title="Completion Rate"
               value={`${stats.completionRate}%`}
               trend={{ value: 3, direction: 'up' }}
               info="Average module completion rate across all users"
-              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <CheckCircle className="h-8 w-8 text-emerald-500 opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
@@ -352,7 +348,6 @@ const AdminDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-8">
             <MetricCard
               title="Issues Raised vs Resolved"
-              colSpan="col-span-full"
             >
               <ResponsiveContainer width="100%" height={isMobile ? 140 : 180}>
                 <AreaChart data={chartData}>
@@ -387,7 +382,6 @@ const AdminDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-4">
             <MetricCard
               title="Recent Uploads"
-              colSpan="col-span-full"
             >
               <div className="space-y-3">
                 {recentUploads.length > 0 ? (

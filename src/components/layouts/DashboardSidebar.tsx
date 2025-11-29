@@ -77,12 +77,12 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
 
   return (
     <Sidebar 
-      className={`${isCollapsed ? "w-14" : "w-60"} bg-bg-surface/60 backdrop-blur-xl border-r border-border-default`}
+      className="bg-bg-surface/60 backdrop-blur-xl border-r border-border-default"
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-border-default p-3 sm:p-4">
-        <div className="flex items-center gap-2">
-          <Logo className="h-7 sm:h-8 flex-shrink-0" />
+      <SidebarHeader className={`border-b border-border-default transition-all duration-200 ${isCollapsed ? 'p-2' : 'p-3 sm:p-4'}`}>
+        <div className={`flex items-center ${isCollapsed ? 'justify-center' : 'gap-2'}`}>
+          <Logo className={`flex-shrink-0 transition-all duration-200 ${isCollapsed ? 'h-6' : 'h-7 sm:h-8'}`} />
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">
               <span className="text-xs sm:text-sm font-bold text-text-primary truncate">LYNQ</span>
@@ -107,7 +107,8 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                     onClick={() => navigate(item.url)}
                     isActive={isActive(item.url)}
                     className={`
-                      transition-all duration-200 rounded-xl mx-2
+                      transition-all duration-200 rounded-xl
+                      ${isCollapsed ? 'mx-1 justify-center' : 'mx-2'}
                       ${isActive(item.url) 
                         ? 'bg-brand text-white font-semibold shadow-md hover:bg-brand-hover' 
                         : 'hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary'
@@ -115,7 +116,7 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                     `}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className="h-5 w-5 flex-shrink-0" />
+                    <item.icon className={`flex-shrink-0 ${isCollapsed ? 'h-5 w-5' : 'h-5 w-5'}`} />
                     {!isCollapsed && <span className="truncate">{item.title}</span>}
                     {!isCollapsed && isActive(item.url) && (
                       <span className="ml-auto h-2 w-2 rounded-full bg-white animate-pulse" />
@@ -140,7 +141,8 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                       onClick={() => navigate(item.url)}
                       isActive={isActive(item.url)}
                       className={`
-                        transition-all duration-200 rounded-xl mx-2
+                        transition-all duration-200 rounded-xl
+                        ${isCollapsed ? 'mx-1 justify-center' : 'mx-2'}
                         ${isActive(item.url) 
                           ? 'bg-brand text-white font-semibold shadow-md hover:bg-brand-hover' 
                           : 'hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary'
@@ -148,7 +150,7 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                       `}
                       tooltip={isCollapsed ? item.title : undefined}
                     >
-                      <item.icon className="h-5 w-5 flex-shrink-0" />
+                      <item.icon className={`flex-shrink-0 ${isCollapsed ? 'h-5 w-5' : 'h-5 w-5'}`} />
                       {!isCollapsed && <span className="truncate">{item.title}</span>}
                       {!isCollapsed && isActive(item.url) && (
                         <span className="ml-auto h-2 w-2 rounded-full bg-white animate-pulse" />
