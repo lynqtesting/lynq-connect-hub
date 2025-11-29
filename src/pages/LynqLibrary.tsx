@@ -1,18 +1,14 @@
-
 import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Drawer, DrawerContent, DrawerHeader, DrawerTitle, DrawerClose } from "@/components/ui/drawer";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { useIsMobile } from "@/hooks/use-mobile";
-import { Package, Shield, Users, BookOpen, Heart, Search, X, LogOut } from "lucide-react";
+import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthPersistence } from "@/hooks/useAuthPersistence";
-
+import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 interface Module {
   id: string;
   title: string;
@@ -26,31 +22,27 @@ interface Module {
 const categoryData = {
   'Product': {
     icon: Package,
-    color: 'blue',
-    bgColor: 'bg-blue-100',
-    textColor: 'text-blue-600',
-    badgeColor: 'text-blue-600'
+    description: 'Product knowledge & features',
+    bgGradient: 'from-primary/20 to-primary/5',
+    iconColor: 'text-primary'
   },
   'Compliance': {
     icon: Shield,
-    color: 'green',
-    bgColor: 'bg-green-100',
-    textColor: 'text-green-600',
-    badgeColor: 'text-green-600'
+    description: 'Regulatory & policy guidelines',
+    bgGradient: 'from-chart-1/20 to-chart-1/5',
+    iconColor: 'text-chart-1'
   },
   'Soft Skills': {
     icon: Users,
-    color: 'purple',
-    bgColor: 'bg-purple-100',
-    textColor: 'text-purple-600',
-    badgeColor: 'text-purple-600'
+    description: 'Communication & leadership',
+    bgGradient: 'from-chart-2/20 to-chart-2/5',
+    iconColor: 'text-chart-2'
   },
   'Customer Awareness': {
     icon: Heart,
-    color: 'red',
-    bgColor: 'bg-red-100',
-    textColor: 'text-red-600',
-    badgeColor: 'text-red-600'
+    description: 'Customer service & relations',
+    bgGradient: 'from-destructive/20 to-destructive/5',
+    iconColor: 'text-destructive'
   }
 };
 
@@ -58,10 +50,7 @@ export default function LynqLibrary() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState<string | null>(null);
-  const [modalOpen, setModalOpen] = useState(false);
   const navigate = useNavigate();
-  const isMobile = useIsMobile();
   const { user, loading: authLoading } = useAuthPersistence();
 
   useEffect(() => {
@@ -158,214 +147,130 @@ export default function LynqLibrary() {
     });
   };
 
-  const handleCategoryClick = (category: string) => {
-    console.log('LynqLibrary: Category clicked:', category);
-    setSelectedCategory(category);
-    setModalOpen(true);
-  };
-
   const handleModuleClick = (moduleId: string) => {
-    console.log('LynqLibrary: Module clicked, navigating to:', `/module/${moduleId}`);
-    console.log('LynqLibrary: Module ID type:', typeof moduleId);
-    
-    // Ensure we have a valid module ID
     if (!moduleId || moduleId === 'undefined' || moduleId === 'null') {
-      console.error('LynqLibrary: Invalid module ID:', moduleId);
       toast.error('Invalid module selected');
       return;
     }
-    
-    // Close modal first
-    setModalOpen(false);
-    
-    // Navigate to module details
     navigate(`/module/${moduleId}`);
-  };
-
-  const handleLogout = async () => {
-    try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
-      navigate('/login');
-      toast.success('Logged out successfully');
-    } catch (error) {
-      console.error('Error logging out:', error);
-      toast.error('Failed to log out');
-    }
   };
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background flex items-center justify-center">
-        <div className="text-center">
-          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-          <p className="mt-2 text-muted-foreground">Loading library...</p>
+      <DashboardLayout role="user">
+        <div className="flex items-center justify-center h-64">
+          <div className="text-center">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="mt-2 text-sm text-muted-foreground">Loading library...</p>
+          </div>
         </div>
-      </div>
+      </DashboardLayout>
     );
   }
 
   return (
-    <div className="min-h-screen bg-background">
+    <DashboardLayout role="user">
       {/* Header */}
-      <div className="bg-card shadow-sm border-b sticky top-0 z-10">
-        <div className="px-4 py-3 flex items-center justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-foreground">LYNQ Library</h1>
-            <p className="text-xs text-muted-foreground mt-0.5">Learning resources organized by category</p>
-          </div>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={handleLogout}
-            className="flex items-center gap-2"
-          >
-            <LogOut className="h-4 w-4" />
-            Logout
-          </Button>
-        </div>
+      <div className="mb-6 sm:mb-8">
+        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">My Modules</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">
+          Learning resources organized by category
+        </p>
       </div>
 
       {/* Search Bar */}
-      <div className="px-4 py-3 bg-card border-b sticky top-16 z-10">
-        <div className="relative">
+      <div className="mb-6">
+        <div className="relative max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
-            placeholder="Search Lynqs..."
+            placeholder="Search modules..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-9 bg-muted border-0 focus:bg-card"
+            className="pl-10"
           />
-          <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
         </div>
       </div>
 
       {/* Categories Grid */}
-      <div className="px-3 py-4 pb-8">
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          {getFilteredCategories().map((category) => {
-            const categoryInfo = categoryData[category as keyof typeof categoryData];
-            const Icon = categoryInfo.icon;
-            const moduleCount = getModulesByCategory(category).length;
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+        {getFilteredCategories().map((category) => {
+          const categoryInfo = categoryData[category as keyof typeof categoryData];
+          const Icon = categoryInfo.icon;
+          const moduleCount = getModulesByCategory(category).length;
+          const categoryModules = getModulesByCategory(category);
 
-            return (
-              <Card key={category} className="overflow-hidden">
-                <Button
-                  variant="ghost"
-                  onClick={() => handleCategoryClick(category)}
-                  className="w-full p-6 h-auto flex flex-col items-center space-y-4 hover:bg-muted/50 min-h-[140px]"
-                >
-                  <div className={`w-16 h-16 ${categoryInfo.bgColor} rounded-2xl flex items-center justify-center`}>
-                    <Icon className={`w-8 h-8 ${categoryInfo.textColor}`} />
-                  </div>
-                  <div className="text-center space-y-2">
-                    <h3 className="font-semibold text-foreground text-base leading-tight">{category}</h3>
-                    <p className="text-sm text-muted-foreground leading-relaxed px-2">
-                      {category === 'Product' && 'Product knowledge & features'}
-                      {category === 'Compliance' && 'Regulatory & policy guidelines'}
-                      {category === 'Soft Skills' && 'Communication & leadership'}
-                      {category === 'Customer Awareness' && 'Customer service & relations'}
-                    </p>
-                    <Badge variant="secondary" className={`mt-3 text-sm ${categoryInfo.badgeColor} px-3 py-1`}>
-                      {moduleCount} Lynqs
+          return (
+            <Card key={category} className="hover:shadow-lg transition-all">
+              <CardHeader className="pb-4">
+                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${categoryInfo.bgGradient} flex items-center justify-center mb-3`}>
+                  <Icon className={`w-6 h-6 ${categoryInfo.iconColor}`} />
+                </div>
+                <CardTitle className="text-lg">{category}</CardTitle>
+                <CardDescription className="text-sm">
+                  {categoryInfo.description}
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between mb-3">
+                    <Badge variant="secondary" className="text-xs">
+                      {moduleCount} {moduleCount === 1 ? 'Module' : 'Modules'}
                     </Badge>
                   </div>
-                </Button>
-              </Card>
-            );
-          })}
-        </div>
+                  {categoryModules.length > 0 ? (
+                    <div className="space-y-2">
+                      {categoryModules.slice(0, 3).map((module) => (
+                        <div
+                          key={module.id}
+                          onClick={() => handleModuleClick(module.id)}
+                          className="group p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-all"
+                        >
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="flex-1 min-w-0">
+                              <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                {module.title}
+                              </p>
+                              {module.description && (
+                                <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                                  {module.description}
+                                </p>
+                              )}
+                            </div>
+                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                          </div>
+                        </div>
+                      ))}
+                      {categoryModules.length > 3 && (
+                        <p className="text-xs text-muted-foreground text-center pt-2">
+                          +{categoryModules.length - 3} more
+                        </p>
+                      )}
+                    </div>
+                  ) : (
+                    <div className="text-center py-4">
+                      <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                      <p className="text-xs text-muted-foreground">No modules yet</p>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
-      {/* Module Details Modal/Drawer */}
-      {isMobile ? (
-        <Drawer open={modalOpen} onOpenChange={setModalOpen}>
-          <DrawerContent>
-            <DrawerHeader className="pb-4">
-              <div className="flex items-center justify-between">
-                <DrawerTitle>{selectedCategory}</DrawerTitle>
-                <DrawerClose asChild>
-                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                    <X className="h-4 w-4" />
-                  </Button>
-                </DrawerClose>
-              </div>
-            </DrawerHeader>
-            <div className="px-4 pb-8 max-h-[60vh] overflow-y-auto space-y-3">
-              {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
-                console.log('LynqLibrary: Rendering module in drawer:', module);
-                return (
-                  <Card
-                    key={module.id}
-                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors active:bg-muted"
-                    onClick={() => handleModuleClick(module.id)}
-                  >
-                    <div className="font-medium text-foreground text-sm leading-tight">
-                      {module.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 leading-tight">
-                      {module.description}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      ID: {module.id}
-                    </div>
-                  </Card>
-                );
-              })}
-              {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No modules found in this category</p>
-                </div>
-              )}
-            </div>
-          </DrawerContent>
-        </Drawer>
-      ) : (
-        <Dialog open={modalOpen} onOpenChange={setModalOpen}>
-          <DialogContent className="max-h-[80vh] overflow-hidden">
-            <DialogHeader className="flex flex-row items-center justify-between">
-              <DialogTitle>{selectedCategory}</DialogTitle>
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setModalOpen(false)}
-                className="h-8 w-8 p-0"
-              >
-                <X className="h-4 w-4" />
-              </Button>
-            </DialogHeader>
-            <div className="overflow-y-auto max-h-[60vh] space-y-3">
-              {selectedCategory && getModulesByCategory(selectedCategory).map((module) => {
-                console.log('LynqLibrary: Rendering module in modal:', module);
-                return (
-                  <Card
-                    key={module.id}
-                    className="p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                    onClick={() => handleModuleClick(module.id)}
-                  >
-                    <div className="font-medium text-foreground text-sm leading-tight">
-                      {module.title}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-1 leading-tight">
-                      {module.description}
-                    </div>
-                    <div className="text-xs text-muted-foreground mt-2">
-                      ID: {module.id}
-                    </div>
-                  </Card>
-                );
-              })}
-              {selectedCategory && getModulesByCategory(selectedCategory).length === 0 && (
-                <div className="text-center py-8 text-muted-foreground">
-                  <BookOpen className="h-12 w-12 mx-auto mb-2 opacity-50" />
-                  <p>No modules found in this category</p>
-                </div>
-              )}
-            </div>
-          </DialogContent>
-        </Dialog>
+      {getFilteredCategories().length === 0 && (
+        <Card className="mt-8">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+            <p className="text-lg font-medium text-foreground mb-2">No results found</p>
+            <p className="text-sm text-muted-foreground">
+              Try adjusting your search terms
+            </p>
+          </CardContent>
+        </Card>
       )}
-    </div>
+    </DashboardLayout>
   );
 }
