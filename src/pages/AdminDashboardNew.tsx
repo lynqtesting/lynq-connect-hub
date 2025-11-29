@@ -4,7 +4,10 @@ import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { UploadHistoryCard } from '@/components/dashboard/UploadHistoryCard';
+import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
+import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, AlertCircle } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
@@ -82,6 +85,45 @@ const AdminDashboardNew = () => {
       <DashboardLayout role="admin">
         <div className="flex items-center justify-center h-64">
           <div className="text-muted-foreground">Loading dashboard...</div>
+        </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (loading) {
+    return (
+      <DashboardLayout role="admin">
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Metrics Skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <ChartSkeleton />
+            <div className="col-span-2 md:col-span-4 lg:col-span-4 bg-bg-surface border border-border-default rounded-xl p-6 space-y-3">
+              <Skeleton className="h-5 w-32" />
+              {[...Array(3)].map((_, i) => (
+                <Skeleton key={i} className="h-16 w-full rounded-lg" />
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Actions Skeleton */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-24 rounded-xl" />
+            ))}
+          </div>
         </div>
       </DashboardLayout>
     );

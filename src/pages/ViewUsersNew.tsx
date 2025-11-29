@@ -2,9 +2,11 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SidePanel } from '@/components/dashboard/SidePanel';
+import { UserCardSkeleton } from '@/components/dashboard/skeletons/UserCardSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Search, UserPlus, X } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -87,8 +89,25 @@ const ViewUsersNew = () => {
   if (loading) {
     return (
       <DashboardLayout role="admin">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-text-muted">Loading users...</div>
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Search Skeleton */}
+          <Skeleton className="h-10 w-full" />
+
+          {/* User Cards Skeleton */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {[...Array(9)].map((_, i) => (
+              <UserCardSkeleton key={i} />
+            ))}
+          </div>
         </div>
       </DashboardLayout>
     );
