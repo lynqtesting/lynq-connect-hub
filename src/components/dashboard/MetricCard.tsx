@@ -1,6 +1,8 @@
 import { ReactNode } from 'react';
+import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, Minus, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { cardHoverVariants } from '@/lib/animations';
 
 interface TrendBadge {
   value: number;
@@ -45,8 +47,12 @@ export function MetricCard({
   };
 
   return (
-    <div
-      className={`${colSpan} bg-bg-surface border border-border-default rounded-3xl p-5 md:p-6 shadow-xs hover:shadow-md transition-all duration-200 hover:scale-[1.01] active:scale-[0.98] ${className}`}
+    <motion.div
+      variants={cardHoverVariants}
+      initial="rest"
+      whileHover="hover"
+      whileTap="tap"
+      className={`${colSpan} bg-bg-surface border border-border-default rounded-3xl p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
@@ -101,8 +107,13 @@ export function MetricCard({
 
       {/* Decoration Line */}
       {showDecoration && (
-        <div className="mt-4 h-1 w-24 rounded-full bg-gradient-to-r from-brand to-brand-glow opacity-80" />
+        <motion.div 
+          initial={{ width: 0 }}
+          animate={{ width: 96 }}
+          transition={{ delay: 0.3, duration: 0.5 }}
+          className="mt-4 h-1 rounded-full bg-gradient-to-r from-brand to-brand-glow opacity-80" 
+        />
       )}
-    </div>
+    </motion.div>
   );
 }
