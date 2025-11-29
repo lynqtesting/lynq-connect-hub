@@ -3,7 +3,9 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { DashboardSidebar } from './DashboardSidebar';
 import { DashboardNavbar } from './DashboardNavbar';
+import { BottomNavigation } from './BottomNavigation';
 import { SidebarProvider } from '@/components/ui/sidebar';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface DashboardLayoutProps {
   children: ReactNode;
@@ -14,6 +16,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
   const { user, isAdmin, signOut } = useAuthPersistence();
   const navigate = useNavigate();
   const [sidebarOpen, setSidebarOpen] = useState(true);
+  const isMobile = useIsMobile();
 
   const handleLogout = async () => {
     await signOut();
@@ -39,9 +42,12 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           />
           
-          <main className="flex-1 p-4 sm:p-6 overflow-auto animate-fade-in">
+          <main className={`flex-1 p-4 sm:p-6 overflow-auto animate-fade-in ${isMobile ? 'pb-24' : ''}`}>
             {children}
           </main>
+
+          {/* Mobile Bottom Navigation */}
+          <BottomNavigation role={effectiveRole} />
         </div>
       </div>
     </SidebarProvider>
