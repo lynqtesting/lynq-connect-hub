@@ -45,7 +45,7 @@ const ViewUsersNew = () => {
 
       const { data: assignments, error: assignmentsError } = await supabase
         .from('user_module_assignments')
-        .select('user_id, module_id, modules(title)');
+        .select('user_id, module_id, modules!user_module_assignments_module_id_fkey(title)');
 
       if (assignmentsError) throw assignmentsError;
 
