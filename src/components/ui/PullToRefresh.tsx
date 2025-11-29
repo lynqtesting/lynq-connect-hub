@@ -23,14 +23,15 @@ export function PullToRefresh({
   const containerRef = useRef<HTMLDivElement>(null);
   const y = useMotionValue(0);
 
-  // Only enable on mobile
-  if (!isMobile) {
-    return <>{children}</>;
-  }
-
+  // Always call hooks unconditionally
   const pullProgress = useTransform(y, [0, pullThreshold], [0, 1]);
   const indicatorOpacity = useTransform(y, [0, 30], [0, 1]);
   const indicatorScale = useTransform(y, [0, pullThreshold], [0.8, 1]);
+
+  // Only enable pull-to-refresh on mobile
+  if (!isMobile) {
+    return <>{children}</>;
+  }
 
   const handleDragStart = () => {
     // Only allow pull-to-refresh when scrolled to top
