@@ -2,44 +2,37 @@ import { useState } from 'react';
 import { Sparkles, TrendingUp, TrendingDown, Minus, Zap, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
-
-interface Trend {
-  metric: string;
-  direction: 'up' | 'down' | 'stable';
-  analysis: string;
-}
-
-interface InsightsData {
-  dataQuality: {
-    isValid: boolean;
-    issues: string[];
-  };
-  trends: Trend[];
-  insights: string[];
-  callToAction: string;
-  confidence: number;
-}
+import { generateAIInsights, type InsightOutput } from '@/services/aiService';
 
 interface InsightsPanelProps {
-  onGenerate?: () => Promise<InsightsData>;
+  metricsData?: any;
 }
 
-export function InsightsPanel({ onGenerate }: InsightsPanelProps) {
+export function InsightsPanel({ metricsData }: InsightsPanelProps) {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [insights, setInsights] = useState<InsightsData | null>(null);
+  const [insights, setInsights] = useState<InsightOutput | null>(null);
 
   const handleGenerate = async () => {
-    if (!onGenerate) return;
-    
     setIsLoading(true);
     setError(null);
     
     try {
-      const data = await onGenerate();
-      setInsights(data);
+      const result = await generateAIInsights(metricsData);
+      setInsights(result);
+      
+      // Only show error for configuration issues
+      if (result.confidence === 0 && result.dataQuality.issues && result.dataQuality.issues.length > 0) {
+        const isConfigError = result.dataQuality.issues.some(
+          issue => issue.includes('API key') || issue.includes('configured')
+        );
+        if (isConfigError) {
+          setError('API configuration issue. Please check Supabase secrets.');
+        }
+      }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to generate insights');
+      console.error('Generate insights error:', err);
+      setError(err instanceof Error ? err.message : 'An unexpected error occurred');
     } finally {
       setIsLoading(false);
     }

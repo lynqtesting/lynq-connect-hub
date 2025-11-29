@@ -7,6 +7,7 @@ import { UploadHistoryCard } from '@/components/dashboard/UploadHistoryCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
+import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -251,6 +252,15 @@ const AdminDashboardNew = () => {
               ))}
             </div>
           </MetricCard>
+
+          {/* AI Insights Panel */}
+          <InsightsPanel metricsData={{
+            totalModules: stats.totalModules,
+            activeUsers: stats.activeUsers,
+            pendingRequests: stats.pendingRequests,
+            completionRate: 82,
+            weeklyTrends: chartData,
+          }} />
         </div>
 
         {/* Quick Actions */}
