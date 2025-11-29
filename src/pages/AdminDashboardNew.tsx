@@ -88,21 +88,21 @@ const AdminDashboardNew = () => {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-foreground">Admin Overview</h1>
-            <p className="text-muted-foreground mt-1">System status and activity monitoring.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Overview</h1>
+            <p className="text-sm text-muted-foreground mt-1">System status and activity monitoring.</p>
           </div>
-          <Button onClick={() => navigate('/upload-module')} className="gap-2">
+          <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto">
             <Plus className="h-4 w-4" />
             Add Module
           </Button>
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           <StatCard
             title="Total Modules"
             value={stats.totalModules}
@@ -124,7 +124,7 @@ const AdminDashboardNew = () => {
         </div>
 
         {/* Charts and Upload History */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
           <div className="lg:col-span-2">
             <DashboardChart
               title="Issues Raised vs Resolved"

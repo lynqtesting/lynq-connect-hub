@@ -80,13 +80,13 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
       className={isCollapsed ? "w-14" : "w-60"}
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-sidebar-border p-4">
+      <SidebarHeader className="border-b border-sidebar-border p-3 sm:p-4">
         <div className="flex items-center gap-2">
-          <Logo className="h-8" />
+          <Logo className="h-7 sm:h-8 flex-shrink-0" />
           {!isCollapsed && (
-            <div className="flex flex-col">
-              <span className="text-sm font-medium text-sidebar-foreground">LYNQ</span>
-              <span className="text-xs text-sidebar-foreground/60 uppercase">
+            <div className="flex flex-col min-w-0">
+              <span className="text-xs sm:text-sm font-medium text-sidebar-foreground truncate">LYNQ</span>
+              <span className="text-[10px] sm:text-xs text-sidebar-foreground/60 uppercase truncate">
                 {role === 'admin' ? 'Admin Workspace' : 'My Learning'}
               </span>
             </div>
@@ -108,13 +108,14 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                     isActive={isActive(item.url)}
                     className={`
                       ${isActive(item.url) 
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
+                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
                         : 'hover:bg-sidebar-accent/50'
                       }
                     `}
+                    tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className="h-4 w-4" />
-                    {!isCollapsed && <span>{item.title}</span>}
+                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    {!isCollapsed && <span className="truncate">{item.title}</span>}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -136,13 +137,14 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                       isActive={isActive(item.url)}
                       className={`
                         ${isActive(item.url) 
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground' 
+                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
                           : 'hover:bg-sidebar-accent/50'
                         }
                       `}
+                      tooltip={isCollapsed ? item.title : undefined}
                     >
-                      <item.icon className="h-4 w-4" />
-                      {!isCollapsed && <span>{item.title}</span>}
+                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      {!isCollapsed && <span className="truncate">{item.title}</span>}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -153,8 +155,8 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
       </SidebarContent>
 
       {!isCollapsed && role === 'admin' && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/50">
+        <div className="p-3 sm:p-4 border-t border-sidebar-border">
+          <div className="text-[10px] sm:text-xs text-sidebar-foreground/50">
             Simulate Role Switch:{' '}
             <span className="text-destructive font-medium">Admin</span>
           </div>
@@ -162,8 +164,8 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
       )}
       
       {!isCollapsed && role === 'user' && (
-        <div className="p-4 border-t border-sidebar-border">
-          <div className="text-xs text-sidebar-foreground/50">
+        <div className="p-3 sm:p-4 border-t border-sidebar-border">
+          <div className="text-[10px] sm:text-xs text-sidebar-foreground/50">
             Simulate Role Switch:{' '}
             <span className="text-primary font-medium">User</span>
           </div>
