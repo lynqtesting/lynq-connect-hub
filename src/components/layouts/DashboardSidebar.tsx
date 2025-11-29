@@ -38,7 +38,7 @@ interface NavItem {
 const userNavItems: NavItem[] = [
   { title: 'Dashboard', url: '/user-dashboard', icon: LayoutDashboard },
   { title: 'My Modules', url: '/lynq-library', icon: BookOpen },
-  { title: 'My Responses', url: '/user-dashboard', icon: FileText },
+  { title: 'My Responses', url: '/user-responses', icon: FileText },
 ];
 
 const adminNavItems: NavItem[] = [

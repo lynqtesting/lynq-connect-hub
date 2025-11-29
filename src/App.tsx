@@ -25,6 +25,7 @@ import ViewRequests from "./pages/ViewRequests";
 import WriteRecommendations from "./pages/WriteRecommendations";
 import EditModule from "./pages/EditModule";
 import LynqLibrary from "./pages/LynqLibrary";
+import UserResponses from "./pages/UserResponses";
 
 import AdaptiveRequests from "./pages/AdaptiveRequests";
 import TweakRequests from "./pages/TweakRequests";
@@ -48,6 +49,7 @@ const App = () => (
             <Route path="/lynq-library" element={<RouteGuard><LynqLibrary /></RouteGuard>} />
             <Route path="/user-dashboard" element={<RouteGuard><UserDashboardNew /></RouteGuard>} />
             <Route path="/user-dashboard-old" element={<RouteGuard><UserDashboard /></RouteGuard>} />
+            <Route path="/user-responses" element={<RouteGuard><UserResponses /></RouteGuard>} />
             <Route path="/module/:moduleId" element={<RouteGuard><ModuleDetails /></RouteGuard>} />
             <Route path="/request-form/new" element={<RouteGuard><RequestForm type="new" /></RouteGuard>} />
             <Route path="/request-form/adapt/:moduleId" element={<RouteGuard><RequestForm type="adapt" /></RouteGuard>} />

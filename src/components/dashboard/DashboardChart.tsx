@@ -1,5 +1,16 @@
+import { ReactNode } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import {
+  ResponsiveContainer,
+  AreaChart,
+  Area,
+  BarChart,
+  Bar,
+  XAxis,
+  YAxis,
+  Tooltip,
+  Legend,
+} from 'recharts';
 
 interface ChartDataPoint {
   name: string;
@@ -13,101 +24,123 @@ interface DashboardChartProps {
   dataKeys: string[];
   colors?: string[];
   height?: number;
-  action?: React.ReactNode;
+  action?: ReactNode;
 }
 
-export function DashboardChart({ 
-  title, 
-  data, 
-  type = 'area', 
-  dataKeys, 
-  colors = ['hsl(var(--primary))', 'hsl(var(--destructive))'],
+export function DashboardChart({
+  title,
+  data,
+  type = 'area',
+  dataKeys,
+  colors = ['hsl(var(--brand))', 'hsl(var(--destructive))'],
   height = 300,
-  action
+  action,
 }: DashboardChartProps) {
-  return (
-    <Card className="bg-card border-border hover:shadow-lg transition-all">
-      <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
-        <CardTitle className="text-base sm:text-lg font-semibold">{title}</CardTitle>
-        {action}
-      </CardHeader>
-      <CardContent className="px-2 sm:px-6 pb-4 sm:pb-6">
+  const renderChart = () => {
+    if (type === 'area') {
+      return (
         <ResponsiveContainer width="100%" height={height}>
-          {type === 'area' ? (
-            <AreaChart data={data}>
-              <defs>
-                {dataKeys.map((key, index) => (
-                  <linearGradient key={key} id={`gradient-${key}`} x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor={colors[index]} stopOpacity={0.3} />
-                    <stop offset="95%" stopColor={colors[index]} stopOpacity={0} />
-                  </linearGradient>
-                ))}
-              </defs>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-              />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
-              />
+          <AreaChart data={data}>
+            <defs>
               {dataKeys.map((key, index) => (
-                <Area
-                  key={key}
-                  type="monotone"
-                  dataKey={key}
-                  stroke={colors[index]}
-                  strokeWidth={2}
-                  fill={`url(#gradient-${key})`}
-                />
+                <linearGradient key={key} id={`gradient-${key}`} x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor={colors[index % colors.length]} stopOpacity={0.3} />
+                  <stop offset="95%" stopColor={colors[index % colors.length]} stopOpacity={0} />
+                </linearGradient>
               ))}
-            </AreaChart>
-          ) : (
-            <BarChart data={data}>
-              <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" opacity={0.3} />
-              <XAxis 
-                dataKey="name" 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
+            </defs>
+            <XAxis
+              dataKey="name"
+              tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <YAxis
+              tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+              axisLine={false}
+              tickLine={false}
+            />
+            <Tooltip
+              contentStyle={{
+                backgroundColor: 'hsl(var(--bg-surface))',
+                border: '1px solid hsl(var(--border-default))',
+                borderRadius: '8px',
+                fontSize: '12px',
+                color: 'hsl(var(--text-primary))',
+              }}
+            />
+            <Legend
+              wrapperStyle={{
+                fontSize: '12px',
+                color: 'hsl(var(--text-secondary))',
+              }}
+            />
+            {dataKeys.map((key, index) => (
+              <Area
+                key={key}
+                type="monotone"
+                dataKey={key}
+                stroke={colors[index % colors.length]}
+                fillOpacity={1}
+                fill={`url(#gradient-${key})`}
+                strokeWidth={2}
               />
-              <YAxis 
-                stroke="hsl(var(--muted-foreground))"
-                fontSize={11}
-                tickLine={false}
-              />
-              <Tooltip 
-                contentStyle={{ 
-                  backgroundColor: 'hsl(var(--popover))',
-                  border: '1px solid hsl(var(--border))',
-                  borderRadius: '8px',
-                  fontSize: '12px'
-                }}
-              />
-              {dataKeys.map((key, index) => (
-                <Bar
-                  key={key}
-                  dataKey={key}
-                  fill={colors[index]}
-                  radius={[8, 8, 0, 0]}
-                />
-              ))}
-            </BarChart>
-          )}
+            ))}
+          </AreaChart>
         </ResponsiveContainer>
-      </CardContent>
+      );
+    }
+
+    return (
+      <ResponsiveContainer width="100%" height={height}>
+        <BarChart data={data}>
+          <XAxis
+            dataKey="name"
+            tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <YAxis
+            tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }}
+            axisLine={false}
+            tickLine={false}
+          />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'hsl(var(--bg-surface))',
+              border: '1px solid hsl(var(--border-default))',
+              borderRadius: '8px',
+              fontSize: '12px',
+              color: 'hsl(var(--text-primary))',
+            }}
+          />
+          <Legend
+            wrapperStyle={{
+              fontSize: '12px',
+              color: 'hsl(var(--text-secondary))',
+            }}
+          />
+          {dataKeys.map((key, index) => (
+            <Bar
+              key={key}
+              dataKey={key}
+              fill={colors[index % colors.length]}
+              radius={[4, 4, 0, 0]}
+              barSize={40}
+            />
+          ))}
+        </BarChart>
+      </ResponsiveContainer>
+    );
+  };
+
+  return (
+    <Card className="bg-bg-surface border-border-default hover:shadow-md transition-all">
+      <CardHeader className="flex flex-row items-center justify-between p-4 sm:p-6">
+        <CardTitle className="text-base sm:text-lg font-semibold text-text-primary">{title}</CardTitle>
+        {action && <div>{action}</div>}
+      </CardHeader>
+      <CardContent className="p-4 sm:p-6 pt-0">{renderChart()}</CardContent>
     </Card>
   );
 }
