@@ -188,6 +188,9 @@ export default {
     			lg: 'var(--shadow-lg)',
     			xl: 'var(--shadow-xl)',
     			'2xl': 'var(--shadow-2xl)'
+    		},
+    		spacing: {
+    			'safe': 'env(safe-area-inset-bottom, 0.5rem)'
     		}
     	}
     },
