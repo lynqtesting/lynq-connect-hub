@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { StatCard } from '@/components/dashboard/StatCard';
-import { DashboardChart } from '@/components/dashboard/DashboardChart';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { MetricCard } from '@/components/dashboard/MetricCard';
+import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { Button } from '@/components/ui/button';
-import { Sparkles, TrendingUp, Clock, Target } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Progress } from '@/components/ui/progress';
+import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
@@ -14,13 +15,18 @@ const UserDashboardNew = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuthPersistence();
-  const [stats, setStats] = useState({
-    objectiveScore: 0,
-    strScore: 0,
-    engagement: 0,
-    completion: 0,
-  });
+  const [selectedRegion, setSelectedRegion] = useState('global');
+  const [selectedModule, setSelectedModule] = useState('all');
   const [loading, setLoading] = useState(true);
+
+  const [stats, setStats] = useState({
+    objectiveScore: 88,
+    strScore: 92,
+    engagement: 78,
+    completion: 85,
+    avgRating: 4.5,
+    timeSaved: '12h',
+  });
 
   useEffect(() => {
     if (user) {
@@ -31,8 +37,6 @@ const UserDashboardNew = () => {
   const fetchUserStats = async () => {
     try {
       setLoading(true);
-
-      // Fetch user's assigned modules
       const { data: assignments } = await supabase
         .from('user_module_assignments')
         .select('*, modules(*)')
@@ -43,12 +47,10 @@ const UserDashboardNew = () => {
         const total = assignments.length;
         const completionRate = total > 0 ? (completed / total) * 100 : 0;
 
-        setStats({
-          objectiveScore: 88,
-          strScore: 92,
-          engagement: 78,
+        setStats(prev => ({
+          ...prev,
           completion: Math.round(completionRate),
-        });
+        }));
       }
     } catch (error: any) {
       toast({
@@ -61,20 +63,63 @@ const UserDashboardNew = () => {
     }
   };
 
-  // Mock chart data
-  const performanceData = [
-    { name: 'Week 1', score: 75 },
-    { name: 'Week 2', score: 82 },
-    { name: 'Week 3', score: 78 },
-    { name: 'Week 4', score: 88 },
-    { name: 'Week 5', score: 92 },
+  // Mock data for visualizations
+  const csrHotspots = [
+    { label: 'North Region', value: 85 },
+    { label: 'South Region', value: 72 },
+    { label: 'East Region', value: 68 },
+    { label: 'West Region', value: 91 },
   ];
+
+  const clientObjections = [
+    { label: 'Price Concerns', value: 45 },
+    { label: 'Feature Gaps', value: 32 },
+    { label: 'Support Issues', value: 28 },
+    { label: 'Integration', value: 22 },
+  ];
+
+  const confusionAreas = [
+    { label: 'Advanced Features', value: 38 },
+    { label: 'Setup Process', value: 29 },
+    { label: 'Best Practices', value: 24 },
+    { label: 'Reporting', value: 18 },
+  ];
+
+  const regionalSTR = [
+    { region: 'North', value: 125000 },
+    { region: 'South', value: 98000 },
+    { region: 'East', value: 87000 },
+    { region: 'West', value: 142000 },
+  ];
+
+  const handleGenerateInsights = async () => {
+    // Simulate AI insights generation
+    return new Promise<any>((resolve) => {
+      setTimeout(() => {
+        resolve({
+          dataQuality: { isValid: true, issues: [] },
+          trends: [
+            { metric: 'Engagement', direction: 'up', analysis: '+12% vs last month' },
+            { metric: 'Completion', direction: 'up', analysis: '+8% improvement' },
+          ],
+          insights: [
+            'Your objective score has increased by 12% this quarter, showing strong learning progress.',
+            'West region shows the highest STR at $142K, indicating strong product adoption.',
+            'Price concerns are the top client objection at 45%, suggesting need for value demonstration.',
+            'Advanced features confusion is at 38%, recommend additional training modules.',
+          ],
+          callToAction: 'Focus on addressing price concerns and provide advanced feature tutorials to improve engagement further.',
+          confidence: 87,
+        });
+      }, 1500);
+    });
+  };
 
   if (loading) {
     return (
       <DashboardLayout role="user">
         <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading dashboard...</div>
+          <div className="text-text-muted">Loading dashboard...</div>
         </div>
       </DashboardLayout>
     );
@@ -82,89 +127,195 @@ const UserDashboardNew = () => {
 
   return (
     <DashboardLayout role="user">
-      <div className="space-y-4 sm:space-y-6">
-        {/* Header */}
-        <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Dashboard</h1>
-            <p className="text-sm text-muted-foreground mt-1">Welcome back, {user?.email?.split('@')[0] || 'User'}</p>
+      <div className="space-y-6">
+        {/* Header with Filters */}
+        <div className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">
+                Dashboard
+              </h1>
+              <p className="text-sm text-text-muted mt-1">
+                Welcome back, {user?.email?.split('@')[0] || 'User'}
+              </p>
+            </div>
+            <Button
+              onClick={() => navigate('/lynq-library')}
+              className="w-full sm:w-auto bg-brand hover:bg-brand-hover"
+            >
+              View All Modules
+            </Button>
           </div>
-          <Button onClick={() => navigate('/lynq-library')} variant="outline" className="w-full sm:w-auto">
-            View All Modules
-          </Button>
+
+          {/* Filters */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select value={selectedModule} onValueChange={setSelectedModule}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default">
+                <SelectValue placeholder="Select Module" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Modules</SelectItem>
+                <SelectItem value="module1">Sales Training</SelectItem>
+                <SelectItem value="module2">Product Demo</SelectItem>
+                <SelectItem value="module3">Customer Success</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default">
+                <SelectValue placeholder="Select Region" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="global">Global</SelectItem>
+                <SelectItem value="north">North</SelectItem>
+                <SelectItem value="south">South</SelectItem>
+                <SelectItem value="east">East</SelectItem>
+                <SelectItem value="west">West</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <StatCard
+        {/* Bento Grid - Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+          <MetricCard
             title="Objective Score"
             value={`${stats.objectiveScore}%`}
-            icon={Target}
-            trend={{ value: 12, positive: true }}
+            trend={{ value: 12, direction: 'up' }}
+            info="Overall learning effectiveness based on module completion and assessments"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+            showDecoration
           />
-          <StatCard
+
+          <MetricCard
             title="STR Score"
             value={stats.strScore}
-            icon={TrendingUp}
-            trend={{ value: 5, positive: true }}
+            trend={{ value: 8, direction: 'up' }}
+            info="Single Strength Rating - measures individual performance"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
           />
-          <StatCard
-            title="Engagement"
+
+          <MetricCard
+            title="Engagement Rate"
             value={`${stats.engagement}%`}
-            icon={Sparkles}
-            trend={{ value: 3, positive: false }}
+            trend={{ value: 5, direction: 'up' }}
+            info="Module interaction and participation rate"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
           />
-          <StatCard
-            title="Completion"
+
+          <MetricCard
+            title="Completion Rate"
             value={`${stats.completion}%`}
-            icon={Clock}
-            trend={{ value: 8, positive: true }}
+            trend={{ value: 3, direction: 'down' }}
+            info="Percentage of assigned modules completed"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
           />
-        </div>
 
-        {/* AI Insights & Performance Chart */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-2">
-            <Card className="bg-card border-border hover:shadow-lg transition-all">
-              <CardHeader className="flex flex-row items-center gap-2 p-4 sm:p-6">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
-                <CardTitle className="text-base sm:text-lg font-semibold">AI Strategic Insights</CardTitle>
-                <Button size="sm" className="ml-auto text-xs sm:text-sm">
-                  Generate Analysis
-                </Button>
-              </CardHeader>
-              <CardContent className="p-4 sm:p-6">
-                <div className="text-center py-6 sm:py-8 text-muted-foreground text-sm">
-                  <p>Click generate to receive a deep-dive analysis of your module</p>
-                  <p>performance using our multi-agent AI system.</p>
+          <MetricCard
+            title="Average Rating"
+            value={stats.avgRating}
+            subtitle="out of 5 stars"
+            trend={{ value: 0, direction: 'neutral' }}
+            colSpan="col-span-1 md:col-span-2 lg:col-span-3"
+          />
+
+          <MetricCard
+            title="Time Saved"
+            value={stats.timeSaved}
+            subtitle="this month"
+            trend={{ value: 15, direction: 'up' }}
+            info="Estimated time saved through efficient learning"
+            colSpan="col-span-1 md:col-span-2 lg:col-span-3"
+          />
+
+          {/* AI Insights Panel */}
+          <InsightsPanel onGenerate={handleGenerateInsights} />
+
+          {/* CSR Hotspots */}
+          <MetricCard
+            title="CSR Hotspots"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-6"
+          >
+            <div className="space-y-3">
+              {csrHotspots.map((item, i) => (
+                <div key={i} className="space-y-1">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-text-secondary font-medium">{item.label}</span>
+                    <span className="text-text-primary font-bold">{item.value}%</span>
+                  </div>
+                  <Progress value={item.value} className="h-2" />
                 </div>
-              </CardContent>
-            </Card>
-          </div>
-          
-          <div className="space-y-4 sm:space-y-6">
-            <StatCard
-              title="Avg Rating"
-              value="4.8"
-              trend={{ value: 2, positive: false }}
-            />
-            <StatCard
-              title="Time Saved"
-              value="12h"
-              trend={{ value: 12, positive: true }}
-            />
-          </div>
-        </div>
+              ))}
+            </div>
+          </MetricCard>
 
-        {/* Performance Chart */}
-        <DashboardChart
-          title="Performance Trend"
-          data={performanceData}
-          type="area"
-          dataKeys={['score']}
-          colors={['hsl(var(--primary))']}
-          height={250}
-        />
+          {/* Client Objections */}
+          <MetricCard
+            title="Top Client Objections"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-6"
+          >
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={clientObjections} layout="vertical">
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} width={100} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--brand))" radius={[0, 4, 4, 0]} barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          </MetricCard>
+
+          {/* Confusion Areas */}
+          <MetricCard
+            title="Confusion Areas"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-6"
+          >
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={confusionAreas} layout="vertical">
+                <XAxis type="number" hide />
+                <YAxis type="category" dataKey="label" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} width={100} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[0, 4, 4, 0]} barSize={16} />
+              </BarChart>
+            </ResponsiveContainer>
+          </MetricCard>
+
+          {/* Regional STR */}
+          <MetricCard
+            title="Regional STR"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-6"
+          >
+            <ResponsiveContainer width="100%" height={160}>
+              <BarChart data={regionalSTR}>
+                <XAxis dataKey="region" tick={{ fontSize: 10, fill: 'var(--text-muted)' }} />
+                <YAxis hide />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'var(--bg-surface)',
+                    border: '1px solid var(--border-default)',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                  formatter={(value: number) => `$${(value / 1000).toFixed(0)}K`}
+                />
+                <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={40} />
+              </BarChart>
+            </ResponsiveContainer>
+          </MetricCard>
+        </div>
       </div>
     </DashboardLayout>
   );

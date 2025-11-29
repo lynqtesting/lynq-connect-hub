@@ -1,7 +1,7 @@
-import { Moon, Sun, LogOut, Menu } from 'lucide-react';
+import { Moon, Sun, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { SidebarTrigger } from '@/components/ui/sidebar';
-import { useEffect, useState } from 'react';
+import { useTheme } from '@/context/ThemeContext';
 
 interface DashboardNavbarProps {
   user: any;
@@ -11,30 +11,10 @@ interface DashboardNavbarProps {
 }
 
 export function DashboardNavbar({ user, role, onLogout, onToggleSidebar }: DashboardNavbarProps) {
-  const [theme, setTheme] = useState<'light' | 'dark'>('dark');
-
-  useEffect(() => {
-    // Initialize theme from localStorage or default to dark
-    const savedTheme = localStorage.getItem('theme') as 'light' | 'dark';
-    const initialTheme = savedTheme || 'dark';
-    setTheme(initialTheme);
-    document.documentElement.classList.toggle('dark', initialTheme === 'dark');
-    
-    // Save default theme if not set
-    if (!savedTheme) {
-      localStorage.setItem('theme', 'dark');
-    }
-  }, []);
-
-  const toggleTheme = () => {
-    const newTheme = theme === 'dark' ? 'light' : 'dark';
-    setTheme(newTheme);
-    localStorage.setItem('theme', newTheme);
-    document.documentElement.classList.toggle('dark', newTheme === 'dark');
-  };
+  const { theme, toggleTheme } = useTheme();
 
   return (
-    <header className="h-14 border-b border-border bg-card flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50">
+    <header className="h-14 border-b border-border-default bg-bg-surface/60 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50">
       <div className="flex items-center gap-2">
         <SidebarTrigger />
       </div>
@@ -44,13 +24,15 @@ export function DashboardNavbar({ user, role, onLogout, onToggleSidebar }: Dashb
           variant="ghost"
           size="icon"
           onClick={toggleTheme}
-          className="rounded-full h-9 w-9"
+          className="rounded-full h-9 w-9 hover:scale-110 active:scale-90 active:rotate-12 transition-all duration-200"
         >
-          {theme === 'dark' ? (
-            <Sun className="h-4 w-4 sm:h-5 sm:w-5" />
-          ) : (
-            <Moon className="h-4 w-4 sm:h-5 sm:w-5" />
-          )}
+          <div className="relative w-5 h-5">
+            {theme === 'dark' ? (
+              <Sun className="h-5 w-5 animate-in spin-in-180 zoom-in-75 duration-300" />
+            ) : (
+              <Moon className="h-5 w-5 animate-in spin-in-180 zoom-in-75 duration-300" />
+            )}
+          </div>
         </Button>
 
         <Button
