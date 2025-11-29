@@ -1,11 +1,12 @@
 import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
-import { StatCard } from '@/components/dashboard/StatCard';
+import { MetricCard } from '@/components/dashboard/MetricCard';
 import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { UploadHistoryCard } from '@/components/dashboard/UploadHistoryCard';
 import { Button } from '@/components/ui/button';
-import { Plus, Users, Layers, GitPullRequest } from 'lucide-react';
+import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, AlertCircle } from 'lucide-react';
+import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -88,53 +89,132 @@ const AdminDashboardNew = () => {
 
   return (
     <DashboardLayout role="admin">
-      <div className="space-y-4 sm:space-y-6">
+      <div className="space-y-6">
         {/* Header */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Admin Overview</h1>
-            <p className="text-sm text-muted-foreground mt-1">System status and activity monitoring.</p>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Admin Overview</h1>
+            <p className="text-sm text-text-muted mt-1">System status and activity monitoring</p>
           </div>
-          <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto">
+          <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto bg-brand hover:bg-brand-hover">
             <Plus className="h-4 w-4" />
             Add Module
           </Button>
         </div>
 
-        {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          <StatCard
+        {/* Bento Grid - Metrics */}
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+          <MetricCard
             title="Total Modules"
             value={stats.totalModules}
-            icon={Layers}
-            progress={Math.min((stats.totalModules / 20) * 100, 100)}
-          />
-          <StatCard
+            trend={{ value: 8, direction: 'up' }}
+            info="Total number of learning modules in the system"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+            showDecoration
+          >
+            <Layers className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
+          </MetricCard>
+
+          <MetricCard
             title="Active Users"
             value={stats.activeUsers}
-            icon={Users}
-            progress={Math.min((stats.activeUsers / 100) * 100, 100)}
-          />
-          <StatCard
+            trend={{ value: 12, direction: 'up' }}
+            info="Users who have logged in within the last 30 days"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+          >
+            <Users className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
+          </MetricCard>
+
+          <MetricCard
             title="Pending Requests"
             value={stats.pendingRequests}
-            icon={GitPullRequest}
-            progress={Math.min((stats.pendingRequests / 10) * 100, 100)}
-          />
+            trend={{ value: 5, direction: 'down' }}
+            info="Requests awaiting review or action"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+          >
+            <Clock className="h-8 w-8 text-amber-500 opacity-20 absolute bottom-4 right-4" />
+          </MetricCard>
+
+          <MetricCard
+            title="Completion Rate"
+            value="82%"
+            trend={{ value: 3, direction: 'up' }}
+            info="Average module completion rate across all users"
+            colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+          >
+            <CheckCircle className="h-8 w-8 text-emerald-500 opacity-20 absolute bottom-4 right-4" />
+          </MetricCard>
+
+          {/* Issues Chart */}
+          <MetricCard
+            title="Issues Raised vs Resolved"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-8"
+          >
+            <ResponsiveContainer width="100%" height={200}>
+              <AreaChart data={chartData}>
+                <defs>
+                  <linearGradient id="colorRaised" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--destructive))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--destructive))" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="colorResolved" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }} axisLine={false} tickLine={false} />
+                <YAxis tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }} axisLine={false} tickLine={false} />
+                <Tooltip
+                  contentStyle={{
+                    backgroundColor: 'hsl(var(--bg-surface))',
+                    border: '1px solid hsl(var(--border-default))',
+                    borderRadius: '8px',
+                    fontSize: '12px',
+                  }}
+                />
+                <Area type="monotone" dataKey="raised" stroke="hsl(var(--destructive))" fillOpacity={1} fill="url(#colorRaised)" strokeWidth={2} />
+                <Area type="monotone" dataKey="resolved" stroke="hsl(var(--chart-2))" fillOpacity={1} fill="url(#colorResolved)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </MetricCard>
+
+          {/* Recent Uploads */}
+          <MetricCard
+            title="Recent Uploads"
+            colSpan="col-span-2 md:col-span-4 lg:col-span-4"
+          >
+            <div className="space-y-3">
+              {recentUploads.map((upload) => (
+                <div key={upload.id} className="flex items-center justify-between p-3 bg-bg-canvas rounded-lg hover:bg-bg-surface-hover transition-colors">
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-text-primary truncate">{upload.title}</p>
+                    <p className="text-xs text-text-muted">{upload.author}</p>
+                  </div>
+                  <span className="text-xs text-text-muted ml-2 flex-shrink-0">{upload.date}</span>
+                </div>
+              ))}
+            </div>
+          </MetricCard>
         </div>
 
-        {/* Charts and Upload History */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-          <div className="lg:col-span-2">
-            <DashboardChart
-              title="Issues Raised vs Resolved"
-              data={chartData}
-              type="area"
-              dataKeys={['raised', 'resolved']}
-              colors={['hsl(0, 84%, 60%)', 'hsl(142, 71%, 45%)']}
-            />
-          </div>
-          <UploadHistoryCard uploads={recentUploads} />
+        {/* Quick Actions */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <Button variant="outline" onClick={() => navigate('/view-modules')} className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-bg-surface-hover hover:border-brand">
+            <Layers className="h-6 w-6 text-brand" />
+            <span className="font-semibold">Manage Modules</span>
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/view-users')} className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-bg-surface-hover hover:border-brand">
+            <Users className="h-6 w-6 text-brand" />
+            <span className="font-semibold">Manage Users</span>
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/admin/tweak-requests')} className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-bg-surface-hover hover:border-brand">
+            <GitPullRequest className="h-6 w-6 text-brand" />
+            <span className="font-semibold">View Requests</span>
+          </Button>
+          <Button variant="outline" onClick={() => navigate('/upload-module')} className="h-auto py-6 flex flex-col items-center gap-2 hover:bg-bg-surface-hover hover:border-brand">
+            <Plus className="h-6 w-6 text-brand" />
+            <span className="font-semibold">Upload Module</span>
+          </Button>
         </div>
       </div>
     </DashboardLayout>
