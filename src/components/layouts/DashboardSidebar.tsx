@@ -93,7 +93,7 @@ export function DashboardSidebar({
               <span className="text-xs sm:text-sm font-bold text-text-primary truncate">
           </span>
               <span className="text-[10px] sm:text-xs text-text-muted uppercase truncate">
-                {role === 'admin' ? 'Admin Workspace' : 'My Learning'}
+                {role === 'admin' ? '' : 'My Learning'}
               </span>
             </div>}
         </div>
