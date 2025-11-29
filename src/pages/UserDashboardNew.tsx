@@ -102,29 +102,6 @@ const UserDashboardNew = () => {
     { region: 'West', value: 142000 },
   ];
 
-  const handleGenerateInsights = async () => {
-    // Simulate AI insights generation
-    return new Promise<any>((resolve) => {
-      setTimeout(() => {
-        resolve({
-          dataQuality: { isValid: true, issues: [] },
-          trends: [
-            { metric: 'Engagement', direction: 'up', analysis: '+12% vs last month' },
-            { metric: 'Completion', direction: 'up', analysis: '+8% improvement' },
-          ],
-          insights: [
-            'Your objective score has increased by 12% this quarter, showing strong learning progress.',
-            'West region shows the highest STR at $142K, indicating strong product adoption.',
-            'Price concerns are the top client objection at 45%, suggesting need for value demonstration.',
-            'Advanced features confusion is at 38%, recommend additional training modules.',
-          ],
-          callToAction: 'Focus on addressing price concerns and provide advanced feature tutorials to improve engagement further.',
-          confidence: 87,
-        });
-      }, 1500);
-    });
-  };
-
   if (loading) {
     return (
       <DashboardLayout role="user">
@@ -280,7 +257,17 @@ const UserDashboardNew = () => {
           />
 
           {/* AI Insights Panel */}
-          <InsightsPanel onGenerate={handleGenerateInsights} />
+          <InsightsPanel metricsData={{
+            objectiveScore: stats.objectiveScore,
+            strScore: stats.strScore,
+            engagement: stats.engagement,
+            completion: stats.completion,
+            avgRating: stats.avgRating,
+            regionalSTR,
+            csrHotspots,
+            clientObjections,
+            confusionAreas,
+          }} />
 
           {/* CSR Hotspots */}
           <MetricCard
