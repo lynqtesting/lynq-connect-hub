@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -64,14 +65,30 @@ const UserResponses = () => {
   const [moduleFilter, setModuleFilter] = useState('all');
   const [responses, setResponses] = useState<typeof mockResponses>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    // Simulate loading
-    setTimeout(() => {
-      setResponses(mockResponses);
-      setLoading(false);
-    }, 1000);
+    fetchResponses();
   }, []);
+
+  const fetchResponses = () => {
+    // Simulate loading and potential errors
+    setLoading(true);
+    setError(null);
+    setTimeout(() => {
+      try {
+        // Simulate random error for demonstration
+        if (Math.random() > 0.9) {
+          throw new Error('Network connection failed');
+        }
+        setResponses(mockResponses);
+      } catch (err: any) {
+        setError(err.message || 'Failed to load responses');
+      } finally {
+        setLoading(false);
+      }
+    }, 1000);
+  };
 
   const filteredResponses = responses.filter((response) => {
     const matchesSearch =
@@ -164,6 +181,19 @@ const UserResponses = () => {
           {/* Table Skeleton */}
           <TableSkeleton rows={5} columns={7} />
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="user">
+        <ErrorState
+          title="Failed to Load Responses"
+          message={error}
+          onRetry={fetchResponses}
+          fullPage
+        />
       </DashboardLayout>
     );
   }

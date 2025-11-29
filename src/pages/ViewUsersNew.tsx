@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SidePanel } from '@/components/dashboard/SidePanel';
 import { UserCardSkeleton } from '@/components/dashboard/skeletons/UserCardSkeleton';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +17,7 @@ const ViewUsersNew = () => {
   const { toast } = useToast();
   const [users, setUsers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [panelOpen, setPanelOpen] = useState(false);
@@ -27,6 +29,7 @@ const ViewUsersNew = () => {
   const fetchUsers = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       const { data: userRoles, error: rolesError } = await supabase
         .from('user_roles')
@@ -64,9 +67,11 @@ const ViewUsersNew = () => {
 
       setUsers(usersData || []);
     } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load users';
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch users',
+        title: 'Error Loading Users',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -109,6 +114,19 @@ const ViewUsersNew = () => {
             ))}
           </div>
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="admin">
+        <ErrorState
+          title="Failed to Load Users"
+          message={error}
+          onRetry={fetchUsers}
+          fullPage
+        />
       </DashboardLayout>
     );
   }
