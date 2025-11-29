@@ -87,16 +87,6 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
 
   return (
     <>
-      {/* Swipe detector overlay */}
-      <motion.div
-        className="fixed inset-0 pointer-events-auto z-40"
-        drag="x"
-        dragConstraints={{ left: 0, right: 0 }}
-        dragElastic={0.2}
-        onDragEnd={handleDragEnd}
-        style={{ touchAction: 'pan-y' }}
-      />
-
       {/* Bottom Navigation Bar */}
       <motion.nav
         initial={{ y: 100 }}
