@@ -5,6 +5,7 @@ import { MetricCard } from '@/components/dashboard/MetricCard';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
@@ -21,6 +22,7 @@ const UserDashboardNew = () => {
   const [selectedRegion, setSelectedRegion] = useState('global');
   const [selectedModule, setSelectedModule] = useState('all');
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const [stats, setStats] = useState({
     objectiveScore: 88,
@@ -40,10 +42,13 @@ const UserDashboardNew = () => {
   const fetchUserStats = async () => {
     try {
       setLoading(true);
-      const { data: assignments } = await supabase
+      setError(null);
+      const { data: assignments, error: assignmentsError } = await supabase
         .from('user_module_assignments')
         .select('*, modules(*)')
         .eq('user_id', user?.id);
+
+      if (assignmentsError) throw assignmentsError;
 
       if (assignments) {
         const completed = assignments.filter(a => a.completed_at).length;
@@ -56,9 +61,11 @@ const UserDashboardNew = () => {
         }));
       }
     } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load user statistics';
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch user stats',
+        title: 'Error Loading Statistics',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -152,6 +159,19 @@ const UserDashboardNew = () => {
             <ChartSkeleton colSpan="col-span-2 md:col-span-4 lg:col-span-6" height="h-[160px]" />
           </div>
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="user">
+        <ErrorState
+          title="Failed to Load Dashboard"
+          message={error}
+          onRetry={fetchUserStats}
+          fullPage
+        />
       </DashboardLayout>
     );
   }

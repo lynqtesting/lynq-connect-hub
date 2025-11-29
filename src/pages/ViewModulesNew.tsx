@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SidePanel } from '@/components/dashboard/SidePanel';
 import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -19,6 +20,7 @@ const ViewModulesNew = () => {
   const { toast } = useToast();
   const [modules, setModules] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [authorFilter, setAuthorFilter] = useState('all');
   const [sortBy, setSortBy] = useState('created');
@@ -32,12 +34,13 @@ const ViewModulesNew = () => {
   const fetchModules = async () => {
     try {
       setLoading(true);
-      const { data, error } = await supabase
+      setError(null);
+      const { data, error: modulesError } = await supabase
         .from('modules')
         .select('*')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (modulesError) throw modulesError;
 
       const transformedData = (data || []).map((module) => ({
         id: module.id,
@@ -53,9 +56,11 @@ const ViewModulesNew = () => {
 
       setModules(transformedData);
     } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load modules';
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch modules',
+        title: 'Error Loading Modules',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -106,6 +111,19 @@ const ViewModulesNew = () => {
           {/* Table Skeleton */}
           <TableSkeleton rows={8} columns={7} />
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="admin">
+        <ErrorState
+          title="Failed to Load Modules"
+          message={error}
+          onRetry={fetchModules}
+          fullPage
+        />
       </DashboardLayout>
     );
   }

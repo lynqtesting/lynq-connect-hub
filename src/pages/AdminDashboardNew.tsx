@@ -6,6 +6,7 @@ import { DashboardChart } from '@/components/dashboard/DashboardChart';
 import { UploadHistoryCard } from '@/components/dashboard/UploadHistoryCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
+import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, AlertCircle } from 'lucide-react';
@@ -22,6 +23,7 @@ const AdminDashboardNew = () => {
     pendingRequests: 0,
   });
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     fetchDashboardStats();
@@ -30,22 +32,29 @@ const AdminDashboardNew = () => {
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
+      setError(null);
 
       // Fetch total modules
-      const { count: modulesCount } = await supabase
+      const { count: modulesCount, error: modulesError } = await supabase
         .from('modules')
         .select('*', { count: 'exact', head: true });
 
+      if (modulesError) throw modulesError;
+
       // Fetch active users (users with role assignments)
-      const { count: usersCount } = await supabase
+      const { count: usersCount, error: usersError } = await supabase
         .from('user_roles')
         .select('*', { count: 'exact', head: true });
 
+      if (usersError) throw usersError;
+
       // Fetch pending requests
-      const { count: requestsCount } = await supabase
+      const { count: requestsCount, error: requestsError } = await supabase
         .from('requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
+
+      if (requestsError) throw requestsError;
 
       setStats({
         totalModules: modulesCount || 0,
@@ -53,9 +62,11 @@ const AdminDashboardNew = () => {
         pendingRequests: requestsCount || 0,
       });
     } catch (error: any) {
+      const errorMessage = error?.message || 'Failed to load dashboard statistics';
+      setError(errorMessage);
       toast({
-        title: 'Error',
-        description: 'Failed to fetch dashboard stats',
+        title: 'Error Loading Dashboard',
+        description: errorMessage,
         variant: 'destructive',
       });
     } finally {
@@ -79,16 +90,6 @@ const AdminDashboardNew = () => {
     { id: '2', title: 'HR Policies', author: 'Admin', date: '2023-10-25' },
     { id: '3', title: 'Q4 Goals', author: 'Admin', date: '2023-10-20' },
   ];
-
-  if (loading) {
-    return (
-      <DashboardLayout role="admin">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-muted-foreground">Loading dashboard...</div>
-        </div>
-      </DashboardLayout>
-    );
-  }
 
   if (loading) {
     return (
@@ -125,6 +126,19 @@ const AdminDashboardNew = () => {
             ))}
           </div>
         </div>
+      </DashboardLayout>
+    );
+  }
+
+  if (error) {
+    return (
+      <DashboardLayout role="admin">
+        <ErrorState
+          title="Failed to Load Dashboard"
+          message={error}
+          onRetry={fetchDashboardStats}
+          fullPage
+        />
       </DashboardLayout>
     );
   }
