@@ -52,12 +52,12 @@ export function MetricCard({
       initial="rest"
       whileHover="hover"
       whileTap="tap"
-      className={`${colSpan} bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
+      className={`h-full bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
-        <div className="flex items-center gap-2">
-          <p className="text-[10px] md:text-xs font-bold uppercase tracking-wider text-text-muted">
+        <div className="flex items-center gap-2 min-w-0">
+          <p className="text-xs font-bold uppercase tracking-wider text-text-muted whitespace-nowrap" title={title}>
             {title}
           </p>
           {info && (
