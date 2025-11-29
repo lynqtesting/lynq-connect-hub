@@ -10,6 +10,7 @@ import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -40,20 +41,33 @@ const AdminDashboardNew = () => {
   const [error, setError] = useState<string | null>(null);
   const [chartData, setChartData] = useState<any[]>([]);
   const [recentUploads, setRecentUploads] = useState<any[]>([]);
+  const [selectedModule, setSelectedModule] = useState<string>('all');
+  const [availableModules, setAvailableModules] = useState<any[]>([]);
 
   useEffect(() => {
     fetchDashboardStats();
-  }, []);
+  }, [selectedModule]);
 
   const fetchDashboardStats = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch total modules
-      const { count: modulesCount, error: modulesError } = await supabase
+      // Fetch all modules for dropdown
+      const { data: allModules, error: allModulesError } = await supabase
         .from('modules')
-        .select('*', { count: 'exact', head: true });
+        .select('id, title')
+        .order('title', { ascending: true });
+
+      if (allModulesError) throw allModulesError;
+      setAvailableModules(allModules || []);
+
+      // Build query based on selected module
+      let modulesQuery = supabase.from('modules').select('*', { count: 'exact', head: true });
+      if (selectedModule !== 'all') {
+        modulesQuery = modulesQuery.eq('id', selectedModule);
+      }
+      const { count: modulesCount, error: modulesError } = await modulesQuery;
 
       if (modulesError) throw modulesError;
 
@@ -64,18 +78,25 @@ const AdminDashboardNew = () => {
 
       if (usersError) throw usersError;
 
-      // Fetch pending requests
-      const { count: requestsCount, error: requestsError } = await supabase
+      // Fetch pending requests (filtered by module if selected)
+      let requestsQuery = supabase
         .from('requests')
         .select('*', { count: 'exact', head: true })
         .eq('status', 'pending');
+      
+      if (selectedModule !== 'all') {
+        requestsQuery = requestsQuery.eq('module_id', selectedModule);
+      }
+      const { count: requestsCount, error: requestsError } = await requestsQuery;
 
       if (requestsError) throw requestsError;
 
-      // Fetch completion rate from user_module_assignments
-      const { data: assignments, error: assignmentsError } = await supabase
-        .from('user_module_assignments')
-        .select('completed_at');
+      // Fetch completion rate from user_module_assignments (filtered by module if selected)
+      let assignmentsQuery = supabase.from('user_module_assignments').select('completed_at');
+      if (selectedModule !== 'all') {
+        assignmentsQuery = assignmentsQuery.eq('module_id', selectedModule);
+      }
+      const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) throw assignmentsError;
 
@@ -83,10 +104,12 @@ const AdminDashboardNew = () => {
       const total = assignments?.length || 1;
       const completionRate = Math.round((completed / total) * 100);
 
-      // Fetch modules with KPIs for avg engagement
-      const { data: modules, error: modulesDataError } = await supabase
-        .from('modules')
-        .select('kpis');
+      // Fetch modules with KPIs for avg engagement (filtered by module if selected)
+      let modulesDataQuery = supabase.from('modules').select('kpis');
+      if (selectedModule !== 'all') {
+        modulesDataQuery = modulesDataQuery.eq('id', selectedModule);
+      }
+      const { data: modules, error: modulesDataError } = await modulesDataQuery;
 
       if (modulesDataError) throw modulesDataError;
 
@@ -100,15 +123,20 @@ const AdminDashboardNew = () => {
       });
       const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 75;
 
-      // Fetch recent requests for chart data
+      // Fetch recent requests for chart data (filtered by module if selected)
       const sevenDaysAgo = new Date();
       sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
       
-      const { data: requests, error: requestsDataError } = await supabase
+      let requestsDataQuery = supabase
         .from('requests')
         .select('created_at, status')
         .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: true });
+      
+      if (selectedModule !== 'all') {
+        requestsDataQuery = requestsDataQuery.eq('module_id', selectedModule);
+      }
+      const { data: requests, error: requestsDataError } = await requestsDataQuery;
 
       if (requestsDataError) throw requestsDataError;
 
@@ -134,12 +162,17 @@ const AdminDashboardNew = () => {
         chartDataMap[day] || { name: day, raised: 0, resolved: 0 }
       );
 
-      // Fetch recent module uploads
-      const { data: recentModules, error: recentModulesError } = await supabase
+      // Fetch recent module uploads (filtered by module if selected)
+      let recentModulesQuery = supabase
         .from('modules')
         .select('id, title, created_at')
         .order('created_at', { ascending: false })
         .limit(3);
+      
+      if (selectedModule !== 'all') {
+        recentModulesQuery = recentModulesQuery.eq('id', selectedModule);
+      }
+      const { data: recentModules, error: recentModulesError } = await recentModulesQuery;
 
       if (recentModulesError) throw recentModulesError;
 
@@ -190,7 +223,7 @@ const AdminDashboardNew = () => {
           </div>
 
           {/* Metrics Skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
             <MetricCardSkeleton />
             <MetricCardSkeleton />
             <MetricCardSkeleton />
@@ -230,27 +263,41 @@ const AdminDashboardNew = () => {
           animate="visible"
           className="space-y-6"
         >
-        {/* Header */}
-        <motion.div 
-          variants={itemVariants}
-          className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
-        >
-          <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Admin Overview</h1>
-            <p className="text-sm text-text-muted mt-1">System status and activity monitoring</p>
+        {/* Header with Filter */}
+        <motion.div variants={itemVariants} className="flex flex-col gap-4">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Admin Overview</h1>
+              <p className="text-sm text-text-muted mt-1">System status and activity monitoring</p>
+            </div>
+            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+              <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto bg-brand hover:bg-brand-hover">
+                <Plus className="h-4 w-4" />
+                Add Module
+              </Button>
+            </motion.div>
           </div>
-          <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-            <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto bg-brand hover:bg-brand-hover">
-              <Plus className="h-4 w-4" />
-              Add Module
-            </Button>
-          </motion.div>
+
+          {/* Module Filter */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Select value={selectedModule} onValueChange={setSelectedModule}>
+              <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
+                <SelectValue placeholder="All Modules" />
+              </SelectTrigger>
+              <SelectContent className="bg-bg-surface z-50">
+                <SelectItem value="all">All Modules</SelectItem>
+                {availableModules.map((m) => (
+                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </motion.div>
 
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
         >
           <motion.div variants={itemVariants}>
             <MetricCard
@@ -258,7 +305,7 @@ const AdminDashboardNew = () => {
               value={stats.totalModules}
               trend={{ value: 8, direction: 'up' }}
               info="Total number of learning modules in the system"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
               showDecoration
             >
               <Layers className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
@@ -271,7 +318,7 @@ const AdminDashboardNew = () => {
               value={stats.activeUsers}
               trend={{ value: 12, direction: 'up' }}
               info="Users with active role assignments"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <Users className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
@@ -283,7 +330,7 @@ const AdminDashboardNew = () => {
               value={stats.pendingRequests}
               trend={{ value: 5, direction: 'down' }}
               info="Requests awaiting review or action"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <Clock className="h-8 w-8 text-amber-500 opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
@@ -295,19 +342,19 @@ const AdminDashboardNew = () => {
               value={`${stats.completionRate}%`}
               trend={{ value: 3, direction: 'up' }}
               info="Average module completion rate across all users"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             >
               <CheckCircle className="h-8 w-8 text-emerald-500 opacity-20 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
           {/* Issues Chart */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-8">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-8">
             <MetricCard
               title="Issues Raised vs Resolved"
               colSpan="col-span-full"
             >
-              <ResponsiveContainer width="100%" height={isMobile ? 150 : 200}>
+              <ResponsiveContainer width="100%" height={isMobile ? 140 : 180}>
                 <AreaChart data={chartData}>
                   <defs>
                     <linearGradient id="colorRaised" x1="0" y1="0" x2="0" y2="1">
@@ -337,7 +384,7 @@ const AdminDashboardNew = () => {
           </motion.div>
 
           {/* Recent Uploads */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-4">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-4">
             <MetricCard
               title="Recent Uploads"
               colSpan="col-span-full"
@@ -369,7 +416,7 @@ const AdminDashboardNew = () => {
           </motion.div>
 
           {/* AI Insights Panel */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-12">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-12">
             <InsightsPanel metricsData={{
               totalModules: stats.totalModules,
               activeUsers: stats.activeUsers,

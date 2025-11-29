@@ -56,18 +56,23 @@ const UserDashboardNew = () => {
     if (user) {
       fetchUserStats();
     }
-  }, [user]);
+  }, [user, selectedModule]);
 
   const fetchUserStats = async () => {
     try {
       setLoading(true);
       setError(null);
 
-      // Fetch user's assigned modules with their data
-      const { data: assignments, error: assignmentsError } = await supabase
+      // Fetch user's assigned modules with their data (filtered by selected module)
+      let assignmentsQuery = supabase
         .from('user_module_assignments')
         .select('*, modules!user_module_assignments_module_id_fkey(*)')
         .eq('user_id', user?.id);
+      
+      if (selectedModule !== 'all') {
+        assignmentsQuery = assignmentsQuery.eq('module_id', selectedModule);
+      }
+      const { data: assignments, error: assignmentsError } = await assignmentsQuery;
 
       if (assignmentsError) throw assignmentsError;
 
@@ -213,7 +218,7 @@ const UserDashboardNew = () => {
           </div>
 
           {/* Bento Grid Skeleton */}
-          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
             <MetricCardSkeleton />
             <MetricCardSkeleton />
             <MetricCardSkeleton />
@@ -280,7 +285,7 @@ const UserDashboardNew = () => {
               <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
                 <SelectValue placeholder="Select Module" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-bg-surface z-50">
                 <SelectItem value="all">All Modules</SelectItem>
                 {availableModules.map((m) => (
                   <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
@@ -292,7 +297,7 @@ const UserDashboardNew = () => {
               <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
                 <SelectValue placeholder="Select Region" />
               </SelectTrigger>
-              <SelectContent>
+              <SelectContent className="bg-bg-surface z-50">
                 <SelectItem value="global">Global</SelectItem>
                 <SelectItem value="north">North</SelectItem>
                 <SelectItem value="south">South</SelectItem>
@@ -306,7 +311,7 @@ const UserDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4"
         >
           <motion.div variants={itemVariants}>
             <MetricCard
@@ -314,7 +319,7 @@ const UserDashboardNew = () => {
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
               info="Overall learning effectiveness based on module completion and assessments"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
               showDecoration
             />
           </motion.div>
@@ -325,7 +330,7 @@ const UserDashboardNew = () => {
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
               info="Single Strength Rating - measures individual performance"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
@@ -335,7 +340,7 @@ const UserDashboardNew = () => {
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
               info="Module interaction and participation rate"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
@@ -345,7 +350,7 @@ const UserDashboardNew = () => {
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
               info="Percentage of assigned modules completed"
-              colSpan="col-span-2 md:col-span-2 lg:col-span-3"
+              colSpan="col-span-1 sm:col-span-2 md:col-span-2 lg:col-span-3"
             />
           </motion.div>
 
@@ -371,7 +376,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* AI Insights Panel */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-12">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-12">
             <InsightsPanel metricsData={{
               objectiveScore: stats.objectiveScore,
               strScore: stats.strScore,
@@ -386,7 +391,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* CSR Hotspots */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="CSR Hotspots"
               colSpan="col-span-full"
@@ -412,7 +417,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* Client Objections */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Top Client Objections"
               colSpan="col-span-full"
@@ -436,7 +441,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* Confusion Areas */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Confusion Areas"
               colSpan="col-span-full"
@@ -460,7 +465,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* Regional STR */}
-          <motion.div variants={itemVariants} className="col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
             <MetricCard
               title="Regional STR"
               colSpan="col-span-full"

@@ -52,7 +52,7 @@ export function MetricCard({
       initial="rest"
       whileHover="hover"
       whileTap="tap"
-      className={`${colSpan} bg-bg-surface border border-border-default rounded-3xl p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
+      className={`${colSpan} bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
@@ -81,11 +81,11 @@ export function MetricCard({
       {/* Value */}
       {value !== undefined && (
         <div className="mb-2">
-          <h3 className="text-2xl md:text-4xl font-extrabold text-text-primary">
+          <h3 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-text-primary">
             {value}
           </h3>
           {subtitle && (
-            <p className="text-xs md:text-sm text-text-muted mt-1">{subtitle}</p>
+            <p className="text-xs text-text-muted mt-1">{subtitle}</p>
           )}
         </div>
       )}
