@@ -16,6 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 
 interface DashboardStats {
   totalModules: number;
@@ -223,12 +224,13 @@ const AdminDashboardNew = () => {
 
   return (
     <DashboardLayout role="admin">
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6"
-      >
+      <PullToRefresh onRefresh={fetchDashboardStats}>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6"
+        >
         {/* Header */}
         <motion.div 
           variants={itemVariants}
@@ -409,6 +411,7 @@ const AdminDashboardNew = () => {
           ))}
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </DashboardLayout>
   );
 };
