@@ -6,7 +6,12 @@ import { FileUploadZone } from './FileUploadZone';
 import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 
-export function DeductionDataUpload() {
+interface DeductionDataUploadProps {
+  moduleId: string;
+  onUploadComplete?: () => void;
+}
+
+export function DeductionDataUpload({ moduleId, onUploadComplete }: DeductionDataUploadProps) {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -62,6 +67,7 @@ export function DeductionDataUpload() {
           file_size: selectedFile.size,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
           metadata: jsonPreview,
+          module_id: moduleId,
         });
 
       if (dbError) throw dbError;
@@ -73,6 +79,7 @@ export function DeductionDataUpload() {
 
       setSelectedFile(null);
       setJsonPreview(null);
+      onUploadComplete?.();
     } catch (error: any) {
       toast({
         title: 'Upload Failed',
@@ -96,8 +103,8 @@ export function DeductionDataUpload() {
           <FileJson className="h-6 w-6 text-purple-600 dark:text-purple-400" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-text-primary">Deduction Data</h3>
-          <p className="text-sm text-text-muted">Upload JSON files with deduction logic</p>
+          <h3 className="text-lg font-semibold text-text-primary">Module Deduction Data</h3>
+          <p className="text-sm text-text-muted">Upload JSON files with deduction logic for this module</p>
         </div>
       </div>
 

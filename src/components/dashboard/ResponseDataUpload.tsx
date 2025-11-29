@@ -7,7 +7,12 @@ import { useToast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
 import Papa from 'papaparse';
 
-export function ResponseDataUpload() {
+interface ResponseDataUploadProps {
+  moduleId: string;
+  onUploadComplete?: () => void;
+}
+
+export function ResponseDataUpload({ moduleId, onUploadComplete }: ResponseDataUploadProps) {
   const { toast } = useToast();
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [uploading, setUploading] = useState(false);
@@ -64,6 +69,7 @@ export function ResponseDataUpload() {
           file_url: publicUrl,
           file_size: selectedFile.size,
           uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+          module_id: moduleId,
         });
 
       if (dbError) throw dbError;
@@ -75,6 +81,7 @@ export function ResponseDataUpload() {
 
       setSelectedFile(null);
       setPreviewData([]);
+      onUploadComplete?.();
     } catch (error: any) {
       toast({
         title: 'Upload Failed',
@@ -97,8 +104,8 @@ export function ResponseDataUpload() {
           <FileSpreadsheet className="h-6 w-6 text-blue-600 dark:text-blue-400" />
         </div>
         <div>
-          <h3 className="text-lg font-semibold text-text-primary">Response Data</h3>
-          <p className="text-sm text-text-muted">Upload CSV files with response data</p>
+          <h3 className="text-lg font-semibold text-text-primary">Module Response Data</h3>
+          <p className="text-sm text-text-muted">Upload CSV files with response data for this module</p>
         </div>
       </div>
 

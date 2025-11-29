@@ -14,6 +14,7 @@ import { RealtimeStatusIndicator } from '@/components/RealtimeStatusIndicator';
 import { ConnectionHealthIndicator } from '@/components/ConnectionHealthIndicator';
 import { useDebouncedInput } from '@/hooks/useDebouncedInput';
 import { DebouncedTextInput } from '@/components/DebouncedTextInput';
+import { ModuleDataSection } from '@/components/dashboard/ModuleDataSection';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MetricFieldProps {
@@ -745,6 +746,9 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
           </CardContent>
         </Card>
       </div>
+
+      {/* Module Data Upload Section */}
+      <ModuleDataSection moduleId={moduleId} />
     </div>
   );
 }

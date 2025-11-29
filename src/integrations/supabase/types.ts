@@ -53,6 +53,7 @@ export type Database = {
           file_url: string
           id: string
           metadata: Json | null
+          module_id: string | null
           processed: boolean | null
           updated_at: string | null
           uploaded_by: string | null
@@ -65,6 +66,7 @@ export type Database = {
           file_url: string
           id?: string
           metadata?: Json | null
+          module_id?: string | null
           processed?: boolean | null
           updated_at?: string | null
           uploaded_by?: string | null
@@ -77,11 +79,20 @@ export type Database = {
           file_url?: string
           id?: string
           metadata?: Json | null
+          module_id?: string | null
           processed?: boolean | null
           updated_at?: string | null
           uploaded_by?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "data_uploads_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       modules: {
         Row: {

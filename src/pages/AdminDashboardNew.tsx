@@ -7,7 +7,6 @@ import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardS
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
-import { DataManagementSection } from '@/components/dashboard/DataManagementSection';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, TrendingUp } from 'lucide-react';
@@ -382,11 +381,8 @@ const AdminDashboardNew = () => {
           </motion.div>
         </motion.div>
 
-        {/* Data Management Section */}
-        <DataManagementSection />
-
         {/* Quick Actions */}
-        <motion.div 
+        <motion.div
           variants={containerVariants}
           className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
         >
