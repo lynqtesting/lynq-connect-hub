@@ -1,8 +1,10 @@
 import { useEffect, useState } from 'react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
+import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Download, Search, FileCheck, MessageSquare, ClipboardList, BarChart3, ExternalLink } from 'lucide-react';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
@@ -60,7 +62,16 @@ const UserResponses = () => {
   const { user } = useAuthPersistence();
   const [searchQuery, setSearchQuery] = useState('');
   const [moduleFilter, setModuleFilter] = useState('all');
-  const [responses, setResponses] = useState(mockResponses);
+  const [responses, setResponses] = useState<typeof mockResponses>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    // Simulate loading
+    setTimeout(() => {
+      setResponses(mockResponses);
+      setLoading(false);
+    }, 1000);
+  }, []);
 
   const filteredResponses = responses.filter((response) => {
     const matchesSearch =
@@ -130,6 +141,32 @@ const UserResponses = () => {
     a.download = 'responses.csv';
     a.click();
   };
+
+  if (loading) {
+    return (
+      <DashboardLayout role="user">
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-full sm:w-[200px]" />
+          </div>
+
+          {/* Table Skeleton */}
+          <TableSkeleton rows={5} columns={7} />
+        </div>
+      </DashboardLayout>
+    );
+  }
 
   return (
     <DashboardLayout role="user">

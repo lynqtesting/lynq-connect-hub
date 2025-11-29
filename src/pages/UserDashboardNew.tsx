@@ -3,7 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
+import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
+import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { Button } from '@/components/ui/button';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Progress } from '@/components/ui/progress';
 import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
@@ -118,8 +121,36 @@ const UserDashboardNew = () => {
   if (loading) {
     return (
       <DashboardLayout role="user">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-text-muted">Loading dashboard...</div>
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col gap-4">
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+              <div className="space-y-2">
+                <Skeleton className="h-8 w-32" />
+                <Skeleton className="h-4 w-48" />
+              </div>
+              <Skeleton className="h-10 w-36" />
+            </div>
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Skeleton className="h-10 w-full sm:w-[200px]" />
+              <Skeleton className="h-10 w-full sm:w-[200px]" />
+            </div>
+          </div>
+
+          {/* Bento Grid Skeleton */}
+          <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-4">
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton />
+            <MetricCardSkeleton colSpan="col-span-1 md:col-span-2 lg:col-span-3" />
+            <MetricCardSkeleton colSpan="col-span-1 md:col-span-2 lg:col-span-3" />
+            <ChartSkeleton />
+            <ChartSkeleton colSpan="col-span-2 md:col-span-4 lg:col-span-6" height="h-[160px]" />
+            <ChartSkeleton colSpan="col-span-2 md:col-span-4 lg:col-span-6" height="h-[160px]" />
+            <ChartSkeleton colSpan="col-span-2 md:col-span-4 lg:col-span-6" height="h-[160px]" />
+            <ChartSkeleton colSpan="col-span-2 md:col-span-4 lg:col-span-6" height="h-[160px]" />
+          </div>
         </div>
       </DashboardLayout>
     );

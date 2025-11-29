@@ -2,10 +2,12 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SidePanel } from '@/components/dashboard/SidePanel';
+import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
+import { Skeleton } from '@/components/ui/skeleton';
 import { Plus, Search, MoreVertical, Edit, Trash2, Users, Calendar } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
@@ -84,8 +86,25 @@ const ViewModulesNew = () => {
   if (loading) {
     return (
       <DashboardLayout role="admin">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-text-muted">Loading modules...</div>
+        <div className="space-y-6">
+          {/* Header Skeleton */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+            <div className="space-y-2">
+              <Skeleton className="h-8 w-48" />
+              <Skeleton className="h-4 w-64" />
+            </div>
+            <Skeleton className="h-10 w-32" />
+          </div>
+
+          {/* Filters Skeleton */}
+          <div className="flex flex-col sm:flex-row gap-3">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-full sm:w-[180px]" />
+            <Skeleton className="h-10 w-full sm:w-[180px]" />
+          </div>
+
+          {/* Table Skeleton */}
+          <TableSkeleton rows={8} columns={7} />
         </div>
       </DashboardLayout>
     );
