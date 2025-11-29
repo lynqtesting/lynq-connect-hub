@@ -9,11 +9,15 @@ import Index from "./pages/Index";
 import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
 import AdminDashboard from "./pages/AdminDashboard";
+import UserDashboardNew from "./pages/UserDashboardNew";
+import AdminDashboardNew from "./pages/AdminDashboardNew";
 import ModuleDetails from "./pages/ModuleDetails";
 import RequestForm from "./pages/RequestForm";
 import NotFound from "./pages/NotFound";
 import UploadModule from "./pages/UploadModule";
 import ViewModules from "./pages/ViewModules";
+import ViewModulesNew from "./pages/ViewModulesNew";
+import ViewUsersNew from "./pages/ViewUsersNew";
 import CreateUser from "./pages/CreateUser";
 import ViewUsers from "./pages/ViewUsers";
 import AssignModules from "./pages/AssignModules";
@@ -42,18 +46,22 @@ const App = () => (
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/lynq-library" element={<RouteGuard><LynqLibrary /></RouteGuard>} />
-            <Route path="/user-dashboard" element={<RouteGuard><UserDashboard /></RouteGuard>} />
+            <Route path="/user-dashboard" element={<RouteGuard><UserDashboardNew /></RouteGuard>} />
+            <Route path="/user-dashboard-old" element={<RouteGuard><UserDashboard /></RouteGuard>} />
             <Route path="/module/:moduleId" element={<RouteGuard><ModuleDetails /></RouteGuard>} />
             <Route path="/request-form/new" element={<RouteGuard><RequestForm type="new" /></RouteGuard>} />
             <Route path="/request-form/adapt/:moduleId" element={<RouteGuard><RequestForm type="adapt" /></RouteGuard>} />
             <Route path="/request-form/tweak/:moduleId" element={<RouteGuard><TweakRequestForm /></RouteGuard>} />
             
             {/* Admin Routes - Protected */}
-            <Route path="/admin-dashboard" element={<RouteGuard requireAdmin><AdminDashboard /></RouteGuard>} />
-            <Route path="/view-modules" element={<RouteGuard requireAdmin><ViewModules /></RouteGuard>} />
+            <Route path="/admin-dashboard" element={<RouteGuard requireAdmin><AdminDashboardNew /></RouteGuard>} />
+            <Route path="/admin-dashboard-old" element={<RouteGuard requireAdmin><AdminDashboard /></RouteGuard>} />
+            <Route path="/view-modules" element={<RouteGuard requireAdmin><ViewModulesNew /></RouteGuard>} />
+            <Route path="/view-modules-old" element={<RouteGuard requireAdmin><ViewModules /></RouteGuard>} />
             <Route path="/upload-module" element={<RouteGuard requireAdmin><UploadModule /></RouteGuard>} />
             <Route path="/create-user" element={<RouteGuard requireAdmin><CreateUser /></RouteGuard>} />
-            <Route path="/view-users" element={<RouteGuard requireAdmin><ViewUsers /></RouteGuard>} />
+            <Route path="/view-users" element={<RouteGuard requireAdmin><ViewUsersNew /></RouteGuard>} />
+            <Route path="/view-users-old" element={<RouteGuard requireAdmin><ViewUsers /></RouteGuard>} />
             <Route path="/assign-modules" element={<RouteGuard requireAdmin><AssignModules /></RouteGuard>} />
             <Route path="/view-requests" element={<RouteGuard requireAdmin><ViewRequests /></RouteGuard>} />
             <Route path="/write-recommendations" element={<RouteGuard requireAdmin><WriteRecommendations /></RouteGuard>} />
