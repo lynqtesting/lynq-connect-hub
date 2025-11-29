@@ -24,7 +24,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
 
   return (
     <SidebarProvider>
-      <div className="flex min-h-screen w-full bg-background">
+      <div className="flex min-h-screen w-full bg-bg-canvas">
         <DashboardSidebar 
           role={effectiveRole} 
           open={sidebarOpen}
@@ -39,7 +39,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
             onToggleSidebar={() => setSidebarOpen(!sidebarOpen)}
           />
           
-          <main className="flex-1 p-4 sm:p-6 overflow-auto">
+          <main className="flex-1 p-4 sm:p-6 overflow-auto animate-fade-in">
             {children}
           </main>
         </div>

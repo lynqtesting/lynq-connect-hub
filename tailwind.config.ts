@@ -19,6 +19,21 @@ export default {
     	},
     	extend: {
     		colors: {
+    			// Semantic color tokens
+    			'bg-canvas': 'hsl(var(--bg-canvas))',
+    			'bg-surface': 'hsl(var(--bg-surface))',
+    			'bg-surface-hover': 'hsl(var(--bg-surface-hover))',
+    			'text-primary': 'hsl(var(--text-primary))',
+    			'text-secondary': 'hsl(var(--text-secondary))',
+    			'text-muted': 'hsl(var(--text-muted))',
+    			'text-inverted': 'hsl(var(--text-inverted))',
+    			'brand': 'hsl(var(--brand))',
+    			'brand-hover': 'hsl(var(--brand-hover))',
+    			'brand-glow': 'hsl(var(--brand-glow))',
+    			'border-default': 'hsl(var(--border-default))',
+    			'border-subtle': 'hsl(var(--border-subtle))',
+    			
+    			// Legacy tokens for backward compatibility
     			border: 'hsl(var(--border))',
     			input: 'hsl(var(--input))',
     			ring: 'hsl(var(--ring))',

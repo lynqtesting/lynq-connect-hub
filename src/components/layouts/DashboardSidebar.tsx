@@ -77,16 +77,16 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
 
   return (
     <Sidebar 
-      className={isCollapsed ? "w-14" : "w-60"}
+      className={`${isCollapsed ? "w-14" : "w-60"} bg-bg-surface/60 backdrop-blur-xl border-r border-border-default`}
       collapsible="icon"
     >
-      <SidebarHeader className="border-b border-sidebar-border p-3 sm:p-4">
+      <SidebarHeader className="border-b border-border-default p-3 sm:p-4">
         <div className="flex items-center gap-2">
           <Logo className="h-7 sm:h-8 flex-shrink-0" />
           {!isCollapsed && (
             <div className="flex flex-col min-w-0">
-              <span className="text-xs sm:text-sm font-medium text-sidebar-foreground truncate">LYNQ</span>
-              <span className="text-[10px] sm:text-xs text-sidebar-foreground/60 uppercase truncate">
+              <span className="text-xs sm:text-sm font-bold text-text-primary truncate">LYNQ</span>
+              <span className="text-[10px] sm:text-xs text-text-muted uppercase truncate">
                 {role === 'admin' ? 'Admin Workspace' : 'My Learning'}
               </span>
             </div>
@@ -107,15 +107,19 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                     onClick={() => navigate(item.url)}
                     isActive={isActive(item.url)}
                     className={`
+                      transition-all duration-200 rounded-xl mx-2
                       ${isActive(item.url) 
-                        ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
-                        : 'hover:bg-sidebar-accent/50'
+                        ? 'bg-brand text-white font-semibold shadow-md hover:bg-brand-hover' 
+                        : 'hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary'
                       }
                     `}
                     tooltip={isCollapsed ? item.title : undefined}
                   >
-                    <item.icon className="h-4 w-4 flex-shrink-0" />
+                    <item.icon className="h-5 w-5 flex-shrink-0" />
                     {!isCollapsed && <span className="truncate">{item.title}</span>}
+                    {!isCollapsed && isActive(item.url) && (
+                      <span className="ml-auto h-2 w-2 rounded-full bg-white animate-pulse" />
+                    )}
                   </SidebarMenuButton>
                 </SidebarMenuItem>
               ))}
@@ -136,15 +140,19 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
                       onClick={() => navigate(item.url)}
                       isActive={isActive(item.url)}
                       className={`
+                        transition-all duration-200 rounded-xl mx-2
                         ${isActive(item.url) 
-                          ? 'bg-sidebar-accent text-sidebar-accent-foreground font-medium' 
-                          : 'hover:bg-sidebar-accent/50'
+                          ? 'bg-brand text-white font-semibold shadow-md hover:bg-brand-hover' 
+                          : 'hover:bg-bg-surface-hover text-text-secondary hover:text-text-primary'
                         }
                       `}
                       tooltip={isCollapsed ? item.title : undefined}
                     >
-                      <item.icon className="h-4 w-4 flex-shrink-0" />
+                      <item.icon className="h-5 w-5 flex-shrink-0" />
                       {!isCollapsed && <span className="truncate">{item.title}</span>}
+                      {!isCollapsed && isActive(item.url) && (
+                        <span className="ml-auto h-2 w-2 rounded-full bg-white animate-pulse" />
+                      )}
                     </SidebarMenuButton>
                   </SidebarMenuItem>
                 ))}
@@ -154,20 +162,13 @@ export function DashboardSidebar({ role, open, onOpenChange }: DashboardSidebarP
         )}
       </SidebarContent>
 
-      {!isCollapsed && role === 'admin' && (
-        <div className="p-3 sm:p-4 border-t border-sidebar-border">
-          <div className="text-[10px] sm:text-xs text-sidebar-foreground/50">
-            Simulate Role Switch:{' '}
-            <span className="text-destructive font-medium">Admin</span>
-          </div>
-        </div>
-      )}
-      
-      {!isCollapsed && role === 'user' && (
-        <div className="p-3 sm:p-4 border-t border-sidebar-border">
-          <div className="text-[10px] sm:text-xs text-sidebar-foreground/50">
-            Simulate Role Switch:{' '}
-            <span className="text-primary font-medium">User</span>
+      {!isCollapsed && (
+        <div className="p-3 sm:p-4 border-t border-border-default mt-auto">
+          <div className="text-[10px] sm:text-xs text-text-muted">
+            Role:{' '}
+            <span className={`font-semibold ${role === 'admin' ? 'text-destructive' : 'text-brand'}`}>
+              {role === 'admin' ? 'Admin' : 'User'}
+            </span>
           </div>
         </div>
       )}
