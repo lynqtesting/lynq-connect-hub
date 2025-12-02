@@ -313,7 +313,7 @@ const UserDashboardNew = () => {
           variants={containerVariants}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 md:gap-4"
         >
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
@@ -323,7 +323,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="STR Score"
               value={stats.strScore}
@@ -332,7 +332,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Engagement Rate"
               value={`${stats.engagement}%`}
@@ -341,7 +341,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Completion Rate"
               value={`${stats.completion}%`}
@@ -350,7 +350,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Average Rating"
               value={stats.avgRating}
@@ -359,7 +359,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Time Saved"
               value={stats.timeSaved}

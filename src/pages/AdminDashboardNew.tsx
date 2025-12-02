@@ -299,7 +299,7 @@ const AdminDashboardNew = () => {
           variants={containerVariants}
           className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 md:gap-4"
         >
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Total Modules"
               value={stats.totalModules}
@@ -311,7 +311,7 @@ const AdminDashboardNew = () => {
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Active Users"
               value={stats.activeUsers}
@@ -322,7 +322,7 @@ const AdminDashboardNew = () => {
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Pending Requests"
               value={stats.pendingRequests}
@@ -333,7 +333,7 @@ const AdminDashboardNew = () => {
             </MetricCard>
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-3">
+          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
             <MetricCard
               title="Completion Rate"
               value={`${stats.completionRate}%`}

@@ -1,7 +1,7 @@
 import { Moon, Sun, LogOut } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { SidebarTrigger } from '@/components/ui/sidebar';
 import { useTheme } from '@/context/ThemeContext';
+import Logo from '@/components/Logo';
 
 interface DashboardNavbarProps {
   user: any;
@@ -15,8 +15,12 @@ export function DashboardNavbar({ user, role, onLogout, onToggleSidebar }: Dashb
 
   return (
     <header className="h-14 border-b border-border-default bg-bg-surface/60 backdrop-blur-xl flex items-center justify-between px-4 sm:px-6 sticky top-0 z-50">
-      <div className="flex items-center gap-2">
-        <SidebarTrigger />
+      <div className="flex items-center gap-3">
+        <Logo className="h-6 sm:h-7" />
+        <div className="hidden sm:flex flex-col">
+          <span className="text-xs font-semibold text-text-primary">LYNQ</span>
+          <span className="text-[10px] text-text-muted uppercase">Learning Platform</span>
+        </div>
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
