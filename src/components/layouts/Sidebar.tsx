@@ -13,6 +13,7 @@ import {
   Moon,
 } from 'lucide-react';
 import { SidebarLink } from './SidebarLink';
+import { UserProfileDropdown } from './UserProfileDropdown';
 import Logo from '@/components/Logo';
 import { useTheme } from '@/context/ThemeContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -113,21 +114,21 @@ export function Sidebar({ role, user }: SidebarProps) {
 
       {/* Footer */}
       <div className="px-2 space-y-3">
-        {/* User Section */}
-        <div className="flex items-center gap-3 px-3 py-3 rounded-xl bg-bg-surface-hover/50">
-          <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-            <span className="text-sm font-semibold text-brand">{getInitials()}</span>
-          </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium text-text-primary truncate">
-              {getDisplayName()}
-            </p>
-            <p className="text-xs text-text-muted">{role === 'admin' ? 'Admin' : 'Learner'}</p>
-          </div>
-          {/* Theme Toggle */}
+        {/* User Profile Dropdown */}
+        <UserProfileDropdown
+          user={{
+            name: getDisplayName(),
+            email: user?.email || '',
+            role: role === 'admin' ? 'Administrator' : 'Learner',
+            initials: getInitials(),
+          }}
+        />
+
+        {/* Theme Toggle */}
+        <div className="flex items-center justify-center px-3 py-2">
           <motion.button
             onClick={toggleTheme}
-            className="p-2.5 rounded-full bg-bg-surface-hover hover:bg-border-default text-text-secondary hover:text-text-primary transition-colors flex-shrink-0"
+            className="p-2.5 rounded-full bg-bg-surface-hover hover:bg-border-default text-text-secondary hover:text-text-primary transition-colors"
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95, rotate: 10 }}
             aria-label="Toggle theme"

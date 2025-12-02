@@ -2,13 +2,15 @@ import React, { useState, useEffect } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
 import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
+import { SidePanel } from "@/components/dashboard/SidePanel";
+import { ModuleDetailSidebar } from "@/components/dashboard/ModuleDetailSidebar";
+
 interface Module {
   id: string;
   title: string;
@@ -17,6 +19,7 @@ interface Module {
   file_url: string;
   screenshot_url: string;
   created_at: string;
+  module_link?: string;
 }
 
 const categoryData = {
@@ -50,11 +53,12 @@ export default function LynqLibrary() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
+  const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuthPersistence();
 
   useEffect(() => {
-    if (authLoading) return; // wait for auth to resolve
+    if (authLoading) return;
     if (!user) {
       navigate('/login');
       return;
@@ -62,7 +66,6 @@ export default function LynqLibrary() {
 
     fetchModules(user.id);
     
-    // Set up real-time subscription for module updates
     const channel = supabase
       .channel('modules-changes')
       .on(
@@ -72,9 +75,7 @@ export default function LynqLibrary() {
           schema: 'public',
           table: 'modules'
         },
-        (payload) => {
-          console.log('LynqLibrary: Real-time module change detected:', payload);
-          // Refresh modules when any module is updated
+        () => {
           fetchModules(user.id);
         }
       )
@@ -87,9 +88,6 @@ export default function LynqLibrary() {
 
   const fetchModules = async (userId: string) => {
     try {
-      console.log('LynqLibrary: Fetching modules for user:', userId);
-
-      // Fetch only assigned modules for this user
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
         .select(`
@@ -101,21 +99,16 @@ export default function LynqLibrary() {
             category,
             file_url,
             screenshot_url,
-            created_at
+            created_at,
+            module_link
           )
         `)
         .eq('user_id', userId);
 
       if (error) throw error;
       
-      console.log('LynqLibrary: Raw assignments data:', assignments);
-      
-      // Extract modules from assignments
       const assignedModules = assignments?.map(a => a.modules).filter(Boolean) || [];
-      console.log('LynqLibrary: Extracted modules:', assignedModules);
-      console.log('LynqLibrary: Total module count:', assignedModules.length);
-      
-      setModules(assignedModules);
+      setModules(assignedModules as Module[]);
     } catch (error) {
       console.error('Error fetching modules:', error);
       toast.error('Failed to load modules');
@@ -125,34 +118,28 @@ export default function LynqLibrary() {
   };
 
   const getModulesByCategory = (category: string) => {
-    const filteredModules = modules.filter(module => 
+    return modules.filter(module => 
       module.category === category &&
       (searchTerm === '' || 
        module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
        module.description?.toLowerCase().includes(searchTerm.toLowerCase()))
     );
-    console.log(`LynqLibrary: Modules in ${category}:`, filteredModules);
-    return filteredModules;
   };
 
   const getFilteredCategories = () => {
     return Object.keys(categoryData).filter(category => {
       if (searchTerm === '') return true;
-      
-      // Check if category name matches
       if (category.toLowerCase().includes(searchTerm.toLowerCase())) return true;
-      
-      // Check if any modules in category match
       return getModulesByCategory(category).length > 0;
     });
   };
 
-  const handleModuleClick = (moduleId: string) => {
-    if (!moduleId || moduleId === 'undefined' || moduleId === 'null') {
+  const handleModuleClick = (module: Module) => {
+    if (!module.id || module.id === 'undefined' || module.id === 'null') {
       toast.error('Invalid module selected');
       return;
     }
-    navigate(`/module/${moduleId}`);
+    setSelectedModule(module);
   };
 
   if (loading) {
@@ -223,7 +210,7 @@ export default function LynqLibrary() {
                       {categoryModules.slice(0, 3).map((module) => (
                         <div
                           key={module.id}
-                          onClick={() => handleModuleClick(module.id)}
+                          onClick={() => handleModuleClick(module)}
                           className="group p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-all"
                         >
                           <div className="flex items-start justify-between gap-2">
@@ -271,6 +258,17 @@ export default function LynqLibrary() {
           </CardContent>
         </Card>
       )}
+
+      {/* Module Detail Side Panel */}
+      <SidePanel
+        isOpen={!!selectedModule}
+        onClose={() => setSelectedModule(null)}
+        title={selectedModule?.title || 'Module Details'}
+      >
+        {selectedModule && user && (
+          <ModuleDetailSidebar module={selectedModule} userId={user.id} />
+        )}
+      </SidePanel>
     </DashboardLayout>
   );
 }
