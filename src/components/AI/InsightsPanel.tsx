@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Sparkles, TrendingUp, TrendingDown, Minus, Zap, AlertCircle, Loader2, CheckCircle2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { generateAIInsights, type InsightOutput } from '@/services/aiService';
 
 interface InsightsPanelProps {
@@ -72,15 +73,22 @@ export function InsightsPanel({ metricsData }: InsightsPanelProps) {
             </div>
           </div>
 
-          {insights && (
-            <div className="flex items-center gap-2">
-              <span className="text-xs text-text-muted">Confidence:</span>
-              <div className="flex items-center gap-2 min-w-[80px]">
-                <Progress value={insights.confidence} className="h-1.5" />
-                <span className="text-xs font-bold text-text-primary">{insights.confidence}%</span>
+          <div className="flex items-center gap-3">
+            <InfoTooltip
+              label="AI Strategic Insights"
+              description="AI analyzes your metrics to highlight key trends, risks, and a recommended next action."
+            />
+
+            {insights && (
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-text-muted">Confidence:</span>
+                <div className="flex items-center gap-2 min-w-[80px]">
+                  <Progress value={insights.confidence} className="h-1.5" />
+                  <span className="text-xs font-bold text-text-primary">{insights.confidence}%</span>
+                </div>
               </div>
-            </div>
-          )}
+            )}
+          </div>
         </div>
 
         {/* Content States */}
