@@ -4,12 +4,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate } from "react-router-dom";
-import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight } from "lucide-react";
+import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
 import { SidePanel } from "@/components/dashboard/SidePanel";
 import { ModuleDetailSidebar } from "@/components/dashboard/ModuleDetailSidebar";
+import { useIsMobile } from "@/hooks/use-mobile";
+import { motion } from 'framer-motion';
 
 interface Module {
   id: string;
@@ -49,6 +51,35 @@ const categoryData = {
   }
 };
 
+// Compact mobile module card component
+function CompactModuleCard({ module, onClick }: { module: Module; onClick: () => void }) {
+  const categoryInfo = categoryData[module.category as keyof typeof categoryData];
+  const Icon = categoryInfo?.icon || BookOpen;
+  
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.98 }}
+      onClick={onClick}
+      className="flex items-center gap-3 p-3 bg-bg-surface border border-border-default rounded-xl hover:bg-bg-surface-hover active:bg-bg-surface-hover transition-colors cursor-pointer touch-manipulation"
+    >
+      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${categoryInfo?.bgGradient || 'from-primary/20 to-primary/5'} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-4 h-4 ${categoryInfo?.iconColor || 'text-primary'}`} />
+      </div>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-text-primary truncate">
+          {module.title}
+        </p>
+        <p className="text-[11px] text-text-muted truncate">
+          {module.category}
+        </p>
+      </div>
+      <ChevronRight className="w-4 h-4 text-text-muted flex-shrink-0" />
+    </motion.div>
+  );
+}
+
 export default function LynqLibrary() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
@@ -56,6 +87,7 @@ export default function LynqLibrary() {
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuthPersistence();
+  const isMobile = useIsMobile();
 
   useEffect(() => {
     if (authLoading) return;
@@ -134,6 +166,15 @@ export default function LynqLibrary() {
     });
   };
 
+  const getAllFilteredModules = () => {
+    return modules.filter(module => 
+      searchTerm === '' || 
+      module.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      module.category?.toLowerCase().includes(searchTerm.toLowerCase())
+    );
+  };
+
   const handleModuleClick = (module: Module) => {
     if (!module.id || module.id === 'undefined' || module.id === 'null') {
       toast.error('Invalid module selected');
@@ -158,15 +199,15 @@ export default function LynqLibrary() {
   return (
     <DashboardLayout role="user">
       {/* Header */}
-      <div className="mb-6 sm:mb-8">
-        <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">My Modules</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">
-          Learning resources organized by category
+      <div className="mb-4 sm:mb-6">
+        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">My Modules</h1>
+        <p className="text-xs sm:text-sm text-muted-foreground">
+          {modules.length} modules assigned to you
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="mb-6">
+      <div className="mb-4 sm:mb-6">
         <div className="relative max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -174,89 +215,114 @@ export default function LynqLibrary() {
             placeholder="Search modules..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            className="pl-10 h-10 touch-manipulation"
           />
         </div>
       </div>
 
-      {/* Categories Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-        {getFilteredCategories().map((category) => {
-          const categoryInfo = categoryData[category as keyof typeof categoryData];
-          const Icon = categoryInfo.icon;
-          const moduleCount = getModulesByCategory(category).length;
-          const categoryModules = getModulesByCategory(category);
+      {/* Mobile: Compact list view */}
+      {isMobile ? (
+        <div className="space-y-2">
+          {getAllFilteredModules().length > 0 ? (
+            getAllFilteredModules().map((module) => (
+              <CompactModuleCard
+                key={module.id}
+                module={module}
+                onClick={() => handleModuleClick(module)}
+              />
+            ))
+          ) : (
+            <div className="flex flex-col items-center justify-center py-12">
+              <Search className="h-10 w-10 text-muted-foreground/50 mb-3" />
+              <p className="text-sm font-medium text-foreground mb-1">No modules found</p>
+              <p className="text-xs text-muted-foreground">
+                Try adjusting your search
+              </p>
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Desktop: Category grid view */
+        <>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {getFilteredCategories().map((category) => {
+              const categoryInfo = categoryData[category as keyof typeof categoryData];
+              const Icon = categoryInfo.icon;
+              const moduleCount = getModulesByCategory(category).length;
+              const categoryModules = getModulesByCategory(category);
 
-          return (
-            <Card key={category} className="hover:shadow-lg transition-all">
-              <CardHeader className="pb-4">
-                <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${categoryInfo.bgGradient} flex items-center justify-center mb-3`}>
-                  <Icon className={`w-6 h-6 ${categoryInfo.iconColor}`} />
-                </div>
-                <CardTitle className="text-lg">{category}</CardTitle>
-                <CardDescription className="text-sm">
-                  {categoryInfo.description}
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-2">
-                  <div className="flex items-center justify-between mb-3">
-                    <Badge variant="secondary" className="text-xs">
-                      {moduleCount} {moduleCount === 1 ? 'Module' : 'Modules'}
-                    </Badge>
-                  </div>
-                  {categoryModules.length > 0 ? (
+              return (
+                <Card key={category} className="hover:shadow-lg transition-all">
+                  <CardHeader className="pb-4">
+                    <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${categoryInfo.bgGradient} flex items-center justify-center mb-3`}>
+                      <Icon className={`w-6 h-6 ${categoryInfo.iconColor}`} />
+                    </div>
+                    <CardTitle className="text-lg">{category}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {categoryInfo.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
                     <div className="space-y-2">
-                      {categoryModules.slice(0, 3).map((module) => (
-                        <div
-                          key={module.id}
-                          onClick={() => handleModuleClick(module)}
-                          className="group p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-all"
-                        >
-                          <div className="flex items-start justify-between gap-2">
-                            <div className="flex-1 min-w-0">
-                              <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
-                                {module.title}
-                              </p>
-                              {module.description && (
-                                <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
-                                  {module.description}
-                                </p>
-                              )}
+                      <div className="flex items-center justify-between mb-3">
+                        <Badge variant="secondary" className="text-xs">
+                          {moduleCount} {moduleCount === 1 ? 'Module' : 'Modules'}
+                        </Badge>
+                      </div>
+                      {categoryModules.length > 0 ? (
+                        <div className="space-y-2">
+                          {categoryModules.slice(0, 3).map((module) => (
+                            <div
+                              key={module.id}
+                              onClick={() => handleModuleClick(module)}
+                              className="group p-3 rounded-lg bg-muted/50 hover:bg-muted cursor-pointer transition-all"
+                            >
+                              <div className="flex items-start justify-between gap-2">
+                                <div className="flex-1 min-w-0">
+                                  <p className="text-sm font-medium text-foreground truncate group-hover:text-primary transition-colors">
+                                    {module.title}
+                                  </p>
+                                  {module.description && (
+                                    <p className="text-xs text-muted-foreground line-clamp-1 mt-1">
+                                      {module.description}
+                                    </p>
+                                  )}
+                                </div>
+                                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
+                              </div>
                             </div>
-                            <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors flex-shrink-0 mt-0.5" />
-                          </div>
+                          ))}
+                          {categoryModules.length > 3 && (
+                            <p className="text-xs text-muted-foreground text-center pt-2">
+                              +{categoryModules.length - 3} more
+                            </p>
+                          )}
                         </div>
-                      ))}
-                      {categoryModules.length > 3 && (
-                        <p className="text-xs text-muted-foreground text-center pt-2">
-                          +{categoryModules.length - 3} more
-                        </p>
+                      ) : (
+                        <div className="text-center py-4">
+                          <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                          <p className="text-xs text-muted-foreground">No modules yet</p>
+                        </div>
                       )}
                     </div>
-                  ) : (
-                    <div className="text-center py-4">
-                      <BookOpen className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
-                      <p className="text-xs text-muted-foreground">No modules yet</p>
-                    </div>
-                  )}
-                </div>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {getFilteredCategories().length === 0 && (
+            <Card className="mt-8">
+              <CardContent className="flex flex-col items-center justify-center py-12">
+                <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
+                <p className="text-lg font-medium text-foreground mb-2">No results found</p>
+                <p className="text-sm text-muted-foreground">
+                  Try adjusting your search terms
+                </p>
               </CardContent>
             </Card>
-          );
-        })}
-      </div>
-
-      {getFilteredCategories().length === 0 && (
-        <Card className="mt-8">
-          <CardContent className="flex flex-col items-center justify-center py-12">
-            <Search className="h-12 w-12 text-muted-foreground/50 mb-4" />
-            <p className="text-lg font-medium text-foreground mb-2">No results found</p>
-            <p className="text-sm text-muted-foreground">
-              Try adjusting your search terms
-            </p>
-          </CardContent>
-        </Card>
+          )}
+        </>
       )}
 
       {/* Module Detail Side Panel */}
