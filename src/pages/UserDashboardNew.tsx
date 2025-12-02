@@ -357,9 +357,9 @@ const UserDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 lg:grid-cols-12 gap-3 md:gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
         >
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
@@ -369,7 +369,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
               title="STR Score"
               value={stats.strScore}
@@ -378,35 +378,35 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
-              title="Engagement Rate"
+              title="Engagement"
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
               info="Measures how much of the module learners truly interacted with, not just opened."
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
-              title="Completion Rate"
+              title="Completion"
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
               info="Percentage of learners who fully finished this module, from start to end."
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
-              title="Average Rating"
+              title="Avg Rating"
               value={stats.avgRating}
-              subtitle="out of 5 stars"
+              subtitle="of 5"
               trend={{ value: 0, direction: 'neutral' }}
               info="Average satisfaction rating learners gave this module based on their feedback."
             />
           </motion.div>
 
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-1 md:col-span-2 lg:col-span-2">
+          <motion.div variants={itemVariants}>
             <MetricCard
               title="Time Saved"
               value={stats.timeSaved}
@@ -417,7 +417,7 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* AI Insights Panel */}
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-12">
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6">
             <InsightsPanel metricsData={{
               objectiveScore: stats.objectiveScore,
               strScore: stats.strScore,
@@ -432,22 +432,26 @@ const UserDashboardNew = () => {
           </motion.div>
 
           {/* CSR Hotspots */}
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
-            <CSRHotspotsCard items={csrHotspots} />
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
+            <CSRHotspotsCard 
+              items={csrHotspots} 
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+            />
           </motion.div>
 
           {/* Top Client Objections */}
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
             <TopClientObjectionsCard items={clientObjections} />
           </motion.div>
 
-          {/* Confusion Areas */}
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
+          {/* Conversion Stoppers */}
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
             <ConfusionAreasCard items={confusionAreas} />
           </motion.div>
 
           {/* Regional STR */}
-          <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
             <RegionalSTRCard
               data={regionalSTR}
               selectedRegion={selectedRegion}

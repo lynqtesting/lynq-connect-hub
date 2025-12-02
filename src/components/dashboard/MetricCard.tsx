@@ -55,7 +55,7 @@ export function MetricCard({
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
         <div className="flex items-center gap-2 min-w-0 flex-1">
-          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-text-muted truncate" title={title}>
+          <p className="text-[10px] sm:text-xs font-bold uppercase tracking-wider text-text-muted leading-tight">
             {title}
           </p>
           {info && (
@@ -79,7 +79,7 @@ export function MetricCard({
       {/* Value */}
       {value !== undefined && (
         <div className="mb-2">
-          <h3 className="text-xl sm:text-2xl md:text-4xl font-extrabold text-text-primary">
+          <h3 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-extrabold text-text-primary">
             {value}
           </h3>
           {subtitle && (
