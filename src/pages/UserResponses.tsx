@@ -72,15 +72,11 @@ const UserResponses = () => {
   }, []);
 
   const fetchResponses = () => {
-    // Simulate loading and potential errors
+    // Simulate loading
     setLoading(true);
     setError(null);
     setTimeout(() => {
       try {
-        // Simulate random error for demonstration
-        if (Math.random() > 0.9) {
-          throw new Error('Network connection failed');
-        }
         setResponses(mockResponses);
       } catch (err: any) {
         setError(err.message || 'Failed to load responses');
@@ -241,10 +237,10 @@ const UserResponses = () => {
           </Select>
         </div>
 
-        {/* Responses Table */}
-        <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden">
+        {/* Responses - Table on Desktop, Cards on Mobile */}
+        <div className="hidden sm:block bg-bg-surface border border-border-default rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
-            <table className="w-full min-w-[900px]">
+            <table className="w-full">
               <thead className="bg-bg-canvas border-b border-border-default">
                 <tr>
                   <th className="px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider">
@@ -308,6 +304,52 @@ const UserResponses = () => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="sm:hidden space-y-3">
+          {filteredResponses.map((response) => (
+            <div
+              key={response.id}
+              className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3"
+            >
+              <div className="flex items-start justify-between gap-3">
+                <div className="flex-1 min-w-0">
+                  <p className="font-semibold text-text-primary mb-1 truncate">
+                    {response.activity}
+                  </p>
+                  <p className="text-xs text-text-muted truncate">{response.module}</p>
+                </div>
+                {getStatusBadge(response.status)}
+              </div>
+              
+              <div className="grid grid-cols-2 gap-3 text-sm">
+                <div>
+                  <p className="text-text-muted text-xs mb-1">Type</p>
+                  <div className="flex items-center gap-2 text-text-secondary">
+                    {getTypeIcon(response.type)}
+                    <span>{response.type}</span>
+                  </div>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-1">Score</p>
+                  <p className={`font-bold ${getScoreColor(response.score)}`}>
+                    {response.score !== null ? `${response.score}%` : 'N/A'}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-text-muted text-xs mb-1">Submitted</p>
+                  <p className="text-text-secondary text-sm">{response.submittedAt}</p>
+                </div>
+                <div className="flex items-end">
+                  <Button variant="ghost" size="sm" className="gap-1 w-full">
+                    <ExternalLink className="h-3 w-3" />
+                    View
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
 
         {filteredResponses.length === 0 && (

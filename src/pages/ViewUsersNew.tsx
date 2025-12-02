@@ -159,22 +159,22 @@ const ViewUsersNew = () => {
           />
         </div>
 
-        {/* Users Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+        {/* Users Grid - Optimized for Mobile */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
           {filteredUsers.map((user) => (
             <div
               key={user.id}
               onClick={() => handleUserClick(user)}
-              className="bg-bg-surface border border-border-default rounded-xl p-6 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer"
+              className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-6 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer touch-manipulation"
             >
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-center gap-3">
-                  <div className="w-12 h-12 rounded-full bg-gradient-to-br from-brand to-brand-glow text-white flex items-center justify-center text-lg font-bold">
+              <div className="flex items-start justify-between mb-3 sm:mb-4">
+                <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-brand to-brand-glow text-white flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0">
                     {user.name[0]}
                   </div>
-                  <div>
-                    <h3 className="font-semibold text-text-primary">{user.name}</h3>
-                    <p className="text-xs text-text-muted truncate max-w-[150px]">{user.email}</p>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="font-semibold text-text-primary text-sm sm:text-base truncate">{user.name}</h3>
+                    <p className="text-xs text-text-muted truncate">{user.email}</p>
                   </div>
                 </div>
                 <Badge

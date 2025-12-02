@@ -15,7 +15,6 @@ interface MetricCardProps {
   subtitle?: string;
   trend?: TrendBadge;
   info?: string;
-  colSpan?: string;
   headerAction?: ReactNode;
   showDecoration?: boolean;
   children?: ReactNode;
@@ -28,7 +27,6 @@ export function MetricCard({
   subtitle,
   trend,
   info,
-  colSpan = 'col-span-2 md:col-span-2 lg:col-span-3',
   headerAction,
   showDecoration = false,
   children,
