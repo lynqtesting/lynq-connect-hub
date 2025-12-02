@@ -177,8 +177,8 @@ const ViewModulesNew = () => {
           </Select>
         </div>
 
-        {/* Modules Table */}
-        <div className="bg-bg-surface border border-border-default rounded-xl overflow-hidden">
+        {/* Modules Table - Desktop Only */}
+        <div className="hidden md:block bg-bg-surface border border-border-default rounded-xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead className="bg-bg-canvas border-b border-border-default">
@@ -266,6 +266,60 @@ const ViewModulesNew = () => {
               </tbody>
             </table>
           </div>
+        </div>
+
+        {/* Mobile Card View */}
+        <div className="md:hidden space-y-3">
+          {filteredModules.map((module) => (
+            <div
+              key={module.id}
+              onClick={() => handleModuleClick(module)}
+              className="bg-bg-surface border border-border-default rounded-xl overflow-hidden hover:shadow-md transition-shadow"
+            >
+              {module.screenshot_url && (
+                <img
+                  src={module.screenshot_url}
+                  alt={module.title}
+                  className="w-full h-32 object-cover"
+                />
+              )}
+              <div className="p-4 space-y-3">
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex-1 min-w-0">
+                    <h3 className="font-semibold text-text-primary mb-1 truncate">
+                      {module.title}
+                    </h3>
+                    <p className="text-xs text-text-muted line-clamp-2">{module.description}</p>
+                  </div>
+                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400 flex-shrink-0">
+                    {module.status}
+                  </Badge>
+                </div>
+                
+                <div className="grid grid-cols-2 gap-3 text-sm">
+                  <div>
+                    <p className="text-text-muted text-xs mb-1">Created</p>
+                    <p className="text-text-secondary">{module.created}</p>
+                  </div>
+                  <div>
+                    <p className="text-text-muted text-xs mb-1">Assigned</p>
+                    <div className="flex items-center gap-1">
+                      <Users className="h-3 w-3 text-text-muted" />
+                      <span className="text-text-secondary">{module.assigned}</span>
+                    </div>
+                  </div>
+                </div>
+
+                <div>
+                  <div className="flex items-center justify-between text-xs mb-1">
+                    <span className="text-text-muted">Completion</span>
+                    <span className="text-text-secondary font-medium">{module.completion}%</span>
+                  </div>
+                  <Progress value={module.completion} className="h-1.5" />
+                </div>
+              </div>
+            </div>
+          ))}
         </div>
       </div>
 

@@ -23,7 +23,7 @@ export function PullToRefresh({
   const containerRef = useRef<HTMLDivElement>(null);
   const y = useMotionValue(0);
 
-  // Always call hooks unconditionally
+  // Always call hooks unconditionally - hooks must be at top level
   const pullProgress = useTransform(y, [0, pullThreshold], [0, 1]);
   const indicatorOpacity = useTransform(y, [0, 30], [0, 1]);
   const indicatorScale = useTransform(y, [0, pullThreshold], [0.8, 1]);

@@ -5,6 +5,7 @@ import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { EnhancedAuthProvider } from "@/hooks/useAuthPersistence";
 import { RouteGuard } from "@/components/RouteGuard";
+import { ErrorBoundary } from "@/components/ErrorBoundary";
 import Index from "./pages/Index";
 import Login from "./pages/Login";
 import UserDashboard from "./pages/UserDashboard";
@@ -43,7 +44,8 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <EnhancedAuthProvider>
-          <Routes>
+          <ErrorBoundary>
+            <Routes>
             <Route path="/" element={<Login />} />
             <Route path="/login" element={<Login />} />
             <Route path="/lynq-library" element={<RouteGuard><LynqLibrary /></RouteGuard>} />
@@ -76,7 +78,8 @@ const App = () => (
             <Route path="/admin/manage-adaptive-ideas" element={<RouteGuard requireAdmin><ManageAdaptiveIdeas /></RouteGuard>} />
             
             <Route path="*" element={<NotFound />} />
-          </Routes>
+            </Routes>
+          </ErrorBoundary>
         </EnhancedAuthProvider>
       </BrowserRouter>
     </TooltipProvider>

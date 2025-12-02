@@ -25,9 +25,13 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
         className={cn(
           'flex-1 overflow-x-hidden',
           'md:ml-64', // Offset for fixed sidebar on desktop
-          isMobile ? 'pt-14 pb-24' : 'pt-0', // Padding for mobile top bar and bottom nav
-          'p-4 sm:p-6'
+          isMobile ? 'pt-16 pb-28' : 'pt-0', // Improved padding for mobile (top bar + bottom nav + safe area)
+          'p-4 sm:p-6',
+          'min-h-screen' // Ensure full height
         )}
+        style={isMobile ? {
+          paddingBottom: 'calc(7rem + env(safe-area-inset-bottom))' // Safe area for iOS
+        } : undefined}
       >
         <div className="animate-fade-in">
           {children}

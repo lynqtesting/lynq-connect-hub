@@ -32,17 +32,12 @@ const adminNavItems: NavItem[] = [
   { title: 'Requests', url: '/admin/tweak-requests', icon: MessageSquare },
 ];
 
+// Additional menu items that don't fit in main nav (no duplicates)
 const moreUserItems: NavItem[] = [
-  { title: 'My Dashboard', url: '/user-dashboard', icon: LayoutDashboard },
-  { title: 'My Modules', url: '/lynq-library', icon: BookOpen },
-  { title: 'My Responses', url: '/user-responses', icon: FileText },
+  // All primary items are already in the main nav, no duplicates needed
 ];
 
 const moreAdminItems: NavItem[] = [
-  { title: 'Overview', url: '/admin-dashboard', icon: LayoutDashboard },
-  { title: 'Module Manager', url: '/view-modules', icon: Layers },
-  { title: 'Users', url: '/view-users', icon: Users },
-  { title: 'Tweak Requests', url: '/admin/tweak-requests', icon: MessageSquare },
   { title: 'Upload Module', url: '/upload-module', icon: Layers },
   { title: 'Create User', url: '/create-user', icon: Users },
   { title: 'Assign Modules', url: '/assign-modules', icon: BookOpen },
@@ -138,8 +133,9 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
             );
           })}
 
-          {/* Menu/More Button */}
-          <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
+          {/* Menu/More Button - Only show if there are additional items */}
+          {moreItems.length > 0 && (
+            <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <motion.button
                 className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-muted min-w-[64px] touch-manipulation"
@@ -191,6 +187,7 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
               </div>
             </SheetContent>
           </Sheet>
+          )}
         </div>
       </motion.nav>
     </>

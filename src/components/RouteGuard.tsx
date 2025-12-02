@@ -15,17 +15,22 @@ export function RouteGuard({ children, requireAdmin = false }: RouteGuardProps) 
   const { toast } = useToast();
 
   useEffect(() => {
+    // Add a small delay to ensure auth state is fully resolved
     if (!loading && typeof navigate === 'function') {
-      if (!user) {
-        navigate('/login');
-      } else if (requireAdmin && !isAdmin) {
-        toast({
-          title: "Access Denied",
-          description: "Admin access required",
-          variant: "destructive"
-        });
-        navigate('/lynq-library');
-      }
+      const timer = setTimeout(() => {
+        if (!user) {
+          navigate('/login');
+        } else if (requireAdmin && !isAdmin) {
+          toast({
+            title: "Access Denied",
+            description: "Admin access required",
+            variant: "destructive"
+          });
+          navigate('/lynq-library');
+        }
+      }, 100);
+      
+      return () => clearTimeout(timer);
     }
   }, [user, loading, requireAdmin, isAdmin, navigate, toast]);
 
