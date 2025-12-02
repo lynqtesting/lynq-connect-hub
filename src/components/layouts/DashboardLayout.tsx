@@ -17,19 +17,19 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
   const effectiveRole = isAdmin ? 'admin' : 'user';
 
   return (
-    <div className="min-h-screen bg-bg-canvas text-text-primary flex w-full">
+    <div className="min-h-screen bg-bg-canvas text-text-primary flex w-full overflow-x-hidden">
       <Sidebar role={effectiveRole} user={user || undefined} />
       
       <main
         className={cn(
           'flex-1 overflow-x-hidden transition-all duration-200',
           'md:ml-64',
-          isMobile ? 'pt-16 pb-24' : 'pt-0',
-          'p-4 sm:p-6',
+          isMobile ? 'pt-16' : 'pt-0',
+          'p-3 sm:p-4 md:p-6',
           'min-h-screen'
         )}
         style={isMobile ? {
-          paddingBottom: 'calc(6rem + env(safe-area-inset-bottom))'
+          paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))'
         } : undefined}
       >
         <div className="animate-fade-in max-w-full">

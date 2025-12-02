@@ -52,39 +52,39 @@ export function InsightsPanel({ metricsData }: InsightsPanelProps) {
   };
 
   return (
-    <div className="col-span-2 md:col-span-4 lg:col-span-8 bg-bg-surface border border-border-default rounded-2xl p-6 shadow-xs hover:shadow-md transition-all duration-200 min-h-[250px] relative overflow-hidden">
+    <div className="col-span-2 md:col-span-4 lg:col-span-8 bg-bg-surface border border-border-default rounded-2xl p-4 md:p-6 shadow-xs hover:shadow-md transition-all duration-200 min-h-[200px] md:min-h-[250px] relative overflow-hidden">
       {/* Subtle Background Gradient (Light Mode Only) */}
       <div className="absolute inset-0 bg-gradient-to-br from-indigo-50/50 via-transparent to-transparent dark:from-indigo-900/5 pointer-events-none" />
 
       <div className="relative z-10">
         {/* Header */}
-        <div className="flex items-start justify-between mb-6">
-          <div className="flex items-start gap-3">
-            <div className="flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20">
-              <Sparkles className="h-5 w-5 text-indigo-600 dark:text-indigo-400" />
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-4 md:mb-6">
+          <div className="flex items-start gap-2 sm:gap-3">
+            <div className="flex items-center justify-center w-8 h-8 sm:w-10 sm:h-10 rounded-xl bg-indigo-100 dark:bg-indigo-500/20 flex-shrink-0">
+              <Sparkles className="h-4 w-4 sm:h-5 sm:w-5 text-indigo-600 dark:text-indigo-400" />
             </div>
             <div>
-              <h3 className="text-lg font-bold text-indigo-800 dark:text-indigo-100">
+              <h3 className="text-base sm:text-lg font-bold text-indigo-800 dark:text-indigo-100">
                 AI Strategic Insights
               </h3>
-              <p className="text-xs text-indigo-500 dark:text-indigo-300/60">
+              <p className="text-[10px] sm:text-xs text-indigo-500 dark:text-indigo-300/60">
                 Powered by AI Analysis
               </p>
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 sm:gap-3">
             <InfoTooltip
               label="AI Strategic Insights"
               description="AI analyzes your metrics to highlight key trends, risks, and a recommended next action."
             />
 
             {insights && (
-              <div className="flex items-center gap-2">
-                <span className="text-xs text-text-muted">Confidence:</span>
-                <div className="flex items-center gap-2 min-w-[80px]">
-                  <Progress value={insights.confidence} className="h-1.5" />
-                  <span className="text-xs font-bold text-text-primary">{insights.confidence}%</span>
+              <div className="flex items-center gap-1.5 sm:gap-2">
+                <span className="text-[10px] sm:text-xs text-text-muted hidden sm:inline">Confidence:</span>
+                <div className="flex items-center gap-1.5 sm:gap-2 min-w-[60px] sm:min-w-[80px]">
+                  <Progress value={insights.confidence} className="h-1 sm:h-1.5" />
+                  <span className="text-[10px] sm:text-xs font-bold text-text-primary">{insights.confidence}%</span>
                 </div>
               </div>
             )}
