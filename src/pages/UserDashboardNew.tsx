@@ -4,18 +4,20 @@ import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
+import { CSRHotspotsCard } from '@/components/dashboard/CSRHotspotsCard';
+import { TopClientObjectionsCard } from '@/components/dashboard/TopClientObjectionsCard';
+import { ConfusionAreasCard } from '@/components/dashboard/ConfusionAreasCard';
+import { RegionalSTRCard } from '@/components/dashboard/RegionalSTRCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
+import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Progress } from '@/components/ui/progress';
-import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { containerVariants, itemVariants } from '@/lib/animations';
-import { useIsMobile } from '@/hooks/use-mobile';
 import { PullToRefresh } from '@/components/ui/PullToRefresh';
 
 interface UserStats {
@@ -27,11 +29,35 @@ interface UserStats {
   timeSaved: string;
 }
 
+// Types for new components
+interface CSRHotspotItem {
+  module: string;
+  escalations: number;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface ObjectionItem {
+  label: string;
+  count: number;
+  priority: 'high' | 'medium' | 'low';
+}
+
+interface ConfusionItem {
+  label: string;
+  metricLabel: string;
+  severity: 'high' | 'medium' | 'low';
+}
+
+interface RegionalSTRItem {
+  region: string;
+  value: number;
+  trend: 'up' | 'down' | 'stable';
+}
+
 const UserDashboardNew = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
   const { user } = useAuthPersistence();
-  const isMobile = useIsMobile();
   const [selectedRegion, setSelectedRegion] = useState('global');
   const [selectedModule, setSelectedModule] = useState('all');
   const [loading, setLoading] = useState(true);
@@ -46,11 +72,11 @@ const UserDashboardNew = () => {
     timeSaved: '0h',
   });
 
-  const [csrHotspots, setCsrHotspots] = useState<any[]>([]);
-  const [clientObjections, setClientObjections] = useState<any[]>([]);
-  const [confusionAreas, setConfusionAreas] = useState<any[]>([]);
-  const [regionalSTR, setRegionalSTR] = useState<any[]>([]);
-  const [availableModules, setAvailableModules] = useState<any[]>([]);
+  const [csrHotspots, setCsrHotspots] = useState<CSRHotspotItem[]>([]);
+  const [clientObjections, setClientObjections] = useState<ObjectionItem[]>([]);
+  const [confusionAreas, setConfusionAreas] = useState<ConfusionItem[]>([]);
+  const [regionalSTR, setRegionalSTR] = useState<RegionalSTRItem[]>([]);
+  const [availableModules, setAvailableModules] = useState<{ id: string; title: string }[]>([]);
 
   useEffect(() => {
     if (user) {
@@ -118,45 +144,53 @@ const UserDashboardNew = () => {
         const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 78;
         const avgRating = moduleCount > 0 ? (totalRating / moduleCount).toFixed(1) : '4.5';
 
-        // Process confusion areas
-        const confusionMap: any = {};
+        // Process confusion areas - map to new format
+        const confusionMap: Record<string, number> = {};
         allConfusion.forEach((item: any) => {
           const key = item.area || item.label || item.name;
           if (key) {
             confusionMap[key] = (confusionMap[key] || 0) + (Number(item.value) || 1);
           }
         });
-        const processedConfusion = Object.entries(confusionMap)
-          .map(([label, value]) => ({ label, value }))
-          .sort((a: any, b: any) => b.value - a.value)
+        const processedConfusion: ConfusionItem[] = Object.entries(confusionMap)
+          .map(([label, value], index) => ({
+            label,
+            metricLabel: `${value} issues`,
+            severity: (index === 0 ? 'high' : index === 1 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+          }))
           .slice(0, 4);
 
-        // Process objections
-        const objectionsMap: any = {};
+        // Process objections - map to new format
+        const objectionsMap: Record<string, number> = {};
         allObjections.forEach((item: any) => {
           const key = item.objection || item.label || item.name;
           if (key) {
             objectionsMap[key] = (objectionsMap[key] || 0) + (Number(item.count) || 1);
           }
         });
-        const processedObjections = Object.entries(objectionsMap)
-          .map(([label, value]) => ({ label, value }))
-          .sort((a: any, b: any) => b.value - a.value)
+        const processedObjections: ObjectionItem[] = Object.entries(objectionsMap)
+          .map(([label, count], index) => ({
+            label,
+            count: count as number,
+            priority: (index === 0 ? 'high' : index === 1 ? 'medium' : 'low') as 'high' | 'medium' | 'low',
+          }))
+          .sort((a, b) => b.count - a.count)
           .slice(0, 4);
 
-        // Mock CSR hotspots and regional STR (would come from actual data in production)
-        const mockCSR = [
-          { label: 'North Region', value: avgObjective },
-          { label: 'South Region', value: avgObjective - 10 },
-          { label: 'East Region', value: avgObjective - 15 },
-          { label: 'West Region', value: avgObjective + 5 },
+        // Mock CSR hotspots - with new format
+        const mockCSR: CSRHotspotItem[] = [
+          { module: 'Product Knowledge', escalations: 24, severity: 'high' },
+          { module: 'Pricing Objections', escalations: 18, severity: 'high' },
+          { module: 'Technical Support', escalations: 12, severity: 'medium' },
+          { module: 'Onboarding Process', escalations: 8, severity: 'low' },
         ];
 
-        const mockRegionalSTR = [
-          { region: 'North', value: 125000 },
-          { region: 'South', value: 98000 },
-          { region: 'East', value: 87000 },
-          { region: 'West', value: 142000 },
+        // Mock regional STR - with new format
+        const mockRegionalSTR: RegionalSTRItem[] = [
+          { region: 'North', value: 125000, trend: 'up' },
+          { region: 'South', value: 98000, trend: 'down' },
+          { region: 'East', value: 87000, trend: 'stable' },
+          { region: 'West', value: 142000, trend: 'up' },
         ];
 
         setStats({
@@ -170,10 +204,10 @@ const UserDashboardNew = () => {
 
         setCsrHotspots(mockCSR);
         setClientObjections(processedObjections.length > 0 ? processedObjections : [
-          { label: 'No objections data', value: 0 }
+          { label: 'No objections data', count: 0, priority: 'low' }
         ]);
         setConfusionAreas(processedConfusion.length > 0 ? processedConfusion : [
-          { label: 'No confusion data', value: 0 }
+          { label: 'No confusion data', metricLabel: '0 issues', severity: 'low' }
         ]);
         setRegionalSTR(mockRegionalSTR);
         setAvailableModules(assignments.map((a: any) => ({
@@ -280,31 +314,43 @@ const UserDashboardNew = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <Select value={selectedModule} onValueChange={setSelectedModule}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
-                <SelectValue placeholder="Select Module" />
-              </SelectTrigger>
-              <SelectContent className="bg-bg-surface z-50">
-                <SelectItem value="all">All Modules</SelectItem>
-                {availableModules.map((m) => (
-                  <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+            <div className="flex items-center gap-2">
+              <Select value={selectedModule} onValueChange={setSelectedModule}>
+                <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
+                  <SelectValue placeholder="Select Module" />
+                </SelectTrigger>
+                <SelectContent className="bg-bg-surface z-50">
+                  <SelectItem value="all">All Modules</SelectItem>
+                  {availableModules.map((m) => (
+                    <SelectItem key={m.id} value={m.id}>{m.title}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <InfoTooltip
+                label="Module Selector"
+                description="Switch between viewing combined metrics for all modules or a single module's detailed performance."
+              />
+            </div>
 
-            <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-              <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
-                <SelectValue placeholder="Select Region" />
-              </SelectTrigger>
-              <SelectContent className="bg-bg-surface z-50">
-                <SelectItem value="global">Global</SelectItem>
-                <SelectItem value="north">North</SelectItem>
-                <SelectItem value="south">South</SelectItem>
-                <SelectItem value="east">East</SelectItem>
-                <SelectItem value="west">West</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex items-center gap-2">
+              <Select value={selectedRegion} onValueChange={setSelectedRegion}>
+                <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
+                  <SelectValue placeholder="Select Region" />
+                </SelectTrigger>
+                <SelectContent className="bg-bg-surface z-50">
+                  <SelectItem value="global">Global</SelectItem>
+                  <SelectItem value="north">North</SelectItem>
+                  <SelectItem value="south">South</SelectItem>
+                  <SelectItem value="east">East</SelectItem>
+                  <SelectItem value="west">West</SelectItem>
+                </SelectContent>
+              </Select>
+              <InfoTooltip
+                label="Region Selector"
+                description="Filter CSR hotspots and objections by region to compare where friction is highest."
+              />
+            </div>
           </div>
         </motion.div>
 
@@ -318,7 +364,7 @@ const UserDashboardNew = () => {
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
-              info="Overall learning effectiveness based on module completion and assessments"
+              info="Shows how accurately learners answered the objective quiz questions we can directly verify."
               showDecoration
             />
           </motion.div>
@@ -328,7 +374,7 @@ const UserDashboardNew = () => {
               title="STR Score"
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
-              info="Single Strength Rating - measures individual performance"
+              info="Single strength score that links learner skill to actual module completion and impact."
             />
           </motion.div>
 
@@ -337,7 +383,7 @@ const UserDashboardNew = () => {
               title="Engagement Rate"
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
-              info="Module interaction and participation rate"
+              info="Measures how much of the module learners truly interacted with, not just opened."
             />
           </motion.div>
 
@@ -346,7 +392,7 @@ const UserDashboardNew = () => {
               title="Completion Rate"
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
-              info="Percentage of assigned modules completed"
+              info="Percentage of learners who fully finished this module, from start to end."
             />
           </motion.div>
 
@@ -356,6 +402,7 @@ const UserDashboardNew = () => {
               value={stats.avgRating}
               subtitle="out of 5 stars"
               trend={{ value: 0, direction: 'neutral' }}
+              info="Average satisfaction rating learners gave this module based on their feedback."
             />
           </motion.div>
 
@@ -365,7 +412,7 @@ const UserDashboardNew = () => {
               value={stats.timeSaved}
               subtitle="this month"
               trend={{ value: 15, direction: 'up' }}
-              info="Estimated time saved through efficient learning"
+              info="Average time each learner saves by applying the skills from this module in real work."
             />
           </motion.div>
 
@@ -386,97 +433,26 @@ const UserDashboardNew = () => {
 
           {/* CSR Hotspots */}
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
-            <MetricCard
-              title="CSR Hotspots"
-            >
-              <div className="space-y-3">
-                {csrHotspots.map((item, i) => (
-                  <motion.div
-                    key={i}
-                    initial={{ opacity: 0, x: -10 }}
-                    animate={{ opacity: 1, x: 0 }}
-                    transition={{ delay: i * 0.05 }}
-                    className="space-y-1"
-                  >
-                    <div className="flex items-center justify-between text-xs">
-                      <span className="text-text-secondary font-medium">{item.label}</span>
-                      <span className="text-text-primary font-bold">{item.value}%</span>
-                    </div>
-                    <Progress value={item.value} className="h-2" />
-                  </motion.div>
-                ))}
-              </div>
-            </MetricCard>
+            <CSRHotspotsCard items={csrHotspots} />
           </motion.div>
 
-          {/* Client Objections */}
+          {/* Top Client Objections */}
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
-            <MetricCard
-              title="Top Client Objections"
-            >
-              <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
-                <BarChart data={clientObjections} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }} width={isMobile ? 80 : 100} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--bg-surface))',
-                      border: '1px solid hsl(var(--border-default))',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--brand))" radius={[0, 4, 4, 0]} barSize={isMobile ? 12 : 16} />
-                </BarChart>
-              </ResponsiveContainer>
-            </MetricCard>
+            <TopClientObjectionsCard items={clientObjections} />
           </motion.div>
 
           {/* Confusion Areas */}
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
-            <MetricCard
-              title="Confusion Areas"
-            >
-              <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
-                <BarChart data={confusionAreas} layout="vertical">
-                  <XAxis type="number" hide />
-                  <YAxis type="category" dataKey="label" tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }} width={isMobile ? 80 : 100} />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--bg-surface))',
-                      border: '1px solid hsl(var(--border-default))',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--destructive))" radius={[0, 4, 4, 0]} barSize={isMobile ? 12 : 16} />
-                </BarChart>
-              </ResponsiveContainer>
-            </MetricCard>
+            <ConfusionAreasCard items={confusionAreas} />
           </motion.div>
 
           {/* Regional STR */}
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-6">
-            <MetricCard
-              title="Regional STR"
-            >
-              <ResponsiveContainer width="100%" height={isMobile ? 120 : 160}>
-                <BarChart data={regionalSTR}>
-                  <XAxis dataKey="region" tick={{ fontSize: 10, fill: 'hsl(var(--text-muted))' }} />
-                  <YAxis hide />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: 'hsl(var(--bg-surface))',
-                      border: '1px solid hsl(var(--border-default))',
-                      borderRadius: '8px',
-                      fontSize: '12px',
-                    }}
-                    formatter={(value: number) => `$${(value / 1000).toFixed(0)}K`}
-                  />
-                  <Bar dataKey="value" fill="hsl(var(--chart-2))" radius={[4, 4, 0, 0]} barSize={isMobile ? 30 : 40} />
-                </BarChart>
-              </ResponsiveContainer>
-            </MetricCard>
+            <RegionalSTRCard
+              data={regionalSTR}
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+            />
           </motion.div>
         </motion.div>
       </motion.div>
