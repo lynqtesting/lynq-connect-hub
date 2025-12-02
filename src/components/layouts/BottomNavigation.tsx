@@ -86,10 +86,10 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
       <motion.nav
         initial={{ y: 100 }}
         animate={{ y: 0 }}
-        style={{ opacity }}
-        className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface/95 backdrop-blur-xl border-t border-border-default pb-safe pointer-events-auto"
+        style={{ opacity, paddingBottom: 'max(env(safe-area-inset-bottom), 8px)' }}
+        className="fixed bottom-0 left-0 right-0 z-50 bg-bg-surface/95 backdrop-blur-xl border-t border-border-default pointer-events-auto"
       >
-        <div className="flex items-center justify-around px-2 py-3 max-w-screen-xl mx-auto">
+        <div className="flex items-center justify-around px-2 py-2 max-w-screen-xl mx-auto">
           {navItems.map((item) => {
             const isItemActive = isActive(item.url);
             return (
@@ -97,35 +97,34 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
                 key={item.url}
                 onClick={() => navigate(item.url)}
                 className={`
-                  flex flex-col items-center gap-1 px-3 py-2 rounded-xl
-                  transition-colors min-w-[64px] touch-manipulation
+                  flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl
+                  transition-colors min-w-[56px] min-h-[44px] touch-manipulation
                   ${isItemActive 
                     ? 'text-brand' 
                     : 'text-text-muted'
                   }
                 `}
                 whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.05 }}
               >
                 <motion.div
                   initial={false}
                   animate={{
                     scale: isItemActive ? 1.1 : 1,
-                    y: isItemActive ? -2 : 0,
+                    y: isItemActive ? -1 : 0,
                   }}
                   transition={{ type: 'spring', stiffness: 400, damping: 17 }}
                 >
-                  <item.icon className="h-6 w-6" strokeWidth={isItemActive ? 2.5 : 2} />
+                  <item.icon className="h-5 w-5" strokeWidth={isItemActive ? 2.5 : 2} />
                 </motion.div>
                 <span 
-                  className={`text-xs font-medium ${isItemActive ? 'font-semibold' : ''}`}
+                  className={`text-[10px] font-medium ${isItemActive ? 'font-semibold' : ''}`}
                 >
                   {item.title}
                 </span>
                 {isItemActive && (
                   <motion.div
                     layoutId="activeIndicator"
-                    className="absolute -bottom-0.5 h-1 w-12 bg-brand rounded-full"
+                    className="absolute -bottom-0.5 h-0.5 w-8 bg-brand rounded-full"
                     transition={{ type: 'spring', stiffness: 380, damping: 30 }}
                   />
                 )}
@@ -138,12 +137,11 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
             <Sheet open={sheetOpen} onOpenChange={setSheetOpen}>
             <SheetTrigger asChild>
               <motion.button
-                className="flex flex-col items-center gap-1 px-3 py-2 rounded-xl text-text-muted min-w-[64px] touch-manipulation"
+                className="flex flex-col items-center gap-0.5 px-3 py-2 rounded-xl text-text-muted min-w-[56px] min-h-[44px] touch-manipulation"
                 whileTap={{ scale: 0.95 }}
-                whileHover={{ scale: 1.05 }}
               >
-                <Menu className="h-6 w-6" strokeWidth={2} />
-                <span className="text-xs font-medium">More</span>
+                <Menu className="h-5 w-5" strokeWidth={2} />
+                <span className="text-[10px] font-medium">More</span>
               </motion.button>
             </SheetTrigger>
             <SheetContent side="bottom" className="h-[60vh] rounded-t-3xl bg-bg-surface">
@@ -163,7 +161,7 @@ export function BottomNavigation({ role }: BottomNavigationProps) {
                         }}
                         className={`
                           flex items-center gap-3 px-4 py-3 rounded-xl text-left
-                          transition-colors touch-manipulation
+                          transition-colors touch-manipulation min-h-[48px]
                           ${isItemActive 
                             ? 'bg-brand/10 text-brand font-semibold' 
                             : 'text-text-secondary hover:bg-bg-surface-hover'
