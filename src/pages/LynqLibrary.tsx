@@ -51,6 +51,20 @@ const categoryData = {
   }
 };
 
+// Skeleton for compact mobile module card
+function CompactModuleCardSkeleton() {
+  return (
+    <div className="flex items-center gap-3 p-3 bg-bg-surface border border-border-default rounded-xl">
+      <div className="w-9 h-9 rounded-lg bg-bg-surface-hover animate-pulse flex-shrink-0" />
+      <div className="flex-1 min-w-0 space-y-1.5">
+        <div className="h-4 w-3/4 bg-bg-surface-hover rounded animate-pulse" />
+        <div className="h-3 w-1/2 bg-bg-surface-hover rounded animate-pulse" />
+      </div>
+      <div className="w-4 h-4 bg-bg-surface-hover rounded animate-pulse flex-shrink-0" />
+    </div>
+  );
+}
+
 // Compact mobile module card component
 function CompactModuleCard({ module, onClick }: { module: Module; onClick: () => void }) {
   const categoryInfo = categoryData[module.category as keyof typeof categoryData];
@@ -186,12 +200,43 @@ export default function LynqLibrary() {
   if (loading) {
     return (
       <DashboardLayout role="user">
-        <div className="flex items-center justify-center h-64">
-          <div className="text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="mt-2 text-sm text-muted-foreground">Loading library...</p>
+        {/* Header */}
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">My Modules</h1>
+          <p className="text-xs sm:text-sm text-muted-foreground">Loading modules...</p>
+        </div>
+
+        {/* Search Bar Skeleton */}
+        <div className="mb-4 sm:mb-6">
+          <div className="relative max-w-md">
+            <div className="h-10 w-full bg-bg-surface-hover rounded-md animate-pulse" />
           </div>
         </div>
+
+        {/* Mobile: Skeleton list */}
+        {isMobile ? (
+          <div className="space-y-2">
+            {[...Array(6)].map((_, i) => (
+              <CompactModuleCardSkeleton key={i} />
+            ))}
+          </div>
+        ) : (
+          /* Desktop: Skeleton grid */
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="bg-bg-surface border border-border-default rounded-xl p-6 animate-pulse">
+                <div className="w-12 h-12 rounded-lg bg-bg-surface-hover mb-3" />
+                <div className="h-5 w-24 bg-bg-surface-hover rounded mb-2" />
+                <div className="h-4 w-32 bg-bg-surface-hover rounded mb-4" />
+                <div className="h-6 w-16 bg-bg-surface-hover rounded-full mb-4" />
+                <div className="space-y-2">
+                  <div className="h-16 bg-bg-surface-hover rounded-lg" />
+                  <div className="h-16 bg-bg-surface-hover rounded-lg" />
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
       </DashboardLayout>
     );
   }

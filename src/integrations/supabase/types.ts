@@ -324,6 +324,7 @@ export type Database = {
       }
       tweak_requests: {
         Row: {
+          admin_comments: string | null
           created_at: string
           file_name: string | null
           file_url: string | null
@@ -331,10 +332,12 @@ export type Database = {
           module_id: string | null
           notes: string | null
           question_id: string | null
+          status: string
           title: string | null
           user_id: string | null
         }
         Insert: {
+          admin_comments?: string | null
           created_at?: string
           file_name?: string | null
           file_url?: string | null
@@ -342,10 +345,12 @@ export type Database = {
           module_id?: string | null
           notes?: string | null
           question_id?: string | null
+          status?: string
           title?: string | null
           user_id?: string | null
         }
         Update: {
+          admin_comments?: string | null
           created_at?: string
           file_name?: string | null
           file_url?: string | null
@@ -353,6 +358,7 @@ export type Database = {
           module_id?: string | null
           notes?: string | null
           question_id?: string | null
+          status?: string
           title?: string | null
           user_id?: string | null
         }
