@@ -537,6 +537,16 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
+          {/* Learning Progress */}
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
+            <LearningProgressCard data={learningProgress} />
+          </motion.div>
+
+          {/* Dropoff Rate */}
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
+            <DropoffRateCard rate={dropoffRate} />
+          </motion.div>
+
           {/* AI Insights Panel */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6">
             <InsightsPanel metricsData={{
@@ -582,16 +592,6 @@ const UserDashboardNew = () => {
               selectedRegion={selectedRegion}
               onRegionChange={setSelectedRegion}
             />
-          </motion.div>
-
-          {/* Learning Progress */}
-          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <LearningProgressCard data={learningProgress} />
-          </motion.div>
-
-          {/* Dropoff Rate */}
-          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <DropoffRateCard rate={dropoffRate} />
           </motion.div>
         </motion.div>
       </motion.div>
