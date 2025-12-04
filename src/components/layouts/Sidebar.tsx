@@ -57,28 +57,30 @@ const itemVariants = {
 
 export function Sidebar({ role, user }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [profileUsername, setProfileUsername] = useState<string | undefined>();
   const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
   const navItems = NAV_ITEMS[role];
 
-  // Fetch avatar URL from profiles
+  // Fetch profile data (username and avatar) from profiles table
+  const fetchProfile = async () => {
+    if (!user?.id) return;
+    
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('username, avatar_url')
+      .eq('user_id', user.id)
+      .single();
+
+    if (!error && data) {
+      setProfileUsername(data.username || undefined);
+      setAvatarUrl(data.avatar_url || undefined);
+    }
+  };
+
   useEffect(() => {
-    const fetchAvatarUrl = async () => {
-      if (!user?.id) return;
-      
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('avatar_url')
-        .eq('user_id', user.id)
-        .single();
-
-      if (!error && data?.avatar_url) {
-        setAvatarUrl(data.avatar_url);
-      }
-    };
-
-    fetchAvatarUrl();
+    fetchProfile();
   }, [user?.id]);
 
   const getInitials = () => {
@@ -92,7 +94,7 @@ export function Sidebar({ role, user }: SidebarProps) {
   };
 
   const getDisplayName = () => {
-    return user?.username || user?.email?.split('@')[0] || 'User';
+    return profileUsername || user?.username || user?.email?.split('@')[0] || 'User';
   };
 
   const closeDrawer = () => setIsOpen(false);
@@ -176,6 +178,7 @@ export function Sidebar({ role, user }: SidebarProps) {
             initials: getInitials(),
             avatarUrl: avatarUrl,
           }}
+          onProfileRefresh={fetchProfile}
         />
       </div>
     </div>

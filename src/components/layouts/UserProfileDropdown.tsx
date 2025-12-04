@@ -15,9 +15,10 @@ interface UserProfileDropdownProps {
     initials: string;
     avatarUrl?: string;
   };
+  onProfileRefresh?: () => void;
 }
 
-export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
+export function UserProfileDropdown({ user, onProfileRefresh }: UserProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [displayName, setDisplayName] = useState(user.name);
@@ -88,6 +89,8 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     if (newAvatarUrl !== undefined) {
       setDisplayAvatarUrl(newAvatarUrl);
     }
+    // Trigger parent refresh to sync sidebar state
+    onProfileRefresh?.();
   };
 
   const getInitials = () => {
