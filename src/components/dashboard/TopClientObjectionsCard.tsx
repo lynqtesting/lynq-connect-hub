@@ -1,28 +1,29 @@
 import { motion } from 'framer-motion';
-import { ChevronDown, AlertCircle } from 'lucide-react';
+import { AlertCircle } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { cn } from '@/lib/utils';
 
 export interface ObjectionItem {
   label: string;
   count: number;
+  priority?: 'High' | 'Medium' | 'Low';
 }
 
 interface TopClientObjectionsCardProps {
   items: ObjectionItem[];
   maxCount?: number;
-  selectedRegion?: string;
-  onRegionChange?: (region: string) => void;
   className?: string;
 }
 
-const regions = ['Global', 'North', 'South', 'East', 'West'];
+const priorityColors = {
+  High: 'bg-rose-100 text-rose-600 dark:bg-rose-900/30 dark:text-rose-400',
+  Medium: 'bg-amber-100 text-amber-600 dark:bg-amber-900/30 dark:text-amber-400',
+  Low: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-400',
+};
 
 export function TopClientObjectionsCard({ 
   items, 
   maxCount, 
-  selectedRegion = 'Global', 
-  onRegionChange, 
   className 
 }: TopClientObjectionsCardProps) {
   const calculatedMax = maxCount || Math.max(...items.map(item => item.count), 1);
@@ -39,28 +40,13 @@ export function TopClientObjectionsCard({
     >
       {/* Header */}
       <div className="flex items-center justify-between">
-        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-text-muted font-medium">
+        <span className="text-sm sm:text-base font-semibold text-text-primary">
           Top Client Objections
         </span>
-        <div className="flex items-center gap-1.5">
-          {/* Region Dropdown */}
-          <div className="relative">
-            <select
-              value={selectedRegion}
-              onChange={(e) => onRegionChange?.(e.target.value)}
-              className="appearance-none bg-bg-surface-hover border border-border-default text-text-secondary text-[10px] sm:text-xs rounded-lg pl-2 pr-6 py-1 sm:py-1.5 focus:ring-1 focus:ring-brand outline-none cursor-pointer"
-            >
-              {regions.map((region) => (
-                <option key={region} value={region}>{region}</option>
-              ))}
-            </select>
-            <ChevronDown className="absolute right-1.5 top-1/2 -translate-y-1/2 h-3 w-3 text-text-muted pointer-events-none" />
-          </div>
-          <InfoTooltip
-            label="Top Client Objections"
-            description="Ranking of the most frequent client objections, helping you refine enablement and responses."
-          />
-        </div>
+        <InfoTooltip
+          label="Top Client Objections"
+          description="Ranking of the most frequent client objections, helping you refine enablement and responses."
+        />
       </div>
 
       {/* Empty State or Items */}
@@ -72,29 +58,42 @@ export function TopClientObjectionsCard({
           <p className="text-sm text-text-muted text-center">No objections data available yet</p>
         </div>
       ) : (
-        <div className="flex flex-col gap-3">
+        <div className="flex flex-col gap-4">
           {items.map((item, index) => (
             <motion.div
               key={index}
-              initial={{ opacity: 0, x: -10 }}
-              animate={{ opacity: 1, x: 0 }}
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
               transition={{ delay: index * 0.05 }}
-              className="flex items-center gap-3"
+              className="flex flex-col gap-1.5"
             >
-              {/* Label - fixed width for alignment */}
-              <span className="text-xs sm:text-sm text-text-primary font-medium w-24 sm:w-28 shrink-0 truncate" title={item.label}>
-                {item.label}
+              {/* Top row: Label and Priority Badge */}
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-text-primary font-medium">
+                  {item.label}
+                </span>
+                {item.priority && (
+                  <span className={cn(
+                    'text-xs font-medium px-2 py-0.5 rounded-full',
+                    priorityColors[item.priority]
+                  )}>
+                    {item.priority}
+                  </span>
+                )}
+              </div>
+              
+              {/* Mentions count */}
+              <span className="text-xs text-text-muted">
+                {item.count.toLocaleString()} mentions this month
               </span>
               
-              {/* Pill-shaped bar */}
-              <div className="flex-1 h-4 sm:h-5">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(item.count / calculatedMax) * 100}%` }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="h-full bg-[#F5A0A0] dark:bg-rose-400/70 rounded-full"
-                />
-              </div>
+              {/* Progress bar */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(item.count / calculatedMax) * 100}%` }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="h-1.5 bg-sky-400 dark:bg-sky-500 rounded-full"
+              />
             </motion.div>
           ))}
         </div>

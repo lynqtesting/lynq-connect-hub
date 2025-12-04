@@ -38,6 +38,7 @@ interface CSRHotspotItem {
 interface ObjectionItem {
   label: string;
   count: number;
+  priority?: 'High' | 'Medium' | 'Low';
 }
 
 interface ConfusionItem {
@@ -249,8 +250,11 @@ const UserDashboardNew = () => {
         const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 0;
         const completionRate = calculatedCompletion > 0 ? calculatedCompletion : Math.round((completed / total) * 100);
 
-        // Sort objections by count
+        // Sort objections by count and add priority
         allObjections.sort((a, b) => b.count - a.count);
+        allObjections.forEach((obj, index) => {
+          obj.priority = index === 0 ? 'High' : index < 3 ? 'Medium' : 'Low';
+        });
 
         // Sort CSR Hotspots by percentage descending, take top 4
         allCsrHotspots.sort((a, b) => b.percentage - a.percentage);
@@ -508,11 +512,7 @@ const UserDashboardNew = () => {
 
           {/* Top Client Objections */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <TopClientObjectionsCard 
-              items={clientObjections} 
-              selectedRegion={selectedRegion}
-              onRegionChange={setSelectedRegion}
-            />
+            <TopClientObjectionsCard items={clientObjections} />
           </motion.div>
 
           {/* Conversion Stoppers */}
