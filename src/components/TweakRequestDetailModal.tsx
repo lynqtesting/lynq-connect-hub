@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, Save, AlertCircle, Clock, CheckCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -38,12 +38,12 @@ export function TweakRequestDetailModal({ request, isOpen, onClose, onUpdate }: 
   const [saving, setSaving] = useState(false);
 
   // Update local state when request changes
-  if (request && selectedStatus !== request.status && !saving) {
-    setSelectedStatus(request.status);
-  }
-  if (request && adminComments !== (request.admin_comments || '') && !saving) {
-    setAdminComments(request.admin_comments || '');
-  }
+  useEffect(() => {
+    if (request) {
+      setSelectedStatus(request.status);
+      setAdminComments(request.admin_comments || '');
+    }
+  }, [request]);
 
   const handleSave = async () => {
     if (!request) return;
