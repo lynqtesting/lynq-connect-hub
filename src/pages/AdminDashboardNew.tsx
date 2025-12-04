@@ -43,10 +43,11 @@ const AdminDashboardNew = () => {
   const [recentUploads, setRecentUploads] = useState<any[]>([]);
   const [selectedModule, setSelectedModule] = useState<string>('all');
   const [availableModules, setAvailableModules] = useState<any[]>([]);
+  const [chartTimeRange, setChartTimeRange] = useState<'week' | 'month' | 'year' | 'max'>('week');
 
   useEffect(() => {
     fetchDashboardStats();
-  }, [selectedModule]);
+  }, [selectedModule, chartTimeRange]);
 
   const fetchDashboardStats = async () => {
     try {
@@ -123,15 +124,28 @@ const AdminDashboardNew = () => {
       });
       const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 75;
 
-      // Fetch recent requests for chart data (filtered by module if selected)
-      const sevenDaysAgo = new Date();
-      sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+      // Calculate date range based on chartTimeRange
+      const getDateRange = () => {
+        const now = new Date();
+        switch (chartTimeRange) {
+          case 'week': return new Date(now.setDate(now.getDate() - 7));
+          case 'month': return new Date(now.setDate(now.getDate() - 30));
+          case 'year': return new Date(now.setFullYear(now.getFullYear() - 1));
+          case 'max': return null;
+          default: return new Date(now.setDate(now.getDate() - 7));
+        }
+      };
+
+      const dateFrom = getDateRange();
       
       let requestsDataQuery = supabase
         .from('requests')
         .select('created_at, status')
-        .gte('created_at', sevenDaysAgo.toISOString())
         .order('created_at', { ascending: true });
+      
+      if (dateFrom) {
+        requestsDataQuery = requestsDataQuery.gte('created_at', dateFrom.toISOString());
+      }
       
       if (selectedModule !== 'all') {
         requestsDataQuery = requestsDataQuery.eq('module_id', selectedModule);
@@ -140,26 +154,42 @@ const AdminDashboardNew = () => {
 
       if (requestsDataError) throw requestsDataError;
 
-      // Process chart data
-      const days = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+      // Process chart data based on time range
       const chartDataMap: any = {};
-      
-      requests?.forEach(req => {
-        const dayIndex = new Date(req.created_at).getDay();
-        const dayName = days[dayIndex === 0 ? 6 : dayIndex - 1];
-        
-        if (!chartDataMap[dayName]) {
-          chartDataMap[dayName] = { name: dayName, raised: 0, resolved: 0 };
-        }
-        
-        chartDataMap[dayName].raised++;
-        if (req.status === 'completed' || req.status === 'resolved') {
-          chartDataMap[dayName].resolved++;
-        }
-      });
+      let labels: string[] = [];
 
-      const processedChartData = days.map(day => 
-        chartDataMap[day] || { name: day, raised: 0, resolved: 0 }
+      if (chartTimeRange === 'week') {
+        labels = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'];
+        requests?.forEach(req => {
+          const dayIndex = new Date(req.created_at).getDay();
+          const dayName = labels[dayIndex === 0 ? 6 : dayIndex - 1];
+          if (!chartDataMap[dayName]) chartDataMap[dayName] = { name: dayName, raised: 0, resolved: 0 };
+          chartDataMap[dayName].raised++;
+          if (req.status === 'completed' || req.status === 'resolved') chartDataMap[dayName].resolved++;
+        });
+      } else if (chartTimeRange === 'month') {
+        labels = ['Week 1', 'Week 2', 'Week 3', 'Week 4'];
+        requests?.forEach(req => {
+          const date = new Date(req.created_at);
+          const weekNum = Math.min(Math.ceil(date.getDate() / 7), 4);
+          const weekLabel = `Week ${weekNum}`;
+          if (!chartDataMap[weekLabel]) chartDataMap[weekLabel] = { name: weekLabel, raised: 0, resolved: 0 };
+          chartDataMap[weekLabel].raised++;
+          if (req.status === 'completed' || req.status === 'resolved') chartDataMap[weekLabel].resolved++;
+        });
+      } else if (chartTimeRange === 'year' || chartTimeRange === 'max') {
+        labels = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+        requests?.forEach(req => {
+          const monthIndex = new Date(req.created_at).getMonth();
+          const monthName = labels[monthIndex];
+          if (!chartDataMap[monthName]) chartDataMap[monthName] = { name: monthName, raised: 0, resolved: 0 };
+          chartDataMap[monthName].raised++;
+          if (req.status === 'completed' || req.status === 'resolved') chartDataMap[monthName].resolved++;
+        });
+      }
+
+      const processedChartData = labels.map(label => 
+        chartDataMap[label] || { name: label, raised: 0, resolved: 0 }
       );
 
       // Fetch recent module uploads (filtered by module if selected)
@@ -307,7 +337,7 @@ const AdminDashboardNew = () => {
               info="Total number of learning modules in the system"
               showDecoration
             >
-              <Layers className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
+              <Layers className="h-8 w-8 text-brand opacity-40 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
@@ -318,7 +348,7 @@ const AdminDashboardNew = () => {
               trend={{ value: 12, direction: 'up' }}
               info="Users with active role assignments"
             >
-              <Users className="h-8 w-8 text-brand opacity-20 absolute bottom-4 right-4" />
+              <Users className="h-8 w-8 text-brand opacity-40 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
@@ -329,7 +359,7 @@ const AdminDashboardNew = () => {
               trend={{ value: 5, direction: 'down' }}
               info="Requests awaiting review or action"
             >
-              <Clock className="h-8 w-8 text-amber-500 opacity-20 absolute bottom-4 right-4" />
+              <Clock className="h-8 w-8 text-amber-500 opacity-40 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
@@ -340,7 +370,7 @@ const AdminDashboardNew = () => {
               trend={{ value: 3, direction: 'up' }}
               info="Average module completion rate across all users"
             >
-              <CheckCircle className="h-8 w-8 text-emerald-500 opacity-20 absolute bottom-4 right-4" />
+              <CheckCircle className="h-8 w-8 text-emerald-500 opacity-40 absolute bottom-4 right-4" />
             </MetricCard>
           </motion.div>
 
@@ -348,6 +378,23 @@ const AdminDashboardNew = () => {
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-8">
             <MetricCard
               title="Issues Raised vs Resolved"
+              headerAction={
+                <div className="flex gap-1">
+                  {(['week', 'month', 'year', 'max'] as const).map((range) => (
+                    <button
+                      key={range}
+                      onClick={() => setChartTimeRange(range)}
+                      className={`px-2 py-1 text-xs rounded-md transition-colors ${
+                        chartTimeRange === range
+                          ? 'bg-brand text-white'
+                          : 'bg-bg-canvas text-text-muted hover:bg-bg-surface-hover'
+                      }`}
+                    >
+                      {range.charAt(0).toUpperCase() + range.slice(1)}
+                    </button>
+                  ))}
+                </div>
+              }
             >
               <ResponsiveContainer width="100%" height={isMobile ? 140 : 180}>
                 <AreaChart data={chartData}>
@@ -393,7 +440,7 @@ const AdminDashboardNew = () => {
                       transition={{ delay: index * 0.1 }}
                       whileHover={{ scale: 1.02, x: 4 }}
                       className="flex items-center justify-between p-3 bg-bg-canvas rounded-lg hover:bg-bg-surface-hover transition-colors cursor-pointer"
-                      onClick={() => navigate(`/module/${upload.id}`)}
+                      onClick={() => navigate(`/edit-module/${upload.id}`)}
                     >
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-medium text-text-primary truncate">{upload.title}</p>
