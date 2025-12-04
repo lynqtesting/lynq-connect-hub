@@ -4,9 +4,11 @@ import { LogOut, User, ChevronUp } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { UserProfileModal } from '@/components/UserProfileModal';
 
 interface UserProfileDropdownProps {
   user: {
+    id?: string;
     name: string;
     email: string;
     role: string;
@@ -16,9 +18,16 @@ interface UserProfileDropdownProps {
 
 export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
+  const [displayName, setDisplayName] = useState(user.name);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
+
+  // Sync displayName when user prop changes
+  useEffect(() => {
+    setDisplayName(user.name);
+  }, [user.name]);
 
   // Click outside to close
   useEffect(() => {
@@ -66,6 +75,22 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     setIsOpen(false);
   };
 
+  const handleViewProfile = () => {
+    setIsOpen(false);
+    setIsProfileModalOpen(true);
+  };
+
+  const handleProfileUpdate = (newName: string) => {
+    setDisplayName(newName);
+  };
+
+  const getInitials = () => {
+    if (displayName) {
+      return displayName.substring(0, 2).toUpperCase();
+    }
+    return user.initials;
+  };
+
   return (
     <div className="relative">
       {/* Trigger Button */}
@@ -79,13 +104,13 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
       >
         {/* Avatar */}
         <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-semibold text-brand">{user.initials}</span>
+          <span className="text-sm font-semibold text-brand">{getInitials()}</span>
         </div>
 
         {/* User Info */}
         <div className="flex-1 overflow-hidden text-left min-w-0">
           <p className="text-sm font-medium text-text-primary truncate">
-            {user.name}
+            {displayName}
           </p>
           <p className="text-xs text-text-muted truncate">
             {user.role}
@@ -118,11 +143,11 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
             <div className="p-4 border-b border-border-default">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-semibold text-brand">{user.initials}</span>
+                  <span className="text-sm font-semibold text-brand">{getInitials()}</span>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-text-primary truncate">
-                    {user.name}
+                    {displayName}
                   </p>
                   <p className="text-xs text-text-muted truncate">
                     {user.email}
@@ -134,10 +159,7 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
             {/* Menu Items */}
             <div className="p-2">
               <button
-                onClick={() => {
-                  setIsOpen(false);
-                  // Could navigate to profile page if it exists
-                }}
+                onClick={handleViewProfile}
                 className="w-full flex items-center gap-3 px-3 py-2 rounded-lg text-sm text-text-secondary hover:bg-bg-surface-hover hover:text-text-primary transition-colors text-left"
                 role="menuitem"
               >
@@ -160,6 +182,14 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Profile Modal */}
+      <UserProfileModal
+        isOpen={isProfileModalOpen}
+        onClose={() => setIsProfileModalOpen(false)}
+        user={{ ...user, name: displayName, initials: getInitials() }}
+        onProfileUpdate={handleProfileUpdate}
+      />
     </div>
   );
 }
