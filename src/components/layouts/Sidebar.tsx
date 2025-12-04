@@ -21,6 +21,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 interface SidebarProps {
   role: 'user' | 'admin';
   user?: {
+    id?: string;
     email?: string;
     username?: string;
   };
@@ -147,6 +148,7 @@ export function Sidebar({ role, user }: SidebarProps) {
       <div className="px-2 py-3">
         <UserProfileDropdown
           user={{
+            id: user?.id,
             name: getDisplayName(),
             email: user?.email || '',
             role: role === 'admin' ? 'Administrator' : 'Learner',
