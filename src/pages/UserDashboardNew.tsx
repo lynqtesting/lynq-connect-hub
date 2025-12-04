@@ -38,7 +38,6 @@ interface CSRHotspotItem {
 interface ObjectionItem {
   label: string;
   count: number;
-  priority: 'high' | 'medium' | 'low';
 }
 
 interface ConfusionItem {
@@ -188,7 +187,7 @@ const UserDashboardNew = () => {
               if (metadata.client_objection_region_wise) {
                 Object.entries(metadata.client_objection_region_wise).forEach(([region, objections]: [string, any]) => {
                   if (objections && typeof objections === 'object') {
-                    Object.entries(objections).forEach(([label, count]: [string, any], index) => {
+                    Object.entries(objections).forEach(([label, count]: [string, any]) => {
                       const existing = allObjections.find(o => o.label === label);
                       if (existing) {
                         existing.count += Number(count);
@@ -196,7 +195,6 @@ const UserDashboardNew = () => {
                         allObjections.push({
                           label,
                           count: Number(count),
-                          priority: index === 0 ? 'high' : index === 1 ? 'medium' : 'low',
                         });
                       }
                     });
@@ -253,9 +251,6 @@ const UserDashboardNew = () => {
 
         // Sort objections by count
         allObjections.sort((a, b) => b.count - a.count);
-        allObjections.forEach((obj, index) => {
-          obj.priority = index === 0 ? 'high' : index <= 2 ? 'medium' : 'low';
-        });
 
         // Sort CSR Hotspots by percentage descending, take top 4
         allCsrHotspots.sort((a, b) => b.percentage - a.percentage);
@@ -273,7 +268,7 @@ const UserDashboardNew = () => {
           { label: 'No data', percentage: 0 }
         ]);
         setClientObjections(allObjections.length > 0 ? allObjections.slice(0, 4) : [
-          { label: 'No objections data', count: 0, priority: 'low' }
+          { label: 'No objections data', count: 0 }
         ]);
         setConfusionAreas(allConfusion.length > 0 ? allConfusion.slice(0, 4) : [
           { label: 'No conversion data', metricLabel: '0%', severity: 'low' }
@@ -513,7 +508,11 @@ const UserDashboardNew = () => {
 
           {/* Top Client Objections */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <TopClientObjectionsCard items={clientObjections} />
+            <TopClientObjectionsCard 
+              items={clientObjections} 
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+            />
           </motion.div>
 
           {/* Conversion Stoppers */}
