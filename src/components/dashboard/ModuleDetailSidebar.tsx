@@ -1,7 +1,9 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, BarChart3, ChevronDown, MessageSquare, Clock, User, Folder } from 'lucide-react';
+import { Play, BarChart3, ChevronDown, MessageSquare, Clock, User, Folder, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -21,8 +23,16 @@ interface TweakRequest {
   id: string;
   title: string | null;
   notes: string | null;
+  status?: string;
   created_at: string;
   module_id: string | null;
+}
+
+interface Recommendation {
+  id: string;
+  content: string;
+  created_at: string;
+  user_id: string;
 }
 
 interface ModuleDetailSidebarProps {
@@ -41,7 +51,9 @@ const tabs: { id: TabType; label: string }[] = [
 export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [tweakRequests, setTweakRequests] = useState<TweakRequest[]>([]);
+  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
+  const [loadingResponses, setLoadingResponses] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [requestType, setRequestType] = useState('Content Update');
   const [description, setDescription] = useState('');
@@ -69,6 +81,30 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
     };
 
     fetchTweakRequests();
+  }, [module.id, userId]);
+
+  // Fetch recommendations/responses for this module
+  useEffect(() => {
+    const fetchRecommendations = async () => {
+      setLoadingResponses(true);
+      try {
+        const { data, error } = await supabase
+          .from('recommendations')
+          .select('*')
+          .eq('module_id', module.id)
+          .eq('user_id', userId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+        setRecommendations(data || []);
+      } catch (error) {
+        console.error('Error fetching recommendations:', error);
+      } finally {
+        setLoadingResponses(false);
+      }
+    };
+
+    fetchRecommendations();
   }, [module.id, userId]);
 
   const handleSubmitRequest = async () => {
@@ -288,8 +324,17 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
             <div className="space-y-4">
               <h4 className="text-text-primary font-semibold">History</h4>
               {loadingRequests ? (
-                <div className="bg-bg-surface-hover p-6 rounded-xl border border-border-default text-center">
-                  <p className="text-text-muted text-sm">Loading...</p>
+                <div className="space-y-3">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="bg-bg-surface-hover p-4 rounded-lg border border-border-default">
+                      <div className="flex items-start justify-between gap-3 mb-2">
+                        <Skeleton className="h-4 w-24" />
+                        <Skeleton className="h-3 w-16" />
+                      </div>
+                      <Skeleton className="h-3 w-full" />
+                      <Skeleton className="h-3 w-3/4 mt-1" />
+                    </div>
+                  ))}
                 </div>
               ) : tweakRequests.length === 0 ? (
                 <div className="bg-bg-surface-hover p-6 rounded-xl border border-border-default text-center">
@@ -305,9 +350,26 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                     className="bg-bg-surface-hover p-4 rounded-lg border border-border-default"
                   >
                     <div className="flex items-start justify-between gap-3 mb-2">
-                      <span className="text-text-primary font-medium text-sm">
-                        {req.title || 'Request'}
-                      </span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-text-primary font-medium text-sm">
+                          {req.title || 'Request'}
+                        </span>
+                        {req.status && (
+                          <Badge 
+                            variant="outline" 
+                            className={`text-[10px] px-1.5 py-0 ${
+                              req.status === 'resolved' 
+                                ? 'bg-emerald-500/20 text-emerald-500 border-emerald-500/30'
+                                : req.status === 'in_progress'
+                                ? 'bg-blue-500/20 text-blue-500 border-blue-500/30'
+                                : 'bg-amber-500/20 text-amber-500 border-amber-500/30'
+                            }`}
+                          >
+                            {req.status === 'in_progress' ? 'In Progress' : 
+                             req.status.charAt(0).toUpperCase() + req.status.slice(1)}
+                          </Badge>
+                        )}
+                      </div>
                       <span className="text-xs text-text-muted shrink-0">
                         {formatDate(req.created_at)}
                       </span>
@@ -329,11 +391,58 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -10 }}
             transition={{ duration: 0.2 }}
+            className="space-y-4"
           >
-            <div className="bg-bg-surface-hover p-6 rounded-xl border border-border-default text-center py-12">
-              <MessageSquare className="h-12 w-12 mx-auto text-text-muted mb-4" />
-              <p className="text-text-muted">Response data viewer coming soon.</p>
-            </div>
+            <h4 className="text-text-primary font-semibold">Module Responses</h4>
+            
+            {loadingResponses ? (
+              <div className="space-y-3">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="bg-bg-surface-hover p-4 rounded-xl border border-border-default">
+                    <div className="flex items-start gap-3">
+                      <Skeleton className="w-8 h-8 rounded-lg flex-shrink-0" />
+                      <div className="flex-1 space-y-2">
+                        <Skeleton className="h-4 w-full" />
+                        <Skeleton className="h-4 w-3/4" />
+                        <Skeleton className="h-3 w-20 mt-2" />
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : recommendations.length === 0 ? (
+              <div className="bg-bg-surface-hover p-6 rounded-xl border border-border-default text-center py-12">
+                <FileText className="h-12 w-12 mx-auto text-text-muted mb-4" />
+                <p className="text-text-primary font-medium mb-1">No responses yet</p>
+                <p className="text-text-muted text-sm">
+                  Responses and recommendations for this module will appear here.
+                </p>
+              </div>
+            ) : (
+              recommendations.map((rec, index) => (
+                <motion.div
+                  key={rec.id}
+                  initial={{ opacity: 0, y: 5 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                  className="bg-bg-surface-hover p-4 rounded-xl border border-border-default"
+                >
+                  <div className="flex items-start gap-3">
+                    <div className="w-8 h-8 rounded-lg bg-brand/20 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-4 h-4 text-brand" />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-text-primary text-sm leading-relaxed">
+                        {rec.content}
+                      </p>
+                      <p className="text-xs text-text-muted mt-2">
+                        {formatDate(rec.created_at)}
+                      </p>
+                    </div>
+                  </div>
+                </motion.div>
+              ))
+            )}
           </motion.div>
         )}
       </AnimatePresence>
