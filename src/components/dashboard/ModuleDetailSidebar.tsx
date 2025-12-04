@@ -28,11 +28,13 @@ interface TweakRequest {
   module_id: string | null;
 }
 
-interface Recommendation {
+interface ResponseUpload {
   id: string;
-  content: string;
+  file_name: string;
+  file_url: string;
+  file_size: number | null;
   created_at: string;
-  user_id: string;
+  metadata: any;
 }
 
 interface ModuleDetailSidebarProps {
@@ -51,7 +53,7 @@ const tabs: { id: TabType; label: string }[] = [
 export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps) {
   const [activeTab, setActiveTab] = useState<TabType>('overview');
   const [tweakRequests, setTweakRequests] = useState<TweakRequest[]>([]);
-  const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
+  const [responseUploads, setResponseUploads] = useState<ResponseUpload[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [loadingResponses, setLoadingResponses] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -83,29 +85,29 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
     fetchTweakRequests();
   }, [module.id, userId]);
 
-  // Fetch recommendations/responses for this module
+  // Fetch response uploads for this module
   useEffect(() => {
-    const fetchRecommendations = async () => {
+    const fetchResponseUploads = async () => {
       setLoadingResponses(true);
       try {
         const { data, error } = await supabase
-          .from('recommendations')
-          .select('*')
+          .from('data_uploads')
+          .select('id, file_name, file_url, file_size, created_at, metadata')
           .eq('module_id', module.id)
-          .eq('user_id', userId)
+          .eq('file_type', 'response_csv')
           .order('created_at', { ascending: false });
 
         if (error) throw error;
-        setRecommendations(data || []);
+        setResponseUploads(data || []);
       } catch (error) {
-        console.error('Error fetching recommendations:', error);
+        console.error('Error fetching response uploads:', error);
       } finally {
         setLoadingResponses(false);
       }
     };
 
-    fetchRecommendations();
-  }, [module.id, userId]);
+    fetchResponseUploads();
+  }, [module.id]);
 
   const handleSubmitRequest = async () => {
     if (!description.trim()) {
@@ -393,7 +395,7 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
             transition={{ duration: 0.2 }}
             className="space-y-4"
           >
-            <h4 className="text-text-primary font-semibold">Module Responses</h4>
+            <h4 className="text-text-primary font-semibold">Uploaded Response Data</h4>
             
             {loadingResponses ? (
               <div className="space-y-3">
@@ -410,34 +412,52 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                   </div>
                 ))}
               </div>
-            ) : recommendations.length === 0 ? (
+            ) : responseUploads.length === 0 ? (
               <div className="bg-bg-surface-hover p-6 rounded-xl border border-border-default text-center py-12">
                 <FileText className="h-12 w-12 mx-auto text-text-muted mb-4" />
-                <p className="text-text-primary font-medium mb-1">No responses yet</p>
+                <p className="text-text-primary font-medium mb-1">No response data uploaded</p>
                 <p className="text-text-muted text-sm">
-                  Responses and recommendations for this module will appear here.
+                  Response CSV files for this module will appear here once uploaded.
                 </p>
               </div>
             ) : (
-              recommendations.map((rec, index) => (
+              responseUploads.map((upload, index) => (
                 <motion.div
-                  key={rec.id}
+                  key={upload.id}
                   initial={{ opacity: 0, y: 5 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: index * 0.05 }}
                   className="bg-bg-surface-hover p-4 rounded-xl border border-border-default"
                 >
                   <div className="flex items-start gap-3">
-                    <div className="w-8 h-8 rounded-lg bg-brand/20 flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-brand" />
+                    <div className="w-10 h-10 rounded-lg bg-emerald-500/20 flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-text-primary text-sm leading-relaxed">
-                        {rec.content}
+                      <p className="text-text-primary text-sm font-medium truncate">
+                        {upload.file_name}
                       </p>
-                      <p className="text-xs text-text-muted mt-2">
-                        {formatDate(rec.created_at)}
-                      </p>
+                      <div className="flex items-center gap-3 mt-1">
+                        <span className="text-xs text-text-muted">
+                          {upload.file_size ? `${(upload.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
+                        </span>
+                        <span className="text-xs text-text-muted">
+                          {formatDate(upload.created_at)}
+                        </span>
+                      </div>
+                      {upload.metadata?.num_rows && (
+                        <p className="text-xs text-text-secondary mt-2">
+                          {upload.metadata.num_rows} responses recorded
+                        </p>
+                      )}
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        className="mt-3"
+                        onClick={() => window.open(upload.file_url, '_blank')}
+                      >
+                        Download CSV
+                      </Button>
                     </div>
                   </div>
                 </motion.div>

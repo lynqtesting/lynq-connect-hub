@@ -105,24 +105,40 @@ const AdminDashboardNew = () => {
       const total = assignments?.length || 1;
       const completionRate = Math.round((completed / total) * 100);
 
-      // Fetch modules with KPIs for avg engagement (filtered by module if selected)
-      let modulesDataQuery = supabase.from('modules').select('kpis');
+      // Fetch engagement from data_uploads deduction data
+      let deductionQuery = supabase
+        .from('data_uploads')
+        .select('metadata, module_id')
+        .eq('file_type', 'deduction_json')
+        .order('created_at', { ascending: false });
+      
       if (selectedModule !== 'all') {
-        modulesDataQuery = modulesDataQuery.eq('id', selectedModule);
+        deductionQuery = deductionQuery.eq('module_id', selectedModule);
       }
-      const { data: modules, error: modulesDataError } = await modulesDataQuery;
-
-      if (modulesDataError) throw modulesDataError;
+      
+      const { data: deductionData } = await deductionQuery;
 
       let totalEngagement = 0;
       let moduleCount = 0;
-      modules?.forEach(m => {
-        if (m.kpis && typeof m.kpis === 'object' && 'engagement' in m.kpis) {
-          totalEngagement += Number(m.kpis.engagement) || 0;
-          moduleCount++;
-        }
-      });
-      const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 75;
+      
+      if (deductionData && deductionData.length > 0) {
+        // Use the most recent deduction data per module
+        const latestByModule = new Map();
+        deductionData.forEach((upload: any) => {
+          if (!latestByModule.has(upload.module_id)) {
+            latestByModule.set(upload.module_id, upload.metadata);
+          }
+        });
+
+        latestByModule.forEach((metadata: any) => {
+          if (metadata && metadata.engagement_rate_overall !== undefined) {
+            totalEngagement += Number(metadata.engagement_rate_overall) * 100;
+            moduleCount++;
+          }
+        });
+      }
+      
+      const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 0;
 
       // Calculate date range based on chartTimeRange
       const getDateRange = () => {
