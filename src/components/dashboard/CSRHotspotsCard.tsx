@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { ChevronDown } from 'lucide-react';
+import { ChevronDown, BarChart3 } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
@@ -19,6 +19,9 @@ interface CSRHotspotsCardProps {
 const regions = ['Global', 'North', 'South', 'East', 'West'];
 
 export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChange, className }: CSRHotspotsCardProps) {
+  // Check if data is empty or placeholder
+  const hasData = items.length > 0 && !items.every(item => item.label === 'No data' && item.percentage === 0);
+
   return (
     <div
       className={cn(
@@ -52,41 +55,45 @@ export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChan
         </div>
       </div>
 
-      {/* Title & Description */}
-      <div className="space-y-1">
-        <h3 className="text-lg sm:text-xl font-bold text-text-primary">
-          Conversion Stoppers
-        </h3>
-        <p className="text-xs sm:text-sm text-text-muted">
-          Cards/questions where learners got stuck most.
-        </p>
-      </div>
+      {/* Title */}
+      <h3 className="text-lg sm:text-xl font-bold text-text-primary">
+        Conversion Stoppers
+      </h3>
 
-      {/* Items with Progress Bars */}
-      <div className="flex flex-col gap-3 sm:gap-4">
-        {items.map((item, index) => (
-          <motion.div
-            key={index}
-            initial={{ opacity: 0, x: -10 }}
-            animate={{ opacity: 1, x: 0 }}
-            transition={{ delay: index * 0.05 }}
-            className="flex flex-col gap-1.5"
-          >
-            <div className="flex items-center justify-between">
-              <span className="text-xs sm:text-sm text-text-primary font-medium truncate max-w-[70%]">
-                {item.label}
-              </span>
-              <span className="text-xs sm:text-sm text-text-secondary font-semibold">
-                {item.percentage}%
-              </span>
-            </div>
-            <Progress 
-              value={item.percentage} 
-              className="h-2 bg-bg-surface-hover"
-            />
-          </motion.div>
-        ))}
-      </div>
+      {/* Empty State or Items */}
+      {!hasData ? (
+        <div className="flex flex-col items-center justify-center py-8 gap-3">
+          <div className="w-16 h-16 rounded-full bg-bg-surface-hover flex items-center justify-center">
+            <BarChart3 className="w-8 h-8 text-text-muted" />
+          </div>
+          <p className="text-sm text-text-muted text-center">No hotspot data available yet</p>
+        </div>
+      ) : (
+        <div className="flex flex-col gap-3 sm:gap-4">
+          {items.map((item, index) => (
+            <motion.div
+              key={index}
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: index * 0.05 }}
+              className="flex flex-col gap-1.5"
+            >
+              <div className="flex items-center justify-between">
+                <span className="text-xs sm:text-sm text-text-primary font-medium truncate max-w-[70%]">
+                  {item.label}
+                </span>
+                <span className="text-xs sm:text-sm text-text-secondary font-semibold">
+                  {item.percentage}%
+                </span>
+              </div>
+              <Progress 
+                value={item.percentage} 
+                className="h-2 bg-bg-surface-hover"
+              />
+            </motion.div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
