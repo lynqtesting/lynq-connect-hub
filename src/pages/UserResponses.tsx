@@ -7,10 +7,12 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Download, Search, FileSpreadsheet, FileJson, ExternalLink, FileText } from 'lucide-react';
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Download, Search, FileSpreadsheet, Eye, FileText, Loader2 } from 'lucide-react';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { supabase } from '@/integrations/supabase/client';
 import { format } from 'date-fns';
+import Papa from 'papaparse';
 
 interface ResponseData {
   id: string;
@@ -30,6 +32,11 @@ interface ModuleOption {
   title: string;
 }
 
+interface PreviewData {
+  headers: string[];
+  rows: Record<string, any>[];
+}
+
 const UserResponses = () => {
   const { user } = useAuthPersistence();
   const [searchQuery, setSearchQuery] = useState('');
@@ -38,6 +45,12 @@ const UserResponses = () => {
   const [modules, setModules] = useState<ModuleOption[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  
+  // Preview state
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewData, setPreviewData] = useState<PreviewData>({ headers: [], rows: [] });
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewFileName, setPreviewFileName] = useState('');
 
   useEffect(() => {
     if (user?.id) {
@@ -89,11 +102,12 @@ const UserResponses = () => {
       }));
       setModules(moduleList);
 
-      // Fetch all data uploads for assigned modules
+      // Fetch only response CSV uploads for assigned modules (not deduction JSON)
       const { data: uploads, error: uploadsError } = await supabase
         .from('data_uploads')
         .select('*')
         .in('module_id', moduleIds)
+        .eq('file_type', 'response_csv')
         .order('created_at', { ascending: false });
 
       if (uploadsError) throw uploadsError;
@@ -132,50 +146,6 @@ const UserResponses = () => {
     return matchesSearch && matchesModule;
   });
 
-  const getTypeIcon = (fileType: string) => {
-    switch (fileType) {
-      case 'response_csv':
-        return <FileSpreadsheet className="h-4 w-4" />;
-      case 'deduction_json':
-        return <FileJson className="h-4 w-4" />;
-      default:
-        return <FileText className="h-4 w-4" />;
-    }
-  };
-
-  const getTypeLabel = (fileType: string) => {
-    switch (fileType) {
-      case 'response_csv':
-        return 'Response Data';
-      case 'deduction_json':
-        return 'Deduction Data';
-      default:
-        return fileType;
-    }
-  };
-
-  const getTypeBadge = (fileType: string) => {
-    if (fileType === 'response_csv') {
-      return (
-        <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
-          Response CSV
-        </Badge>
-      );
-    }
-    if (fileType === 'deduction_json') {
-      return (
-        <Badge className="bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400">
-          Deduction JSON
-        </Badge>
-      );
-    }
-    return (
-      <Badge className="bg-gray-100 text-gray-700 dark:bg-gray-900/20 dark:text-gray-400">
-        {fileType}
-      </Badge>
-    );
-  };
-
   const formatFileSize = (bytes: number | null) => {
     if (!bytes) return 'N/A';
     if (bytes < 1024) return `${bytes} B`;
@@ -188,18 +158,15 @@ const UserResponses = () => {
     
     const metrics: string[] = [];
     if (metadata.num_rows) metrics.push(`${metadata.num_rows} rows`);
-    if (metadata.objective_score_overall) metrics.push(`Obj: ${(metadata.objective_score_overall * 100).toFixed(0)}%`);
-    if (metadata.STR_overall) metrics.push(`STR: ${(metadata.STR_overall * 100).toFixed(0)}%`);
     
     return metrics.length > 0 ? metrics.join(' | ') : null;
   };
 
   const handleDownloadCSV = () => {
     const csvContent = [
-      ['File Name', 'Type', 'Module', 'Uploaded', 'Size'],
+      ['File Name', 'Module', 'Uploaded', 'Size'],
       ...filteredResponses.map((r) => [
         r.file_name,
-        getTypeLabel(r.file_type),
         r.module_title,
         r.created_at ? format(new Date(r.created_at), 'yyyy-MM-dd') : 'N/A',
         formatFileSize(r.file_size),
@@ -218,6 +185,34 @@ const UserResponses = () => {
 
   const handleViewFile = (fileUrl: string) => {
     window.open(fileUrl, '_blank');
+  };
+
+  const handlePreviewCSV = async (fileUrl: string, fileName: string) => {
+    setPreviewLoading(true);
+    setPreviewFileName(fileName);
+    setPreviewOpen(true);
+    setPreviewData({ headers: [], rows: [] });
+    
+    try {
+      const response = await fetch(fileUrl);
+      const csvText = await response.text();
+      
+      Papa.parse(csvText, {
+        header: true,
+        complete: (results) => {
+          const headers = results.meta.fields || [];
+          const rows = results.data.slice(0, 100) as Record<string, any>[];
+          setPreviewData({ headers, rows });
+          setPreviewLoading(false);
+        },
+        error: () => {
+          setPreviewLoading(false);
+        }
+      });
+    } catch (err) {
+      console.error('Failed to fetch CSV:', err);
+      setPreviewLoading(false);
+    }
   };
 
   if (loading) {
@@ -262,7 +257,7 @@ const UserResponses = () => {
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">My Responses</h1>
             <p className="text-text-muted mt-1">
-              View uploaded response data and deduction files for your assigned modules
+              View and preview uploaded response CSV files for your assigned modules
             </p>
           </div>
           <Button onClick={handleDownloadCSV} variant="outline" className="gap-2" disabled={filteredResponses.length === 0}>
@@ -301,9 +296,9 @@ const UserResponses = () => {
         {responses.length === 0 && (
           <div className="text-center py-12 bg-bg-surface border border-border-default rounded-xl">
             <FileText className="h-12 w-12 mx-auto text-text-muted mb-4" />
-            <p className="text-text-primary font-medium mb-2">No data uploads yet</p>
+            <p className="text-text-primary font-medium mb-2">No response files yet</p>
             <p className="text-text-muted text-sm">
-              Response and deduction files uploaded to your assigned modules will appear here.
+              Response CSV files uploaded to your assigned modules will appear here.
             </p>
           </div>
         )}
@@ -319,16 +314,13 @@ const UserResponses = () => {
                       File Name
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider">
-                      Type
-                    </th>
-                    <th className="px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider">
                       Module
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider">
                       Uploaded
                     </th>
                     <th className="px-4 py-3 text-left text-xs font-bold text-text-muted uppercase tracking-wider">
-                      Size / Metrics
+                      Size / Rows
                     </th>
                     <th className="px-4 py-3 text-right text-xs font-bold text-text-muted uppercase tracking-wider">
                       Actions
@@ -343,12 +335,9 @@ const UserResponses = () => {
                     >
                       <td className="px-4 py-4">
                         <div className="flex items-center gap-2">
-                          {getTypeIcon(response.file_type)}
+                          <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
                           <p className="font-medium text-text-primary">{response.file_name}</p>
                         </div>
-                      </td>
-                      <td className="px-4 py-4">
-                        {getTypeBadge(response.file_type)}
                       </td>
                       <td className="px-4 py-4">
                         <p className="text-sm text-text-secondary">{response.module_title}</p>
@@ -368,15 +357,24 @@ const UserResponses = () => {
                           </p>
                         )}
                       </td>
-                      <td className="px-4 py-4 text-right">
+                      <td className="px-4 py-4 text-right space-x-2">
+                        <Button 
+                          variant="ghost" 
+                          size="sm" 
+                          className="gap-1"
+                          onClick={() => handlePreviewCSV(response.file_url, response.file_name)}
+                        >
+                          <Eye className="h-3 w-3" />
+                          Preview
+                        </Button>
                         <Button 
                           variant="ghost" 
                           size="sm" 
                           className="gap-1"
                           onClick={() => handleViewFile(response.file_url)}
                         >
-                          <ExternalLink className="h-3 w-3" />
-                          View
+                          <Download className="h-3 w-3" />
+                          Download
                         </Button>
                       </td>
                     </tr>
@@ -398,14 +396,16 @@ const UserResponses = () => {
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      {getTypeIcon(response.file_type)}
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
                       <p className="font-semibold text-text-primary truncate">
                         {response.file_name}
                       </p>
                     </div>
                     <p className="text-xs text-text-muted truncate">{response.module_title}</p>
                   </div>
-                  {getTypeBadge(response.file_type)}
+                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
+                    CSV
+                  </Badge>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3 text-sm">
@@ -421,19 +421,28 @@ const UserResponses = () => {
                   </div>
                   {response.metadata && getMetricsSummary(response.metadata) && (
                     <div className="col-span-2">
-                      <p className="text-text-muted text-xs mb-1">Metrics</p>
+                      <p className="text-text-muted text-xs mb-1">Info</p>
                       <p className="text-text-secondary text-sm">{getMetricsSummary(response.metadata)}</p>
                     </div>
                   )}
-                  <div className="col-span-2">
+                  <div className="col-span-2 flex gap-2">
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="gap-1 w-full"
+                      className="gap-1 flex-1"
+                      onClick={() => handlePreviewCSV(response.file_url, response.file_name)}
+                    >
+                      <Eye className="h-3 w-3" />
+                      Preview
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="gap-1 flex-1"
                       onClick={() => handleViewFile(response.file_url)}
                     >
-                      <ExternalLink className="h-3 w-3" />
-                      View / Download
+                      <Download className="h-3 w-3" />
+                      Download
                     </Button>
                   </div>
                 </div>
@@ -448,6 +457,56 @@ const UserResponses = () => {
           </div>
         )}
       </div>
+
+      {/* CSV Preview Modal */}
+      <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileSpreadsheet className="h-5 w-5 text-emerald-500" />
+              {previewFileName}
+            </DialogTitle>
+            <DialogDescription>
+              Showing first 100 rows of the CSV file
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="flex-1 overflow-auto border border-border-default rounded-lg">
+            {previewLoading ? (
+              <div className="flex items-center justify-center py-12">
+                <Loader2 className="h-8 w-8 animate-spin text-brand" />
+              </div>
+            ) : previewData.headers.length === 0 ? (
+              <div className="flex items-center justify-center py-12 text-text-muted">
+                No data to display
+              </div>
+            ) : (
+              <table className="w-full text-sm">
+                <thead className="sticky top-0 bg-bg-surface border-b border-border-default">
+                  <tr>
+                    {previewData.headers.map((header) => (
+                      <th key={header} className="px-3 py-2 text-left font-semibold text-text-primary whitespace-nowrap">
+                        {header}
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-border-subtle">
+                  {previewData.rows.map((row, idx) => (
+                    <tr key={idx} className="hover:bg-bg-surface-hover">
+                      {previewData.headers.map((header) => (
+                        <td key={header} className="px-3 py-2 text-text-secondary whitespace-nowrap">
+                          {row[header] || '-'}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
