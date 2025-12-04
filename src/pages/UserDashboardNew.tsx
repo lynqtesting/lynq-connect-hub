@@ -8,6 +8,8 @@ import { CSRHotspotsCard } from '@/components/dashboard/CSRHotspotsCard';
 import { TopClientObjectionsCard } from '@/components/dashboard/TopClientObjectionsCard';
 import { ConfusionAreasCard } from '@/components/dashboard/ConfusionAreasCard';
 import { RegionalSTRCard } from '@/components/dashboard/RegionalSTRCard';
+import { LearningProgressCard } from '@/components/dashboard/LearningProgressCard';
+import { DropoffRateCard } from '@/components/dashboard/DropoffRateCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
@@ -27,6 +29,12 @@ interface UserStats {
   completion: number;
   avgRating: number;
   timeSaved: string;
+}
+
+interface LearningProgress {
+  completed: number;
+  inProgress: number;
+  notStarted: number;
 }
 
 // Types for new components
@@ -58,6 +66,7 @@ const UserDashboardNew = () => {
   const { toast } = useToast();
   const { user } = useAuthPersistence();
   const [selectedRegion, setSelectedRegion] = useState('global');
+  const [objectionRegion, setObjectionRegion] = useState('global');
   const [selectedModule, setSelectedModule] = useState('all');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -71,6 +80,13 @@ const UserDashboardNew = () => {
     timeSaved: '0h',
   });
 
+  const [learningProgress, setLearningProgress] = useState<LearningProgress>({
+    completed: 0,
+    inProgress: 0,
+    notStarted: 0,
+  });
+  const [dropoffRate, setDropoffRate] = useState(0);
+
   const [csrHotspots, setCsrHotspots] = useState<CSRHotspotItem[]>([]);
   const [clientObjections, setClientObjections] = useState<ObjectionItem[]>([]);
   const [confusionAreas, setConfusionAreas] = useState<ConfusionItem[]>([]);
@@ -81,7 +97,7 @@ const UserDashboardNew = () => {
     if (user) {
       fetchUserStats();
     }
-  }, [user, selectedModule]);
+  }, [user, selectedModule, objectionRegion]);
 
   const fetchUserStats = async () => {
     try {
@@ -184,10 +200,14 @@ const UserDashboardNew = () => {
                 });
               }
 
-              // Process client objections by region
+              // Process client objections by region (filtered)
               if (metadata.client_objection_region_wise) {
                 Object.entries(metadata.client_objection_region_wise).forEach(([region, objections]: [string, any]) => {
-                  if (objections && typeof objections === 'object') {
+                  // Filter by selected objection region
+                  const shouldInclude = objectionRegion === 'global' || 
+                    region.toLowerCase() === objectionRegion.toLowerCase();
+                  
+                  if (shouldInclude && objections && typeof objections === 'object') {
                     Object.entries(objections).forEach(([label, count]: [string, any]) => {
                       const existing = allObjections.find(o => o.label === label);
                       if (existing) {
@@ -259,13 +279,44 @@ const UserDashboardNew = () => {
         // Sort CSR Hotspots by percentage descending, take top 4
         allCsrHotspots.sort((a, b) => b.percentage - a.percentage);
 
+        // Extract time saved and dropoff rate from latest metadata
+        let timeSavedValue = 0;
+        let dropoffValue = 0;
+        let progressData = { completed: 0, inProgress: 0, notStarted: 0 };
+
+        if (deductionData && deductionData.length > 0) {
+          const latestMetadata = deductionData[0].metadata as any;
+          if (latestMetadata) {
+            // Extract productivity_time_saved_avg_hours
+            if (latestMetadata.productivity_time_saved_avg_hours !== undefined) {
+              timeSavedValue = Number(latestMetadata.productivity_time_saved_avg_hours);
+            }
+            // Extract dropoff_rate_%
+            if (latestMetadata['dropoff_rate_%'] !== undefined) {
+              dropoffValue = Number(latestMetadata['dropoff_rate_%']);
+            }
+            // Extract learning_progress_status
+            if (latestMetadata.learning_progress_status) {
+              const lps = latestMetadata.learning_progress_status;
+              progressData = {
+                completed: lps.Completed || lps.completed || 0,
+                inProgress: lps['In-Progress'] || lps['In Progress'] || lps.inProgress || 0,
+                notStarted: lps['Not Started'] || lps['Not_Started'] || lps.notStarted || 0,
+              };
+            }
+          }
+        }
+
+        setLearningProgress(progressData);
+        setDropoffRate(dropoffValue);
+
         setStats({
           objectiveScore: avgObjective,
           strScore: avgSTR,
           engagement: avgEngagement,
           completion: completionRate,
           avgRating: 4.5,
-          timeSaved: `${Math.round(completed * 2)}h`,
+          timeSaved: timeSavedValue > 0 ? `${timeSavedValue.toFixed(1)}h` : `${Math.round(completed * 2)}h`,
         });
 
         setCsrHotspots(allCsrHotspots.length > 0 ? allCsrHotspots.slice(0, 4) : [
@@ -512,7 +563,11 @@ const UserDashboardNew = () => {
 
           {/* Top Client Objections */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <TopClientObjectionsCard items={clientObjections} />
+            <TopClientObjectionsCard 
+              items={clientObjections}
+              selectedRegion={objectionRegion}
+              onRegionChange={setObjectionRegion}
+            />
           </motion.div>
 
           {/* Conversion Stoppers */}
@@ -527,6 +582,16 @@ const UserDashboardNew = () => {
               selectedRegion={selectedRegion}
               onRegionChange={setSelectedRegion}
             />
+          </motion.div>
+
+          {/* Learning Progress */}
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
+            <LearningProgressCard data={learningProgress} />
+          </motion.div>
+
+          {/* Dropoff Rate */}
+          <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
+            <DropoffRateCard rate={dropoffRate} />
           </motion.div>
         </motion.div>
       </motion.div>
