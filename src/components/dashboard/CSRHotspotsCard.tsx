@@ -1,12 +1,12 @@
 import { motion } from 'framer-motion';
 import { ChevronDown } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
+import { Progress } from '@/components/ui/progress';
 import { cn } from '@/lib/utils';
 
-interface CSRHotspotItem {
-  module: string;
-  escalations: number;
-  severity: 'high' | 'medium' | 'low';
+export interface CSRHotspotItem {
+  label: string;
+  percentage: number;
 }
 
 interface CSRHotspotsCardProps {
@@ -16,42 +16,21 @@ interface CSRHotspotsCardProps {
   className?: string;
 }
 
-const severityStyles = {
-  high: 'bg-rose-50 text-rose-600 dark:bg-rose-900/30 dark:text-rose-300',
-  medium: 'bg-amber-50 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300',
-  low: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300',
-};
-
-const severityLabels = {
-  high: 'High',
-  medium: 'Medium',
-  low: 'Low',
-};
-
 const regions = ['Global', 'North', 'South', 'East', 'West'];
 
 export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChange, className }: CSRHotspotsCardProps) {
-  const hasHighAttention = items.some(item => item.severity === 'high');
-
   return (
     <div
       className={cn(
-        'bg-bg-surface border border-border-default rounded-2xl p-3 sm:p-4 md:p-5 flex flex-col gap-3 shadow-xs hover:shadow-md transition-shadow',
+        'bg-bg-surface border border-border-default rounded-2xl p-4 sm:p-5 md:p-6 flex flex-col gap-4 shadow-xs hover:shadow-md transition-shadow',
         className
       )}
     >
       {/* Header */}
       <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-wrap">
-          <h3 className="text-xs sm:text-sm md:text-base font-semibold text-text-primary">
-            CSR Hotspots
-          </h3>
-          {hasHighAttention && (
-            <span className="bg-amber-50 dark:bg-amber-900/20 text-amber-700 dark:text-amber-300 text-[9px] sm:text-[10px] font-medium px-1.5 sm:px-2 py-0.5 rounded-full">
-              High Attention
-            </span>
-          )}
-        </div>
+        <span className="text-[10px] sm:text-xs uppercase tracking-wider text-text-muted font-medium">
+          CSR Hotspots
+        </span>
         <div className="flex items-center gap-1.5">
           {/* Region Dropdown */}
           <div className="relative">
@@ -68,38 +47,43 @@ export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChan
           </div>
           <InfoTooltip
             label="CSR Hotspots"
-            description="Regions and topics generating the highest CSR load, so you can reduce repeated support and escalations."
+            description="Cards/questions where learners got stuck most, so you can improve content and reduce support."
           />
         </div>
       </div>
 
-      {/* Content */}
-      <div className="flex flex-col gap-1">
+      {/* Title & Description */}
+      <div className="space-y-1">
+        <h3 className="text-lg sm:text-xl font-bold text-text-primary">
+          Conversion Stoppers
+        </h3>
+        <p className="text-xs sm:text-sm text-text-muted">
+          Cards/questions where learners got stuck most.
+        </p>
+      </div>
+
+      {/* Items with Progress Bars */}
+      <div className="flex flex-col gap-3 sm:gap-4">
         {items.map((item, index) => (
           <motion.div
             key={index}
             initial={{ opacity: 0, x: -10 }}
             animate={{ opacity: 1, x: 0 }}
             transition={{ delay: index * 0.05 }}
-            whileHover={{ scale: 1.01 }}
-            className="flex items-center justify-between gap-2 sm:gap-3 rounded-xl px-2 sm:px-3 py-1.5 sm:py-2 hover:bg-bg-surface-hover transition-colors cursor-default"
+            className="flex flex-col gap-1.5"
           >
-            <div className="flex flex-col min-w-0 flex-1">
-              <span className="text-[11px] sm:text-xs md:text-sm font-medium text-text-primary truncate">
-                {item.module}
+            <div className="flex items-center justify-between">
+              <span className="text-xs sm:text-sm text-text-primary font-medium truncate max-w-[70%]">
+                {item.label}
               </span>
-              <span className="text-[10px] sm:text-[11px] text-text-muted">
-                {item.escalations} escalations
+              <span className="text-xs sm:text-sm text-text-secondary font-semibold">
+                {item.percentage}%
               </span>
             </div>
-            <span
-              className={cn(
-                'text-[9px] sm:text-[10px] font-semibold px-1.5 sm:px-2 py-0.5 rounded-full whitespace-nowrap',
-                severityStyles[item.severity]
-              )}
-            >
-              {severityLabels[item.severity]}
-            </span>
+            <Progress 
+              value={item.percentage} 
+              className="h-2 bg-bg-surface-hover"
+            />
           </motion.div>
         ))}
       </div>

@@ -31,9 +31,8 @@ interface UserStats {
 
 // Types for new components
 interface CSRHotspotItem {
-  module: string;
-  escalations: number;
-  severity: 'high' | 'medium' | 'low';
+  label: string;
+  percentage: number;
 }
 
 interface ObjectionItem {
@@ -135,6 +134,7 @@ const UserDashboardNew = () => {
         const allObjections: ObjectionItem[] = [];
         const allRegionalSTR: RegionalSTRItem[] = [];
         const allConfusion: ConfusionItem[] = [];
+        const allCsrHotspots: CSRHotspotItem[] = [];
 
         // Process deduction data from uploads
         if (deductionData && deductionData.length > 0) {
@@ -217,6 +217,30 @@ const UserDashboardNew = () => {
                   });
                 }
               }
+
+              // Process CSR Hotspots from cod_by_theme
+              if (metadata.cod_by_theme && metadata.cod_total_hits) {
+                const totalHits = Number(metadata.cod_total_hits);
+                if (totalHits > 0) {
+                  Object.entries(metadata.cod_by_theme).forEach(([cardName, count]: [string, any]) => {
+                    // Format card name: "Card_11_Quiz" → "Card 11 Quiz"
+                    const formattedLabel = cardName
+                      .replace(/_/g, ' ')
+                      .replace(/Card (\d+)/, 'Card $1');
+                    const percentage = Math.round((Number(count) / totalHits) * 100);
+                    
+                    const existing = allCsrHotspots.find(h => h.label === formattedLabel);
+                    if (existing) {
+                      existing.percentage = Math.max(existing.percentage, percentage);
+                    } else {
+                      allCsrHotspots.push({
+                        label: formattedLabel,
+                        percentage,
+                      });
+                    }
+                  });
+                }
+              }
             }
           });
         }
@@ -233,12 +257,8 @@ const UserDashboardNew = () => {
           obj.priority = index === 0 ? 'high' : index <= 2 ? 'medium' : 'low';
         });
 
-        // CSR Hotspots from modules
-        const csrData: CSRHotspotItem[] = assignments.map((a: any) => ({
-          module: a.modules?.title || 'Module',
-          escalations: Math.floor(Math.random() * 30) + 5,
-          severity: Math.random() > 0.6 ? 'high' : Math.random() > 0.3 ? 'medium' : 'low' as 'high' | 'medium' | 'low',
-        })).sort((a: CSRHotspotItem, b: CSRHotspotItem) => b.escalations - a.escalations).slice(0, 4);
+        // Sort CSR Hotspots by percentage descending, take top 4
+        allCsrHotspots.sort((a, b) => b.percentage - a.percentage);
 
         setStats({
           objectiveScore: avgObjective,
@@ -249,8 +269,8 @@ const UserDashboardNew = () => {
           timeSaved: `${Math.round(completed * 2)}h`,
         });
 
-        setCsrHotspots(csrData.length > 0 ? csrData : [
-          { module: 'No data', escalations: 0, severity: 'low' }
+        setCsrHotspots(allCsrHotspots.length > 0 ? allCsrHotspots.slice(0, 4) : [
+          { label: 'No data', percentage: 0 }
         ]);
         setClientObjections(allObjections.length > 0 ? allObjections.slice(0, 4) : [
           { label: 'No objections data', count: 0, priority: 'low' }
