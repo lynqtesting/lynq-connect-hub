@@ -13,6 +13,8 @@ interface TopClientObjectionsCardProps {
   items: ObjectionItem[];
   maxCount?: number;
   className?: string;
+  selectedRegion?: string;
+  onRegionChange?: (region: string) => void;
 }
 
 const priorityColors = {
@@ -24,7 +26,9 @@ const priorityColors = {
 export function TopClientObjectionsCard({ 
   items, 
   maxCount, 
-  className 
+  className,
+  selectedRegion = 'global',
+  onRegionChange,
 }: TopClientObjectionsCardProps) {
   const calculatedMax = maxCount || Math.max(...items.map(item => item.count), 1);
   
@@ -39,14 +43,29 @@ export function TopClientObjectionsCard({
       )}
     >
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between gap-2">
         <span className="text-sm sm:text-base font-semibold text-text-primary">
           Top Client Objections
         </span>
-        <InfoTooltip
-          label="Top Client Objections"
-          description="Ranking of the most frequent client objections, helping you refine enablement and responses."
-        />
+        <div className="flex items-center gap-2">
+          {onRegionChange && (
+            <select
+              value={selectedRegion}
+              onChange={(e) => onRegionChange(e.target.value)}
+              className="text-xs bg-bg-surface border border-border-default rounded-lg px-2 py-1 text-text-secondary appearance-none cursor-pointer focus:outline-none focus:ring-1 focus:ring-brand"
+            >
+              <option value="global">Global</option>
+              <option value="north">North</option>
+              <option value="south">South</option>
+              <option value="east">East</option>
+              <option value="west">West</option>
+            </select>
+          )}
+          <InfoTooltip
+            label="Top Client Objections"
+            description="Ranking of the most frequent client objections, helping you refine enablement and responses."
+          />
+        </div>
       </div>
 
       {/* Empty State or Items */}
