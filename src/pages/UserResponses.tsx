@@ -52,13 +52,10 @@ const UserResponses = () => {
     setError(null);
     
     try {
-      // First get user's assigned modules
+      // First get user's assigned module IDs
       const { data: assignments, error: assignmentError } = await supabase
         .from('user_module_assignments')
-        .select(`
-          module_id,
-          modules (id, title, category)
-        `)
+        .select('module_id')
         .eq('user_id', user.id);
 
       if (assignmentError) throw assignmentError;
@@ -70,16 +67,27 @@ const UserResponses = () => {
         return;
       }
 
-      // Extract module info for filter dropdown
-      const moduleList: ModuleOption[] = assignments
-        .filter(a => a.modules)
-        .map(a => ({
-          id: (a.modules as any).id,
-          title: (a.modules as any).title
-        }));
-      setModules(moduleList);
-
       const moduleIds = assignments.map(a => a.module_id).filter(Boolean) as string[];
+
+      // Fetch module details separately to avoid ambiguous foreign key
+      const { data: modulesData, error: modulesError } = await supabase
+        .from('modules')
+        .select('id, title, category')
+        .in('id', moduleIds);
+
+      if (modulesError) throw modulesError;
+
+      // Create a lookup map for modules
+      const modulesMap = new Map(
+        (modulesData || []).map(m => [m.id, { title: m.title, category: m.category }])
+      );
+
+      // Extract module info for filter dropdown
+      const moduleList: ModuleOption[] = (modulesData || []).map(m => ({
+        id: m.id,
+        title: m.title
+      }));
+      setModules(moduleList);
 
       // Fetch all data uploads for assigned modules
       const { data: uploads, error: uploadsError } = await supabase
@@ -92,7 +100,7 @@ const UserResponses = () => {
 
       // Map uploads to response data with module info
       const responseData: ResponseData[] = (uploads || []).map(upload => {
-        const moduleInfo = assignments.find(a => a.module_id === upload.module_id);
+        const moduleInfo = modulesMap.get(upload.module_id || '');
         return {
           id: upload.id,
           file_name: upload.file_name,
@@ -102,8 +110,8 @@ const UserResponses = () => {
           module_id: upload.module_id || '',
           metadata: upload.metadata,
           file_size: upload.file_size,
-          module_title: moduleInfo?.modules ? (moduleInfo.modules as any).title : 'Unknown Module',
-          module_category: moduleInfo?.modules ? (moduleInfo.modules as any).category : null
+          module_title: moduleInfo?.title || 'Unknown Module',
+          module_category: moduleInfo?.category || null
         };
       });
 
