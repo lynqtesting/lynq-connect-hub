@@ -260,10 +260,6 @@ const UserResponses = () => {
               View and preview uploaded response CSV files for your assigned modules
             </p>
           </div>
-          <Button onClick={handleDownloadCSV} variant="outline" className="gap-2" disabled={filteredResponses.length === 0}>
-            <Download className="h-4 w-4" />
-            Export CSV
-          </Button>
         </div>
 
         {/* Filters */}

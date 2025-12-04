@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   LayoutDashboard,
@@ -17,6 +17,7 @@ import { UserProfileDropdown } from './UserProfileDropdown';
 import Logo from '@/components/Logo';
 import { useTheme } from '@/context/ThemeContext';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { supabase } from '@/integrations/supabase/client';
 
 interface SidebarProps {
   role: 'user' | 'admin';
@@ -56,9 +57,29 @@ const itemVariants = {
 
 export function Sidebar({ role, user }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
   const navItems = NAV_ITEMS[role];
+
+  // Fetch avatar URL from profiles
+  useEffect(() => {
+    const fetchAvatarUrl = async () => {
+      if (!user?.id) return;
+      
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('avatar_url')
+        .eq('user_id', user.id)
+        .single();
+
+      if (!error && data?.avatar_url) {
+        setAvatarUrl(data.avatar_url);
+      }
+    };
+
+    fetchAvatarUrl();
+  }, [user?.id]);
 
   const getInitials = () => {
     if (user?.username) {
@@ -153,6 +174,7 @@ export function Sidebar({ role, user }: SidebarProps) {
             email: user?.email || '',
             role: role === 'admin' ? 'Administrator' : 'Learner',
             initials: getInitials(),
+            avatarUrl: avatarUrl,
           }}
         />
       </div>
