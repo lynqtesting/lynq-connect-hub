@@ -82,19 +82,17 @@ export function TopClientObjectionsCard({
               className="flex items-center gap-3"
             >
               {/* Label */}
-              <span className="text-xs sm:text-sm text-text-primary font-medium w-[35%] sm:w-[30%] leading-tight">
+              <span className="text-xs sm:text-sm text-text-primary font-medium min-w-fit max-w-[40%] leading-tight">
                 {item.label}
               </span>
               
-              {/* Bar Container */}
-              <div className="flex-1 h-6 bg-bg-surface-hover rounded-md overflow-hidden">
-                <motion.div
-                  initial={{ width: 0 }}
-                  animate={{ width: `${(item.count / calculatedMax) * 100}%` }}
-                  transition={{ duration: 0.5, delay: index * 0.1 }}
-                  className="h-full bg-[#F5A0A0] dark:bg-rose-400/80 rounded-md"
-                />
-              </div>
+              {/* Direct Bar - No background wrapper */}
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${(item.count / calculatedMax) * 100}%` }}
+                transition={{ duration: 0.5, delay: index * 0.1 }}
+                className="h-5 bg-[#F5A0A0] dark:bg-rose-400/80 rounded-md"
+              />
             </motion.div>
           ))}
         </div>
