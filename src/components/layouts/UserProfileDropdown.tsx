@@ -13,6 +13,7 @@ interface UserProfileDropdownProps {
     email: string;
     role: string;
     initials: string;
+    avatarUrl?: string;
   };
 }
 
@@ -20,14 +21,16 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [displayName, setDisplayName] = useState(user.name);
+  const [displayAvatarUrl, setDisplayAvatarUrl] = useState(user.avatarUrl);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const triggerRef = useRef<HTMLButtonElement>(null);
   const navigate = useNavigate();
 
-  // Sync displayName when user prop changes
+  // Sync state when user prop changes
   useEffect(() => {
     setDisplayName(user.name);
-  }, [user.name]);
+    setDisplayAvatarUrl(user.avatarUrl);
+  }, [user.name, user.avatarUrl]);
 
   // Click outside to close
   useEffect(() => {
@@ -80,8 +83,11 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
     setIsProfileModalOpen(true);
   };
 
-  const handleProfileUpdate = (newName: string) => {
+  const handleProfileUpdate = (newName: string, newAvatarUrl?: string) => {
     setDisplayName(newName);
+    if (newAvatarUrl !== undefined) {
+      setDisplayAvatarUrl(newAvatarUrl);
+    }
   };
 
   const getInitials = () => {
@@ -103,8 +109,12 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
         aria-haspopup="true"
       >
         {/* Avatar */}
-        <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0">
-          <span className="text-sm font-semibold text-brand">{getInitials()}</span>
+        <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center flex-shrink-0 overflow-hidden">
+          {displayAvatarUrl ? (
+            <img src={displayAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+          ) : (
+            <span className="text-sm font-semibold text-brand">{getInitials()}</span>
+          )}
         </div>
 
         {/* User Info */}
@@ -142,8 +152,12 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
             {/* User Info Section */}
             <div className="p-4 border-b border-border-default">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center shrink-0">
-                  <span className="text-sm font-semibold text-brand">{getInitials()}</span>
+                <div className="w-10 h-10 rounded-full bg-brand/20 flex items-center justify-center shrink-0 overflow-hidden">
+                  {displayAvatarUrl ? (
+                    <img src={displayAvatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  ) : (
+                    <span className="text-sm font-semibold text-brand">{getInitials()}</span>
+                  )}
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-semibold text-text-primary truncate">
@@ -187,7 +201,12 @@ export function UserProfileDropdown({ user }: UserProfileDropdownProps) {
       <UserProfileModal
         isOpen={isProfileModalOpen}
         onClose={() => setIsProfileModalOpen(false)}
-        user={{ ...user, name: displayName, initials: getInitials() }}
+        user={{ 
+          ...user, 
+          name: displayName, 
+          initials: getInitials(),
+          avatarUrl: displayAvatarUrl 
+        }}
         onProfileUpdate={handleProfileUpdate}
       />
     </div>
