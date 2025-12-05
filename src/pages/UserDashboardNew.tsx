@@ -20,7 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { containerVariants, itemVariants } from '@/lib/animations';
-import { PullToRefresh } from '@/components/ui/PullToRefresh';
+
 
 interface UserStats {
   objectiveScore: number;
@@ -421,8 +421,7 @@ const UserDashboardNew = () => {
 
   return (
     <DashboardLayout role="user">
-      <PullToRefresh onRefresh={fetchUserStats}>
-        <motion.div 
+      <motion.div 
           variants={containerVariants}
           initial="hidden"
           animate="visible"
@@ -609,7 +608,6 @@ const UserDashboardNew = () => {
           </motion.div>
         </motion.div>
       </motion.div>
-      </PullToRefresh>
     </DashboardLayout>
   );
 };
