@@ -63,7 +63,7 @@ export function TopClientObjectionsCard({
           )}
           <InfoTooltip
             label="Top Client Objections"
-            description="Ranking of the most frequent client objections, helping you refine enablement and responses."
+            description="COD — Client Objection Demand (theme share): Which client objections show up most in the field."
           />
         </div>
       </div>

@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
+import { RefreshCw } from 'lucide-react';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
@@ -20,6 +21,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { containerVariants, itemVariants } from '@/lib/animations';
+import { cn } from '@/lib/utils';
 
 
 interface UserStats {
@@ -433,14 +435,27 @@ const UserDashboardNew = () => {
                 Welcome back, {user?.email?.split('@')[0] || 'User'}
               </p>
             </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button
-                onClick={() => navigate('/lynq-library')}
-                className="w-full sm:w-auto bg-brand hover:bg-brand-hover"
-              >
-                View All Modules
-              </Button>
-            </motion.div>
+          <div className="flex gap-2">
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => fetchUserStats()}
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                  disabled={loading}
+                >
+                  <RefreshCw className={cn("h-4 w-4 mr-2", loading && "animate-spin")} />
+                  Refresh
+                </Button>
+              </motion.div>
+              <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
+                <Button
+                  onClick={() => navigate('/lynq-library')}
+                  className="w-full sm:w-auto bg-brand hover:bg-brand-hover"
+                >
+                  View All Modules
+                </Button>
+              </motion.div>
+            </div>
           </div>
 
           {/* Filters */}
@@ -494,7 +509,7 @@ const UserDashboardNew = () => {
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
-              info="Shows how accurately learners answered the objective quiz questions we can directly verify."
+              info="How correct learners were on quiz items we can verify."
             />
           </motion.div>
 
@@ -503,7 +518,7 @@ const UserDashboardNew = () => {
               title="STR Score"
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
-              info="Single strength score that links learner skill to actual module completion and impact."
+              info="Single strength score linking skill to completion."
             />
           </motion.div>
 
@@ -512,7 +527,7 @@ const UserDashboardNew = () => {
               title="Engagement"
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
-              info="Measures how much of the module learners truly interacted with, not just opened."
+              info="How much of the module each learner actually touched. Available on 7taps."
             />
           </motion.div>
 
@@ -521,7 +536,7 @@ const UserDashboardNew = () => {
               title="Completion"
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
-              info="Percentage of learners who fully finished this module, from start to end."
+              info="Who truly finished the module. Available on 7taps."
             />
           </motion.div>
 
@@ -531,7 +546,7 @@ const UserDashboardNew = () => {
               value={stats.avgRating}
               subtitle="of 5"
               trend={{ value: 0, direction: 'neutral' }}
-              info="Average satisfaction rating learners gave this module based on their feedback."
+              info="Satisfaction with the learning. Available on 7taps."
             />
           </motion.div>
 
@@ -541,7 +556,7 @@ const UserDashboardNew = () => {
               value={stats.timeSaved}
               subtitle="this month"
               trend={{ value: 15, direction: 'up' }}
-              info="Average time each learner saves by applying the skills from this module in real work."
+              info="Average time each learner saves by applying the skills from this module."
             />
           </motion.div>
 

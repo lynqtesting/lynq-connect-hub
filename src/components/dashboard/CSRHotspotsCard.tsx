@@ -50,7 +50,7 @@ export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChan
           </div>
           <InfoTooltip
             label="CSR Hotspots"
-            description="Cards/questions where learners got stuck most, so you can improve content and reduce support."
+            description="CSR — Conversion Stopping Ratio (theme share): Which confusion themes block conversions most. On an average."
           />
         </div>
       </div>
