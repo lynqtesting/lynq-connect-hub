@@ -17,7 +17,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
   const effectiveRole = isAdmin ? 'admin' : 'user';
 
   return (
-    <div className="min-h-screen bg-bg-canvas text-text-primary flex w-full overflow-x-hidden">
+    <div className="min-h-screen bg-bg-canvas text-text-primary flex w-full">
       <Sidebar role={effectiveRole} user={user || undefined} />
       
       <main
@@ -32,7 +32,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
           paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))'
         } : undefined}
       >
-        <div className="max-w-full overflow-x-hidden">
+        <div className="max-w-full overflow-visible">
           {children}
         </div>
       </main>
