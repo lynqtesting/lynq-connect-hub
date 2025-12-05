@@ -32,7 +32,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
           paddingBottom: 'calc(5rem + env(safe-area-inset-bottom))'
         } : undefined}
       >
-        <div className="animate-fade-in max-w-full overflow-hidden">
+        <div className="animate-fade-in max-w-full overflow-x-hidden">
           {children}
         </div>
       </main>

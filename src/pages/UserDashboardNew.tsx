@@ -426,7 +426,7 @@ const UserDashboardNew = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-6 overflow-hidden"
+          className="space-y-6"
         >
         {/* Header with Filters */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">

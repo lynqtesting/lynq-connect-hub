@@ -149,7 +149,7 @@ export function PullToRefresh({
   return (
     <motion.div
       ref={containerRef}
-      className="relative overflow-hidden"
+      className="relative"
       drag="y"
       dragConstraints={{ top: 0, bottom: 0 }}
       dragElastic={0}
@@ -158,7 +158,7 @@ export function PullToRefresh({
       onDragEnd={handleDragEnd}
       style={{ 
         y,
-        touchAction: 'pan-y',
+        touchAction: 'pan-y pinch-zoom',
       }}
     >
       {/* Pull-to-refresh indicator */}
