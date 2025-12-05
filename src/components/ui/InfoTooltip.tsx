@@ -71,7 +71,7 @@ export function InfoTooltip({ label, description, className }: InfoTooltipProps)
             animate={{ opacity: 1, y: 0 }}
             exit={{ opacity: 0, y: -4 }}
             transition={{ duration: 0.15, ease: 'easeOut' }}
-            className="absolute right-0 top-full mt-2 z-50 w-64 bg-bg-surface border border-border-default rounded-xl px-3 py-2.5 shadow-lg"
+            className="absolute right-0 top-full mt-2 z-[9999] w-64 bg-bg-surface border border-border-default rounded-xl px-3 py-2.5 shadow-lg"
           >
             <p className="text-xs font-semibold text-text-primary mb-1">{label}</p>
             <p className="text-xs text-text-secondary leading-relaxed">{description}</p>
