@@ -1,5 +1,5 @@
-import { ReactNode, useState, useRef, useEffect } from 'react';
-import { motion, useMotionValue, useTransform, PanInfo } from 'framer-motion';
+import { ReactNode, useState, useRef, useEffect, useCallback } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { Loader2, Check } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
@@ -20,74 +20,93 @@ export function PullToRefresh({
 }: PullToRefreshProps) {
   const isMobile = useIsMobile();
   const [refreshState, setRefreshState] = useState<RefreshState>('idle');
+  const [pullDistance, setPullDistance] = useState(0);
   const containerRef = useRef<HTMLDivElement>(null);
-  const y = useMotionValue(0);
-
-  // Always call hooks unconditionally - hooks must be at top level
-  const pullProgress = useTransform(y, [0, pullThreshold], [0, 1]);
-  const indicatorOpacity = useTransform(y, [0, 30], [0, 1]);
-  const indicatorScale = useTransform(y, [0, pullThreshold], [0.8, 1]);
+  const startYRef = useRef(0);
+  const isPullingRef = useRef(false);
 
   // Only enable pull-to-refresh on mobile
   if (!isMobile) {
     return <>{children}</>;
   }
 
-  const handleDragStart = () => {
-    // Only allow pull-to-refresh when scrolled to top
-    const scrollTop = containerRef.current?.scrollTop || window.scrollY;
-    if (scrollTop > 5) {
-      return false;
+  const handleTouchStart = useCallback((e: TouchEvent) => {
+    // Only start pull if at top of scroll and not already refreshing
+    if (window.scrollY <= 5 && refreshState === 'idle') {
+      startYRef.current = e.touches[0].clientY;
+      isPullingRef.current = true;
     }
-    if (refreshState !== 'idle') {
-      return false;
+  }, [refreshState]);
+
+  const handleTouchMove = useCallback((e: TouchEvent) => {
+    if (!isPullingRef.current || refreshState !== 'idle') return;
+
+    const currentY = e.touches[0].clientY;
+    const delta = currentY - startYRef.current;
+
+    // Only handle downward pull when at top
+    if (delta > 0 && window.scrollY <= 5) {
+      // Apply elastic resistance
+      const resistance = 1 - (delta / maxPull) * 0.5;
+      const distance = Math.min(delta * resistance, maxPull);
+      
+      setPullDistance(distance);
+      
+      if (distance > pullThreshold) {
+        setRefreshState('ready');
+      } else if (distance > 10) {
+        setRefreshState('pulling');
+      }
+      
+      // Prevent default scroll when pulling
+      if (distance > 10) {
+        e.preventDefault();
+      }
     }
-  };
+  }, [refreshState, maxPull, pullThreshold]);
 
-  const handleDrag = (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    // Only allow downward drag
-    if (info.offset.y < 0) {
-      y.set(0);
-      return;
-    }
+  const handleTouchEnd = useCallback(async () => {
+    if (!isPullingRef.current) return;
+    isPullingRef.current = false;
 
-    // Apply elastic resistance
-    const dragY = Math.min(info.offset.y, maxPull);
-    const resistance = 1 - (dragY / maxPull) * 0.5;
-    y.set(dragY * resistance);
-
-    // Update state based on pull distance
-    if (dragY > pullThreshold && refreshState !== 'ready') {
-      setRefreshState('ready');
-    } else if (dragY <= pullThreshold && refreshState === 'ready') {
-      setRefreshState('pulling');
-    }
-  };
-
-  const handleDragEnd = async (event: MouseEvent | TouchEvent | PointerEvent, info: PanInfo) => {
-    if (info.offset.y > pullThreshold && refreshState === 'ready') {
-      // Trigger refresh
+    if (refreshState === 'ready') {
       setRefreshState('refreshing');
-      y.set(pullThreshold);
+      setPullDistance(pullThreshold);
 
       try {
         await onRefresh();
         setRefreshState('completed');
         setTimeout(() => {
-          y.set(0);
+          setPullDistance(0);
           setRefreshState('idle');
         }, 500);
       } catch (error) {
         console.error('Refresh failed:', error);
-        y.set(0);
+        setPullDistance(0);
         setRefreshState('idle');
       }
     } else {
-      // Snap back
-      y.set(0);
+      setPullDistance(0);
       setRefreshState('idle');
     }
-  };
+  }, [refreshState, pullThreshold, onRefresh]);
+
+  // Attach native touch event listeners
+  useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+
+    // Use passive: false only for touchmove to allow preventDefault
+    container.addEventListener('touchstart', handleTouchStart, { passive: true });
+    container.addEventListener('touchmove', handleTouchMove, { passive: false });
+    container.addEventListener('touchend', handleTouchEnd, { passive: true });
+
+    return () => {
+      container.removeEventListener('touchstart', handleTouchStart);
+      container.removeEventListener('touchmove', handleTouchMove);
+      container.removeEventListener('touchend', handleTouchEnd);
+    };
+  }, [handleTouchStart, handleTouchMove, handleTouchEnd]);
 
   const getIndicatorContent = () => {
     switch (refreshState) {
@@ -95,7 +114,7 @@ export function PullToRefresh({
         return (
           <div className="flex flex-col items-center gap-1">
             <motion.div
-              style={{ opacity: indicatorOpacity, scale: indicatorScale }}
+              style={{ opacity: pullDistance / pullThreshold, scale: 0.8 + (pullDistance / pullThreshold) * 0.2 }}
               className="text-text-muted"
             >
               <Loader2 className="h-5 w-5" />
@@ -147,30 +166,24 @@ export function PullToRefresh({
   };
 
   return (
-    <motion.div
-      ref={containerRef}
-      className="relative"
-      drag="y"
-      dragConstraints={{ top: 0, bottom: 0 }}
-      dragElastic={0}
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
-      style={{ 
-        y,
-        touchAction: 'pan-y pinch-zoom',
-      }}
-    >
+    <div ref={containerRef} className="relative">
       {/* Pull-to-refresh indicator */}
-      <motion.div
-        style={{ opacity: indicatorOpacity }}
-        className="absolute top-0 left-0 right-0 flex items-center justify-center h-16 -mt-16 z-10"
-      >
-        {getIndicatorContent()}
-      </motion.div>
+      <AnimatePresence>
+        {pullDistance > 0 && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1, height: pullDistance }}
+            exit={{ opacity: 0, height: 0 }}
+            transition={{ duration: 0.2 }}
+            className="flex items-center justify-center overflow-hidden"
+          >
+            {getIndicatorContent()}
+          </motion.div>
+        )}
+      </AnimatePresence>
 
-      {/* Content */}
+      {/* Content - renders normally without drag interference */}
       {children}
-    </motion.div>
+    </div>
   );
 }
