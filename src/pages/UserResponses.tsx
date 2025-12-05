@@ -456,18 +456,18 @@ const UserResponses = () => {
 
       {/* CSV Preview Modal */}
       <Dialog open={previewOpen} onOpenChange={setPreviewOpen}>
-        <DialogContent className="max-w-4xl max-h-[80vh] overflow-hidden flex flex-col">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              <FileSpreadsheet className="h-5 w-5 text-emerald-500" />
-              {previewFileName}
+        <DialogContent className="w-[95vw] max-w-4xl max-h-[85vh] sm:max-h-[80vh] overflow-hidden flex flex-col p-4 sm:p-6">
+          <DialogHeader className="pb-2">
+            <DialogTitle className="flex items-center gap-2 text-sm sm:text-base">
+              <FileSpreadsheet className="h-4 w-4 sm:h-5 sm:w-5 text-emerald-500 shrink-0" />
+              <span className="truncate">{previewFileName}</span>
             </DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-xs sm:text-sm">
               Showing first 100 rows of the CSV file
             </DialogDescription>
           </DialogHeader>
           
-          <div className="flex-1 overflow-auto border border-border-default rounded-lg">
+          <div className="flex-1 overflow-auto border border-border-default rounded-lg min-h-0">
             {previewLoading ? (
               <div className="flex items-center justify-center py-12">
                 <Loader2 className="h-8 w-8 animate-spin text-brand" />
@@ -477,11 +477,11 @@ const UserResponses = () => {
                 No data to display
               </div>
             ) : (
-              <table className="w-full text-sm">
+              <table className="w-full text-xs sm:text-sm">
                 <thead className="sticky top-0 bg-bg-surface border-b border-border-default">
                   <tr>
                     {previewData.headers.map((header) => (
-                      <th key={header} className="px-3 py-2 text-left font-semibold text-text-primary whitespace-nowrap">
+                      <th key={header} className="px-2 sm:px-3 py-2 text-left font-semibold text-text-primary whitespace-nowrap">
                         {header}
                       </th>
                     ))}
@@ -491,7 +491,7 @@ const UserResponses = () => {
                   {previewData.rows.map((row, idx) => (
                     <tr key={idx} className="hover:bg-bg-surface-hover">
                       {previewData.headers.map((header) => (
-                        <td key={header} className="px-3 py-2 text-text-secondary whitespace-nowrap">
+                        <td key={header} className="px-2 sm:px-3 py-1.5 sm:py-2 text-text-secondary whitespace-nowrap max-w-[150px] sm:max-w-none truncate">
                           {row[header] || '-'}
                         </td>
                       ))}
