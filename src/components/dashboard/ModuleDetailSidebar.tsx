@@ -1,13 +1,12 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Play, BarChart3, ChevronDown, MessageSquare, Clock, User, Folder, FileText } from 'lucide-react';
+import { Play, BarChart3, MessageSquare, Clock, Folder, FileText } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-
+import { TweakLynqForm } from './TweakLynqForm';
 interface Module {
   id: string;
   title: string;
@@ -56,9 +55,6 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
   const [responseUploads, setResponseUploads] = useState<ResponseUpload[]>([]);
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [loadingResponses, setLoadingResponses] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [requestType, setRequestType] = useState('Content Update');
-  const [description, setDescription] = useState('');
   const navigate = useNavigate();
 
   // Fetch tweak requests for this module
@@ -109,43 +105,15 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
     fetchResponseUploads();
   }, [module.id]);
 
-  const handleSubmitRequest = async () => {
-    if (!description.trim()) {
-      toast.error('Please enter a description');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const { error } = await supabase
-        .from('tweak_requests')
-        .insert({
-          module_id: module.id,
-          user_id: userId,
-          title: requestType,
-          notes: description,
-        });
-
-      if (error) throw error;
-
-      toast.success('Request submitted successfully');
-      setDescription('');
-      
-      // Refresh requests
-      const { data } = await supabase
-        .from('tweak_requests')
-        .select('*')
-        .eq('module_id', module.id)
-        .eq('user_id', userId)
-        .order('created_at', { ascending: false });
-      
-      setTweakRequests(data || []);
-    } catch (error) {
-      console.error('Error submitting request:', error);
-      toast.error('Failed to submit request');
-    } finally {
-      setSubmitting(false);
-    }
+  const refreshTweakRequests = async () => {
+    const { data } = await supabase
+      .from('tweak_requests')
+      .select('*')
+      .eq('module_id', module.id)
+      .eq('user_id', userId)
+      .order('created_at', { ascending: false });
+    
+    setTweakRequests(data || []);
   };
 
   const handleStartModule = () => {
@@ -272,54 +240,13 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
             transition={{ duration: 0.2 }}
             className="space-y-6"
           >
-            {/* Submit Form */}
+            {/* Tweak Form */}
             <div className="bg-bg-surface-hover rounded-xl border border-border-default p-4 sm:p-6">
-              <h4 className="text-text-primary font-semibold mb-4">
-                Submit a Tweak Request
-              </h4>
-              <div className="space-y-4">
-                {/* Request Type Dropdown */}
-                <div>
-                  <label className="block text-sm text-text-muted mb-1.5 font-medium">
-                    Request Type
-                  </label>
-                  <div className="relative">
-                    <select
-                      value={requestType}
-                      onChange={(e) => setRequestType(e.target.value)}
-                      className="appearance-none w-full bg-bg-surface border border-border-default text-text-primary rounded-lg p-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none pr-10"
-                    >
-                      <option value="Content Update">Content Update</option>
-                      <option value="Design Change">Design Change</option>
-                      <option value="Bug Report">Bug Report</option>
-                      <option value="Feature Request">Feature Request</option>
-                    </select>
-                    <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none h-4 w-4" />
-                  </div>
-                </div>
-
-                {/* Description Textarea */}
-                <div>
-                  <label className="block text-sm text-text-muted mb-1.5 font-medium">
-                    Description
-                  </label>
-                  <textarea
-                    value={description}
-                    onChange={(e) => setDescription(e.target.value)}
-                    className="w-full bg-bg-surface border border-border-default text-text-primary rounded-lg p-3 text-sm h-24 focus:border-brand focus:ring-1 focus:ring-brand outline-none resize-none placeholder:text-text-muted"
-                    placeholder="Describe the change needed..."
-                  />
-                </div>
-
-                {/* Submit Button */}
-                <Button
-                  onClick={handleSubmitRequest}
-                  disabled={submitting || !description.trim()}
-                  className="w-full bg-brand hover:bg-brand/90 text-white shadow-lg shadow-brand/20"
-                >
-                  {submitting ? 'Submitting...' : 'Submit Request'}
-                </Button>
-              </div>
+              <TweakLynqForm
+                moduleId={module.id}
+                userId={userId}
+                onSubmitSuccess={refreshTweakRequests}
+              />
             </div>
 
             {/* Request History */}
