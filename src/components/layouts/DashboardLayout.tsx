@@ -22,7 +22,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
       
       <main
         className={cn(
-          'flex-1 overflow-x-hidden transition-all duration-200',
+          'flex-1 overflow-x-hidden',
           'md:ml-64',
           isMobile ? 'pt-16' : 'pt-0',
           'p-3 sm:p-4 md:p-6',
