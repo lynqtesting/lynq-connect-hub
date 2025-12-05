@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
@@ -63,13 +63,28 @@ interface RegionalSTRItem {
 
 const UserDashboardNew = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const { toast } = useToast();
   const { user } = useAuthPersistence();
   const [selectedRegion, setSelectedRegion] = useState('global');
   const [objectionRegion, setObjectionRegion] = useState('global');
-  const [selectedModule, setSelectedModule] = useState('all');
+  const [selectedModule, setSelectedModule] = useState(() => {
+    const moduleFromUrl = searchParams.get('module');
+    return moduleFromUrl || 'all';
+  });
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+
+  // Sync URL with module selection
+  const handleModuleChange = (value: string) => {
+    setSelectedModule(value);
+    if (value === 'all') {
+      searchParams.delete('module');
+    } else {
+      searchParams.set('module', value);
+    }
+    setSearchParams(searchParams, { replace: true });
+  };
 
   const [stats, setStats] = useState<UserStats>({
     objectiveScore: 0,
@@ -437,7 +452,7 @@ const UserDashboardNew = () => {
           {/* Filters */}
           <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
             <div className="flex items-center gap-2">
-              <Select value={selectedModule} onValueChange={setSelectedModule}>
+              <Select value={selectedModule} onValueChange={handleModuleChange}>
                 <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
                   <SelectValue placeholder="Select Module" />
                 </SelectTrigger>
