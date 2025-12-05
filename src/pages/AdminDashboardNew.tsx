@@ -1,12 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, lazy, Suspense } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
+import { InsightsPanelSkeleton } from '@/components/dashboard/skeletons/InsightsPanelSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
-import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Users, Layers, GitPullRequest, CheckCircle, Clock, TrendingUp } from 'lucide-react';
@@ -16,6 +16,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { containerVariants, itemVariants } from '@/lib/animations';
 import { useIsMobile } from '@/hooks/use-mobile';
+
+// Lazy load heavy components
+const InsightsPanel = lazy(() => import('@/components/AI/InsightsPanel').then(mod => ({ default: mod.InsightsPanel })));
 
 
 interface DashboardStats {
@@ -464,14 +467,16 @@ const AdminDashboardNew = () => {
 
           {/* AI Insights Panel */}
           <motion.div variants={itemVariants} className="col-span-1 sm:col-span-2 md:col-span-4 lg:col-span-12">
-            <InsightsPanel metricsData={{
-              totalModules: stats.totalModules,
-              activeUsers: stats.activeUsers,
-              pendingRequests: stats.pendingRequests,
-              completionRate: stats.completionRate,
-              avgEngagement: stats.avgEngagement,
-              weeklyTrends: chartData,
-            }} />
+            <Suspense fallback={<InsightsPanelSkeleton />}>
+              <InsightsPanel metricsData={{
+                totalModules: stats.totalModules,
+                activeUsers: stats.activeUsers,
+                pendingRequests: stats.pendingRequests,
+                completionRate: stats.completionRate,
+                avgEngagement: stats.avgEngagement,
+                weeklyTrends: chartData,
+              }} />
+            </Suspense>
           </motion.div>
         </motion.div>
 
