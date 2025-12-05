@@ -11,10 +11,23 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { useAuthPersistence } from "@/hooks/useAuthPersistence";
+import { z } from 'zod';
 
 interface RequestFormProps {
   type: 'new' | 'adapt';
 }
+
+// Validation schema
+const requestSchema = z.object({
+  title: z.string().trim()
+    .min(3, "Title must be at least 3 characters")
+    .max(200, "Title must be less than 200 characters"),
+  description: z.string().trim()
+    .min(10, "Description must be at least 10 characters")
+    .max(2000, "Description must be less than 2000 characters"),
+  reason: z.string().trim().max(1000, "Reason must be less than 1000 characters").optional(),
+  duration: z.string()
+});
 
 const RequestForm = ({ type }: RequestFormProps) => {
   const navigate = useNavigate();
@@ -28,6 +41,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
     reason: '',
     duration: '1'
   });
+  const [errors, setErrors] = useState<{ title?: string; description?: string; reason?: string }>({});
 
   useEffect(() => {
     if (user) {
@@ -48,7 +62,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
       if (error) throw error;
       setRecommendations(data || []);
     } catch (error) {
-      console.error('Error fetching recommendations:', error);
+      // Silent fail for recommendations
     }
   };
 
@@ -65,6 +79,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
     
     if (!user) {
       showToast({
@@ -75,16 +90,35 @@ const RequestForm = ({ type }: RequestFormProps) => {
       navigate('/login');
       return;
     }
+
+    // Validate input
+    const result = requestSchema.safeParse({
+      title: formData.title,
+      description: formData.description,
+      reason: formData.reason || undefined,
+      duration: formData.duration
+    });
+
+    if (!result.success) {
+      const fieldErrors: { title?: string; description?: string; reason?: string } = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0] === 'title') fieldErrors.title = err.message;
+        if (err.path[0] === 'description') fieldErrors.description = err.message;
+        if (err.path[0] === 'reason') fieldErrors.reason = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
     
     try {
       const requestData = {
         user_id: user.id,
         module_id: moduleId || null,
         request_type: type,
-        title: formData.title,
-        description: formData.description + (formData.reason ? `\n\nReason: ${formData.reason}` : ''),
+        title: result.data.title,
+        description: result.data.description + (result.data.reason ? `\n\nReason: ${result.data.reason}` : ''),
         status: 'pending',
-        duration: parseInt(formData.duration)
+        duration: parseInt(result.data.duration)
       };
 
       const { error, data } = await supabase
@@ -94,36 +128,31 @@ const RequestForm = ({ type }: RequestFormProps) => {
         .single();
 
       if (error) {
-        console.error('Supabase error:', error);
         throw error;
       }
 
       // Send email notification
       try {
-        const { data: emailData, error: emailError } = await supabase.functions.invoke('send-request-notification', {
+        const { error: emailError } = await supabase.functions.invoke('send-request-notification', {
           body: {
             requestId: data.id,
             userId: user.id,
             moduleId: moduleId || null,
             requestType: type,
-            title: formData.title,
-            description: formData.description + (formData.reason ? `\n\nReason: ${formData.reason}` : ''),
-            duration: parseInt(formData.duration),
+            title: result.data.title,
+            description: result.data.description + (result.data.reason ? `\n\nReason: ${result.data.reason}` : ''),
+            duration: parseInt(result.data.duration),
             createdAt: data.created_at
           }
         });
         
-        console.log('Email notification result:', { emailData, emailError });
-        
         if (emailError) {
-          console.error('Email notification failed:', emailError);
           showToast({
             title: "Request submitted",
             description: "Request saved successfully, but email notification failed. Admin will still see your request."
           });
         }
       } catch (emailError) {
-        console.error('Failed to send email notification:', emailError);
         showToast({
           title: "Request submitted", 
           description: "Request saved successfully, but email notification failed. Admin will still see your request."
@@ -136,8 +165,7 @@ const RequestForm = ({ type }: RequestFormProps) => {
       });
       
       navigate('/user-dashboard');
-    } catch (error) {
-      console.error('Full error:', error);
+    } catch (error: any) {
       showToast({
         title: "Error",
         description: `Failed to submit request: ${error.message || 'Unknown error'}`,
@@ -194,7 +222,9 @@ const RequestForm = ({ type }: RequestFormProps) => {
                   onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                   placeholder={type === 'adapt' ? `Adaptation for Lynq ${moduleId}` : 'Enter lynq title'}
                   required
+                  className={errors.title ? 'border-destructive' : ''}
                 />
+                {errors.title && <p className="text-xs text-destructive">{errors.title}</p>}
               </div>
 
               <div className="space-y-2">
@@ -205,7 +235,9 @@ const RequestForm = ({ type }: RequestFormProps) => {
                   onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   placeholder="Describe what you need..."
                   required
+                  className={errors.description ? 'border-destructive' : ''}
                 />
+                {errors.description && <p className="text-xs text-destructive">{errors.description}</p>}
               </div>
 
               <div className="space-y-2">
@@ -215,7 +247,9 @@ const RequestForm = ({ type }: RequestFormProps) => {
                   value={formData.reason}
                   onChange={(e) => setFormData({ ...formData, reason: e.target.value })}
                   placeholder="Additional details..."
+                  className={errors.reason ? 'border-destructive' : ''}
                 />
+                {errors.reason && <p className="text-xs text-destructive">{errors.reason}</p>}
               </div>
 
               <div className="space-y-2">
