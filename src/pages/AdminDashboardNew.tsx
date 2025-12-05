@@ -9,7 +9,7 @@ import { ErrorState } from '@/components/dashboard/ErrorState';
 import { InsightsPanel } from '@/components/AI/InsightsPanel';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Users, Layers, GitPullRequest, CheckCircle, Clock, TrendingUp } from 'lucide-react';
+import { Users, Layers, GitPullRequest, CheckCircle, Clock, TrendingUp } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { AreaChart, Area, XAxis, YAxis, ResponsiveContainer, Tooltip } from 'recharts';
 import { supabase } from '@/integrations/supabase/client';
@@ -311,17 +311,9 @@ const AdminDashboardNew = () => {
         >
         {/* Header with Filter */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Admin Overview</h1>
-              <p className="text-sm text-text-muted mt-1">System status and activity monitoring</p>
-            </div>
-            <motion.div whileHover={{ scale: 1.05 }} whileTap={{ scale: 0.95 }}>
-              <Button onClick={() => navigate('/upload-module')} className="gap-2 w-full sm:w-auto bg-brand hover:bg-brand-hover">
-                <Plus className="h-4 w-4" />
-                Add Module
-              </Button>
-            </motion.div>
+          <div>
+            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">Admin Overview</h1>
+            <p className="text-sm text-text-muted mt-1">System status and activity monitoring</p>
           </div>
 
           {/* Module Filter */}
@@ -488,13 +480,12 @@ const AdminDashboardNew = () => {
         {/* Quick Actions */}
         <motion.div
           variants={containerVariants}
-          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4"
         >
           {[
             { icon: Layers, label: 'Manage Modules', path: '/view-modules', color: 'text-brand' },
             { icon: Users, label: 'Manage Users', path: '/view-users', color: 'text-brand' },
             { icon: GitPullRequest, label: 'View Requests', path: '/admin/tweak-requests', color: 'text-brand' },
-            { icon: Plus, label: 'Upload Module', path: '/upload-module', color: 'text-brand' },
           ].map((action, index) => (
             <motion.div key={action.path} variants={itemVariants}>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
