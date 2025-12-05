@@ -422,11 +422,11 @@ const UserDashboardNew = () => {
   return (
     <DashboardLayout role="user">
       <motion.div 
-          variants={containerVariants}
-          initial="hidden"
-          animate="visible"
-          className="space-y-6"
-        >
+        variants={containerVariants}
+        initial="hidden"
+        animate="visible"
+        className="space-y-6"
+      >
         {/* Header with Filters */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
