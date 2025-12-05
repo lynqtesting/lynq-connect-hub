@@ -9,6 +9,17 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, Upload, Plus, Minus } from 'lucide-react';
+import { z } from 'zod';
+
+// Validation schema
+const uploadModuleSchema = z.object({
+  title: z.string().trim()
+    .min(3, "Title must be at least 3 characters")
+    .max(200, "Title must be less than 200 characters"),
+  description: z.string().trim().max(2000, "Description must be less than 2000 characters").optional(),
+  youtubeUrl: z.string().url("Please enter a valid URL").optional().or(z.literal('')),
+  moduleLink: z.string().url("Please enter a valid URL").optional().or(z.literal(''))
+});
 
 const UploadModule = () => {
   const navigate = useNavigate();
@@ -24,6 +35,7 @@ const UploadModule = () => {
     category: 'Product',
     tweakingTopics: ''
   });
+  const [errors, setErrors] = useState<{ title?: string; description?: string; youtubeUrl?: string; moduleLink?: string }>({});
 
   // Separate state for file inputs to prevent refresh issues
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -63,7 +75,29 @@ const UploadModule = () => {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!formData.title || (!formData.youtubeUrl && !formData.file)) {
+    setErrors({});
+
+    // Validate input
+    const result = uploadModuleSchema.safeParse({
+      title: formData.title,
+      description: formData.description || undefined,
+      youtubeUrl: formData.youtubeUrl || undefined,
+      moduleLink: formData.moduleLink || undefined
+    });
+
+    if (!result.success) {
+      const fieldErrors: { title?: string; description?: string; youtubeUrl?: string; moduleLink?: string } = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0] === 'title') fieldErrors.title = err.message;
+        if (err.path[0] === 'description') fieldErrors.description = err.message;
+        if (err.path[0] === 'youtubeUrl') fieldErrors.youtubeUrl = err.message;
+        if (err.path[0] === 'moduleLink') fieldErrors.moduleLink = err.message;
+      });
+      setErrors(fieldErrors);
+      return;
+    }
+
+    if (!result.data.title || (!formData.youtubeUrl && !formData.file)) {
       toast({
         title: "Error",
         description: "Please provide a YouTube URL or upload a file",
@@ -236,7 +270,9 @@ const UploadModule = () => {
                   value={formData.title}
                   onChange={(e) => setFormData(prev => ({ ...prev, title: e.target.value }))}
                   placeholder="Lynq title"
+                  className={errors.title ? 'border-destructive' : ''}
                 />
+                {errors.title && <p className="text-xs text-destructive mt-1">{errors.title}</p>}
               </div>
 
               <div>
@@ -246,9 +282,10 @@ const UploadModule = () => {
                   value={formData.description}
                   onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Lynq description"
+                  className={errors.description ? 'border-destructive' : ''}
                 />
+                {errors.description && <p className="text-xs text-destructive mt-1">{errors.description}</p>}
               </div>
-
 
               <div>
                 <Label htmlFor="youtubeUrl">YouTube URL (optional)</Label>
@@ -258,7 +295,9 @@ const UploadModule = () => {
                   value={formData.youtubeUrl}
                   onChange={(e) => setFormData(prev => ({ ...prev, youtubeUrl: e.target.value }))}
                   placeholder="https://www.youtube.com/watch?v=..."
+                  className={errors.youtubeUrl ? 'border-destructive' : ''}
                 />
+                {errors.youtubeUrl && <p className="text-xs text-destructive mt-1">{errors.youtubeUrl}</p>}
               </div>
 
               <div>

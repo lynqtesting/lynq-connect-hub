@@ -7,8 +7,21 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { ArrowLeft, UserPlus } from 'lucide-react';
+import { z } from 'zod';
 
 const FUNCTION_URL = 'https://swipchvhpwdomewoxivp.functions.supabase.co/create-user';
+
+// Validation schema
+const createUserSchema = z.object({
+  username: z.string().trim()
+    .min(3, "Username must be at least 3 characters")
+    .max(50, "Username must be less than 50 characters")
+    .regex(/^[a-zA-Z0-9_-]+$/, "Username can only contain letters, numbers, underscores and hyphens"),
+  password: z.string()
+    .min(8, "Password must be at least 8 characters")
+    .max(100, "Password must be less than 100 characters"),
+  domain: z.string().trim().max(100, "Domain must be less than 100 characters").optional()
+});
 
 const CreateUser = () => {
   const navigate = useNavigate();
@@ -19,16 +32,27 @@ const CreateUser = () => {
     password: '',
     domain: ''
   });
+  const [errors, setErrors] = useState<{ username?: string; password?: string; domain?: string }>({});
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setErrors({});
 
-    if (!formData.username || !formData.password) {
-      toast({
-        title: "Missing information",
-        description: "Please provide both username and password.",
-        variant: "destructive"
+    // Validate input
+    const result = createUserSchema.safeParse({
+      username: formData.username,
+      password: formData.password,
+      domain: formData.domain || undefined
+    });
+
+    if (!result.success) {
+      const fieldErrors: { username?: string; password?: string; domain?: string } = {};
+      result.error.errors.forEach(err => {
+        if (err.path[0] === 'username') fieldErrors.username = err.message;
+        if (err.path[0] === 'password') fieldErrors.password = err.message;
+        if (err.path[0] === 'domain') fieldErrors.domain = err.message;
       });
+      setErrors(fieldErrors);
       return;
     }
 
@@ -53,16 +77,16 @@ const CreateUser = () => {
           'Authorization': `Bearer ${accessToken}`
         },
         body: JSON.stringify({
-          username: formData.username.trim(),
-          password: formData.password,
-          domain: (formData.domain || "example.com").trim()
+          username: result.data.username,
+          password: result.data.password,
+          domain: (result.data.domain || "example.com")
         })
       });
 
-      const result = await response.json();
+      const responseData = await response.json();
 
       if (!response.ok) {
-        throw new Error(result?.error || 'Failed to create user');
+        throw new Error(responseData?.error || 'Failed to create user');
       }
 
       toast({
@@ -70,11 +94,10 @@ const CreateUser = () => {
         description: "User created successfully",
         duration: 4000
       });
-      alert(`✅ User created with email: ${result?.email || (formData.username.trim().toLowerCase() + '@' + (formData.domain || 'example.com').trim())}`);
+      alert(`✅ User created with email: ${responseData?.email || (result.data.username.toLowerCase() + '@' + (result.data.domain || 'example.com'))}`);
 
       setFormData({ username: '', password: '', domain: '' });
     } catch (error: any) {
-      console.error('Create user error:', error);
       toast({
         title: "Error",
         description: error?.message || "Failed to create user",
@@ -115,7 +138,9 @@ const CreateUser = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, username: e.target.value }))}
                     placeholder="Enter username"
                     autoComplete="username"
+                    className={errors.username ? 'border-destructive' : ''}
                   />
+                  {errors.username && <p className="text-xs text-destructive mt-1">{errors.username}</p>}
                 </div>
 
                 <div>
@@ -125,9 +150,11 @@ const CreateUser = () => {
                     type="password"
                     value={formData.password}
                     onChange={(e) => setFormData(prev => ({ ...prev, password: e.target.value }))}
-                    placeholder="Enter password"
+                    placeholder="Enter password (min 8 characters)"
                     autoComplete="new-password"
+                    className={errors.password ? 'border-destructive' : ''}
                   />
+                  {errors.password && <p className="text-xs text-destructive mt-1">{errors.password}</p>}
                 </div>
 
                 <div>
@@ -139,7 +166,9 @@ const CreateUser = () => {
                     onChange={(e) => setFormData(prev => ({ ...prev, domain: e.target.value }))}
                     placeholder="example.com"
                     autoComplete="off"
+                    className={errors.domain ? 'border-destructive' : ''}
                   />
+                  {errors.domain && <p className="text-xs text-destructive mt-1">{errors.domain}</p>}
                 </div>
 
                 <p className="text-xs text-muted-foreground">

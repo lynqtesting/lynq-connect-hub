@@ -27,7 +27,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
       const { data: { session }, error } = await supabase.auth.refreshSession();
       
       if (error) {
-        console.error('Session refresh error:', error);
         throw error;
       }
       
@@ -39,34 +38,11 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
       
       return null;
     } catch (error) {
-      console.error('Failed to refresh session:', error);
       // Clear auth state on refresh failure
       setSession(null);
       setUser(null);
       setIsAdmin(false);
       throw error;
-    }
-  };
-
-  // Secure admin status fetching using user_roles table
-  const fetchAdminStatus = async (userId: string): Promise<boolean> => {
-    try {
-      const { data, error } = await supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
-      
-      if (error) {
-        console.error('Error fetching admin status:', error);
-        return false;
-      }
-      
-      return data !== null; // User has admin role
-    } catch (error) {
-      console.error('Admin status fetch failed:', error);
-      return false;
     }
   };
 
@@ -97,7 +73,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
             continue;
           }
           
-          console.error('Admin status error:', error);
           return false;
         }
         
@@ -113,7 +88,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
           continue;
         }
         
-        console.error('Admin status failed:', e);
         return false;
       }
     }
@@ -127,8 +101,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (!mounted) return;
-
-        console.log('Auth state change:', event, session?.user?.id);
         
         setSession(session);
         setUser(session?.user ?? null);
@@ -145,18 +117,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
         } else {
           setIsAdmin(false);
         }
-
-        // Handle session events
-        if (event === 'TOKEN_REFRESHED') {
-          console.log('Token refreshed successfully');
-        } else if (event === 'SIGNED_OUT') {
-          console.log('User signed out');
-          if (mounted) {
-            setUser(null);
-            setSession(null);
-            setIsAdmin(false);
-          }
-        }
       }
     );
 
@@ -166,14 +126,13 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
         const { data: { session }, error } = await supabase.auth.getSession();
 
         if (error) {
-          console.error('Initial session error:', error);
           // Ensure loading doesn't get stuck
           if (mounted) setLoading(false);
           // Try to refresh in the background
           try {
             await refreshSession();
           } catch (refreshError) {
-            console.error('Session refresh failed:', refreshError);
+            // Silent fail
           }
           return;
         }
@@ -194,7 +153,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
           if (mounted) setIsAdmin(false);
         }
       } catch (error) {
-        console.error('Failed to get initial session:', error);
         if (mounted) setLoading(false);
       }
     };
@@ -228,7 +186,6 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
         description: "Logged out successfully"
       });
     } catch (error: any) {
-      console.error('Sign out error:', error);
       toast({
         title: "Error",
         description: "Failed to log out properly",

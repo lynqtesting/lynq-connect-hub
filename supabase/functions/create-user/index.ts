@@ -37,7 +37,6 @@ serve(async (req) => {
     const authHeader = req.headers.get("Authorization") ?? "";
     
     if (!authHeader) {
-      console.log("No authorization header provided");
       return new Response(JSON.stringify({ error: "Unauthorized: No authorization header" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -54,14 +53,13 @@ serve(async (req) => {
     const { data: { user }, error: userErr } = await adminClient.auth.getUser(token);
 
     if (userErr || !user) {
-      console.error("Failed to verify token:", userErr);
       return new Response(JSON.stringify({ error: "Unauthorized: Invalid token" }), {
         status: 401,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("User authenticated:", user.id);
+    console.log("User authenticated for create-user");
 
     // Check if user is admin using the service role client
     const { data: roles, error: roleErr } = await adminClient
@@ -72,14 +70,13 @@ serve(async (req) => {
       .single();
 
     if (roleErr || !roles) {
-      console.log("Admin check failed:", roleErr);
       return new Response(JSON.stringify({ error: "Forbidden: Admins only" }), {
         status: 403,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    console.log("Admin verified:", user.id);
+    console.log("Admin verified for create-user");
 
     const rawUsername = String(username).trim().toLowerCase();
     const sanitizedUsername = rawUsername.includes("@")
@@ -100,7 +97,6 @@ serve(async (req) => {
     });
 
     if (createErr) {
-      console.error("Create user error:", createErr);
       return new Response(
         JSON.stringify({ error: createErr.message || "Failed to create user" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
@@ -116,16 +112,17 @@ serve(async (req) => {
       });
 
     if (assignRoleErr) {
-      console.error("Create role error:", assignRoleErr);
-      // Don't fail the request, just log the error
+      // Don't fail the request, just continue
     }
+
+    console.log("User created successfully");
 
     return new Response(
       JSON.stringify({ success: true, userId: created.user?.id, email: fakeEmail, username }),
       { headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   } catch (err) {
-    console.error("Unexpected error in create-user:", err);
+    console.error("Unexpected error in create-user");
     return new Response(
       JSON.stringify({ error: "Unexpected server error" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }

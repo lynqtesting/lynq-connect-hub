@@ -28,8 +28,34 @@ const handler = async (req: Request): Promise<Response> => {
   }
 
   try {
+    // Verify authentication
+    const authHeader = req.headers.get('Authorization');
+    if (!authHeader) {
+      return new Response(
+        JSON.stringify({ error: 'Missing authorization header' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    const token = authHeader.replace('Bearer ', '');
+    
+    // Create auth client to verify token
+    const supabaseAuth = createClient(
+      Deno.env.get("SUPABASE_URL") ?? "",
+      Deno.env.get("SUPABASE_ANON_KEY") ?? ""
+    );
+
+    const { data: { user: authUser }, error: authError } = await supabaseAuth.auth.getUser(token);
+    
+    if (authError || !authUser) {
+      return new Response(
+        JSON.stringify({ error: 'Invalid or expired token' }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
     const requestData: RequestNotificationData = await req.json();
-    console.log("Processing request notification:", requestData);
+    console.log("Processing notification for request:", requestData.requestId);
 
     // Create Supabase client with service role for admin access
     const supabase = createClient(
@@ -38,34 +64,30 @@ const handler = async (req: Request): Promise<Response> => {
     );
 
     // Fetch user details from profiles and auth
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile } = await supabase
       .from('profiles')
       .select('username')
       .eq('user_id', requestData.userId)
       .single();
 
-    if (profileError) {
-      console.error("Error fetching profile:", profileError);
-    }
-
     // Fetch user email from auth.users (only accessible with service role)
     const { data: { user }, error: userError } = await supabase.auth.admin.getUserById(requestData.userId);
     
     if (userError) {
-      console.error("Error fetching user:", userError);
+      console.error("Failed to fetch user");
       throw new Error("Failed to fetch user email");
     }
 
     // Fetch module details if moduleId is provided
     let moduleTitle = "N/A";
     if (requestData.moduleId) {
-      const { data: module, error: moduleError } = await supabase
+      const { data: module } = await supabase
         .from('modules')
         .select('title')
         .eq('id', requestData.moduleId)
         .single();
       
-      if (!moduleError && module) {
+      if (module) {
         moduleTitle = module.title;
       }
     }
@@ -130,12 +152,7 @@ const handler = async (req: Request): Promise<Response> => {
     `;
 
     // Send email via Resend
-    console.log("Attempting to send email with payload:", {
-      from: "Platform Notifications <onboarding@resend.dev>",
-      to: ["ishanibehl@skillopp.com"],
-      subject: `New Client Request Submitted - ${requestTypeDisplay}`,
-      hasHtml: !!emailHtml
-    });
+    console.log("Sending notification email for request:", requestData.requestId);
 
     const emailResponse = await resend.emails.send({
       from: "Platform Notifications <onboarding@resend.dev>",
@@ -144,12 +161,7 @@ const handler = async (req: Request): Promise<Response> => {
       html: emailHtml,
     });
 
-    console.log("Resend API response:", {
-      success: !!emailResponse.data,
-      emailId: emailResponse.data?.id,
-      error: emailResponse.error,
-      fullResponse: emailResponse
-    });
+    console.log("Email sent successfully:", emailResponse.data?.id ? "yes" : "no");
 
     return new Response(JSON.stringify({ 
       success: true, 
@@ -163,7 +175,7 @@ const handler = async (req: Request): Promise<Response> => {
     });
 
   } catch (error: any) {
-    console.error("Error in send-request-notification function:", error);
+    console.error("Notification function error");
     
     return new Response(
       JSON.stringify({ 
