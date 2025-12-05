@@ -1,11 +1,17 @@
-import { useEffect, useState, lazy, Suspense } from 'react';
+import { useEffect, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { MetricCard } from '@/components/dashboard/MetricCard';
+import { InsightsPanel } from '@/components/AI/InsightsPanel';
+import { CSRHotspotsCard } from '@/components/dashboard/CSRHotspotsCard';
+import { TopClientObjectionsCard } from '@/components/dashboard/TopClientObjectionsCard';
+import { ConfusionAreasCard } from '@/components/dashboard/ConfusionAreasCard';
+import { RegionalSTRCard } from '@/components/dashboard/RegionalSTRCard';
+import { LearningProgressCard } from '@/components/dashboard/LearningProgressCard';
+import { DropoffRateCard } from '@/components/dashboard/DropoffRateCard';
 import { MetricCardSkeleton } from '@/components/dashboard/skeletons/MetricCardSkeleton';
 import { ChartSkeleton } from '@/components/dashboard/skeletons/ChartSkeleton';
-import { InsightsPanelSkeleton } from '@/components/dashboard/skeletons/InsightsPanelSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
@@ -14,16 +20,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuthPersistence } from '@/hooks/useAuthPersistence';
 import { containerVariants, itemVariants } from '@/lib/animations';
-
-// Lazy load heavy components
-const InsightsPanel = lazy(() => import('@/components/AI/InsightsPanel').then(mod => ({ default: mod.InsightsPanel })));
-const CSRHotspotsCard = lazy(() => import('@/components/dashboard/CSRHotspotsCard').then(mod => ({ default: mod.CSRHotspotsCard })));
-const TopClientObjectionsCard = lazy(() => import('@/components/dashboard/TopClientObjectionsCard').then(mod => ({ default: mod.TopClientObjectionsCard })));
-const ConfusionAreasCard = lazy(() => import('@/components/dashboard/ConfusionAreasCard').then(mod => ({ default: mod.ConfusionAreasCard })));
-const RegionalSTRCard = lazy(() => import('@/components/dashboard/RegionalSTRCard').then(mod => ({ default: mod.RegionalSTRCard })));
-const LearningProgressCard = lazy(() => import('@/components/dashboard/LearningProgressCard').then(mod => ({ default: mod.LearningProgressCard })));
-const DropoffRateCard = lazy(() => import('@/components/dashboard/DropoffRateCard').then(mod => ({ default: mod.DropoffRateCard })));
-
+import { PullToRefresh } from '@/components/ui/PullToRefresh';
 
 interface UserStats {
   objectiveScore: number;
@@ -424,12 +421,13 @@ const UserDashboardNew = () => {
 
   return (
     <DashboardLayout role="user">
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6"
-      >
+      <PullToRefresh onRefresh={fetchUserStats}>
+        <motion.div 
+          variants={containerVariants}
+          initial="hidden"
+          animate="visible"
+          className="space-y-6 overflow-hidden"
+        >
         {/* Header with Filters */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
@@ -495,7 +493,7 @@ const UserDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-full"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
         >
           <motion.div variants={itemVariants}>
             <MetricCard
@@ -555,76 +553,63 @@ const UserDashboardNew = () => {
 
           {/* Learning Progress */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <LearningProgressCard data={learningProgress} />
-            </Suspense>
+            <LearningProgressCard data={learningProgress} />
           </motion.div>
 
           {/* Dropoff Rate */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <DropoffRateCard rate={dropoffRate} />
-            </Suspense>
+            <DropoffRateCard rate={dropoffRate} />
           </motion.div>
 
           {/* AI Insights Panel */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6">
-            <Suspense fallback={<InsightsPanelSkeleton />}>
-              <InsightsPanel metricsData={{
-                objectiveScore: stats.objectiveScore,
-                strScore: stats.strScore,
-                engagement: stats.engagement,
-                completion: stats.completion,
-                avgRating: stats.avgRating,
-                regionalSTR,
-                csrHotspots,
-                clientObjections,
-                confusionAreas,
-              }} />
-            </Suspense>
+            <InsightsPanel metricsData={{
+              objectiveScore: stats.objectiveScore,
+              strScore: stats.strScore,
+              engagement: stats.engagement,
+              completion: stats.completion,
+              avgRating: stats.avgRating,
+              regionalSTR,
+              csrHotspots,
+              clientObjections,
+              confusionAreas,
+            }} />
           </motion.div>
 
           {/* CSR Hotspots */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <CSRHotspotsCard 
-                items={csrHotspots} 
-                selectedRegion={selectedRegion}
-                onRegionChange={setSelectedRegion}
-              />
-            </Suspense>
+            <CSRHotspotsCard 
+              items={csrHotspots} 
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+            />
           </motion.div>
 
           {/* Top Client Objections */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <TopClientObjectionsCard 
-                items={clientObjections}
-                selectedRegion={objectionRegion}
-                onRegionChange={setObjectionRegion}
-              />
-            </Suspense>
+            <TopClientObjectionsCard 
+              items={clientObjections}
+              selectedRegion={objectionRegion}
+              onRegionChange={setObjectionRegion}
+            />
           </motion.div>
 
           {/* Conversion Stoppers */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <ConfusionAreasCard items={confusionAreas} />
-            </Suspense>
+            <ConfusionAreasCard items={confusionAreas} />
           </motion.div>
 
           {/* Regional STR */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-2 lg:col-span-3">
-            <Suspense fallback={<ChartSkeleton height="h-[180px]" />}>
-              <RegionalSTRCard
-                data={regionalSTR}
-                selectedRegion={selectedRegion}
-                onRegionChange={setSelectedRegion}
-              />
-            </Suspense>
+            <RegionalSTRCard
+              data={regionalSTR}
+              selectedRegion={selectedRegion}
+              onRegionChange={setSelectedRegion}
+            />
           </motion.div>
         </motion.div>
       </motion.div>
+      </PullToRefresh>
     </DashboardLayout>
   );
 };

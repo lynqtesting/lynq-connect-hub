@@ -14,12 +14,11 @@ export const pageTransition = {
 
 // Stagger children animations
 export const containerVariants: Variants = {
-  hidden: { opacity: 1 },
+  hidden: { opacity: 0 },
   visible: {
     opacity: 1,
     transition: {
-      staggerChildren: 0.08,
-      delayChildren: 0.05,
+      staggerChildren: 0.1,
     },
   },
 };

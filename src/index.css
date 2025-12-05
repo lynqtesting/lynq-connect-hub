@@ -168,19 +168,16 @@ All colors MUST be HSL.
     -moz-osx-font-smoothing: grayscale;
     /* Smooth scrolling */
     scroll-behavior: smooth;
-    /* Prevent scroll chaining on iOS while allowing normal scroll */
-    overscroll-behavior-y: contain;
+    /* Prevent rubber band scrolling on iOS */
+    overscroll-behavior: none;
   }
 
   /* Enhanced mobile touch interactions */
   * {
     /* Remove tap highlight on mobile */
     -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Only apply transitions to interactive elements, not all elements */
-  button, a, input, select, textarea, [role="button"], [data-card] {
-    transition: transform 0.2s ease, background-color 0.2s ease, border-color 0.2s ease, box-shadow 0.2s ease;
+    /* Smooth transitions for all interactive elements */
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Smooth scrolling for all scrollable containers */

@@ -50,7 +50,7 @@ export function MetricCard({
       initial="rest"
       whileHover="hover"
       whileTap="tap"
-      className={`relative h-full min-w-0 bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
+      className={`relative h-full min-w-[160px] bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
