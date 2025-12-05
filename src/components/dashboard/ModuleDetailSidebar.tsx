@@ -220,7 +220,7 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                 </Button>
                 <Button
                   variant="outline"
-                  onClick={() => navigate(`/module/${module.id}`)}
+                  onClick={() => navigate(`/user-dashboard?module=${module.id}`)}
                   className="flex-1"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
