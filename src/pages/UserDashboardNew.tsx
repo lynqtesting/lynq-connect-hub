@@ -426,7 +426,7 @@ const UserDashboardNew = () => {
           variants={containerVariants}
           initial="hidden"
           animate="visible"
-          className="space-y-6 overflow-hidden"
+          className="space-y-6"
         >
         {/* Header with Filters */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
@@ -493,7 +493,7 @@ const UserDashboardNew = () => {
         {/* Bento Grid - Metrics */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
+          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4 max-w-full"
         >
           <motion.div variants={itemVariants}>
             <MetricCard
