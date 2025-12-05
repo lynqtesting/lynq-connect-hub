@@ -302,12 +302,7 @@ const AdminDashboardNew = () => {
 
   return (
     <DashboardLayout role="admin">
-      <motion.div 
-        variants={containerVariants}
-        initial="hidden"
-        animate="visible"
-        className="space-y-6"
-      >
+      <div className="space-y-6">
         {/* Header with Filter */}
         <motion.div variants={itemVariants} className="flex flex-col gap-4">
           <div>
@@ -499,7 +494,7 @@ const AdminDashboardNew = () => {
             </motion.div>
           ))}
         </motion.div>
-      </motion.div>
+      </div>
     </DashboardLayout>
   );
 };
