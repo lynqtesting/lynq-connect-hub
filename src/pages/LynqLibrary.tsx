@@ -3,8 +3,9 @@ import { supabase } from "@/integrations/supabase/client";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
-import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight, ChevronRight } from "lucide-react";
+import { Package, Shield, Users, BookOpen, Heart, Search, ArrowRight, ChevronRight, WifiOff, RefreshCw } from "lucide-react";
 import { toast } from "sonner";
 import { useAuthPersistence } from "@/hooks/useAuthPersistence";
 import { DashboardLayout } from "@/components/layouts/DashboardLayout";
@@ -12,6 +13,7 @@ import { SidePanel } from "@/components/dashboard/SidePanel";
 import { ModuleDetailSidebar } from "@/components/dashboard/ModuleDetailSidebar";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { motion } from 'framer-motion';
+import { isNetworkError, getErrorMessage } from "@/lib/networkUtils";
 
 interface Module {
   id: string;
@@ -97,6 +99,7 @@ function CompactModuleCard({ module, onClick }: { module: Module; onClick: () =>
 export default function LynqLibrary() {
   const [modules, setModules] = useState<Module[]>([]);
   const [loading, setLoading] = useState(true);
+  const [networkError, setNetworkError] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedModule, setSelectedModule] = useState<Module | null>(null);
   const navigate = useNavigate();
@@ -132,8 +135,13 @@ export default function LynqLibrary() {
     };
   }, [user?.id, authLoading, navigate]);
 
-  const fetchModules = async (userId: string) => {
+  const fetchModules = async (userId: string, isRetry: boolean = false) => {
     try {
+      if (isRetry) {
+        setLoading(true);
+      }
+      setNetworkError(false);
+      
       const { data: assignments, error } = await supabase
         .from('user_module_assignments')
         .select(`
@@ -155,11 +163,23 @@ export default function LynqLibrary() {
       
       const assignedModules = assignments?.map(a => a.modules).filter(Boolean) || [];
       setModules(assignedModules as Module[]);
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error fetching modules:', error);
-      toast.error('Failed to load modules');
+      
+      if (isNetworkError(error)) {
+        setNetworkError(true);
+        toast.error('Network connection issue. Please check your internet.');
+      } else {
+        toast.error(getErrorMessage(error));
+      }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleRetry = () => {
+    if (user) {
+      fetchModules(user.id, true);
     }
   };
 
@@ -237,6 +257,32 @@ export default function LynqLibrary() {
             ))}
           </div>
         )}
+      </DashboardLayout>
+    );
+  }
+
+  // Network error state
+  if (networkError && modules.length === 0) {
+    return (
+      <DashboardLayout role="user">
+        <div className="mb-4 sm:mb-6">
+          <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">My Modules</h1>
+        </div>
+        <Card className="mt-8">
+          <CardContent className="flex flex-col items-center justify-center py-12">
+            <div className="w-16 h-16 rounded-full bg-destructive/10 flex items-center justify-center mb-4">
+              <WifiOff className="h-8 w-8 text-destructive" />
+            </div>
+            <p className="text-lg font-medium text-foreground mb-2">Connection Issue</p>
+            <p className="text-sm text-muted-foreground text-center mb-6 max-w-sm">
+              Unable to load modules. Please check your internet connection and try again.
+            </p>
+            <Button onClick={handleRetry} className="gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          </CardContent>
+        </Card>
       </DashboardLayout>
     );
   }
