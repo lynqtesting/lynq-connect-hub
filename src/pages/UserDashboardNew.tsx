@@ -491,11 +491,12 @@ const UserDashboardNew = () => {
         </motion.div>
 
         {/* Bento Grid - Metrics */}
+        {/* Mobile: Horizontal scroll-snap carousel, Desktop: Grid */}
         <motion.div 
           variants={containerVariants}
-          className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-2 sm:gap-3 md:gap-4"
+          className="scroll-snap-x -mx-3 px-3 pb-2 sm:mx-0 sm:px-0 sm:pb-0 sm:grid sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 sm:gap-3 md:gap-4 sm:overflow-visible"
         >
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
@@ -504,7 +505,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="STR Score"
               value={stats.strScore}
@@ -513,7 +514,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="Engagement"
               value={`${stats.engagement}%`}
@@ -522,7 +523,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="Completion"
               value={`${stats.completion}%`}
@@ -531,7 +532,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="Avg Rating"
               value={stats.avgRating}
@@ -541,7 +542,7 @@ const UserDashboardNew = () => {
             />
           </motion.div>
 
-          <motion.div variants={itemVariants}>
+          <motion.div variants={itemVariants} className="scroll-snap-item w-[45vw] max-w-[180px] sm:w-auto sm:max-w-none sm:flex-shrink">
             <MetricCard
               title="Time Saved"
               value={stats.timeSaved}
