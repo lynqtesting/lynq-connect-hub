@@ -179,7 +179,7 @@ export function TweakLynqForm({ moduleId, userId, onSubmitSuccess }: TweakLynqFo
     const message = encodeURIComponent(
       `Hi, I need help with a case study/cover rewrite for my LYNQ module.`
     );
-    window.open(`https://wa.me/?text=${message}`, '_blank');
+    window.open(`https://wa.me/919810155157?text=${message}`, '_blank');
   };
 
   return (
