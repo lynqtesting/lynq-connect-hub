@@ -176,8 +176,6 @@ All colors MUST be HSL.
   * {
     /* Remove tap highlight on mobile */
     -webkit-tap-highlight-color: transparent;
-    /* Smooth transitions for all interactive elements */
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   }
 
   /* Smooth scrolling for all scrollable containers */
