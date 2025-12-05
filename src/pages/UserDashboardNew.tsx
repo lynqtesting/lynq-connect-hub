@@ -459,10 +459,10 @@ const UserDashboardNew = () => {
           </div>
 
           {/* Filters */}
-          <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center">
+          <div className="flex flex-row flex-wrap gap-3 items-center">
             <div className="flex items-center gap-2">
               <Select value={selectedModule} onValueChange={handleModuleChange}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
+                <SelectTrigger className="w-[140px] sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
                   <SelectValue placeholder="Select Module" />
                 </SelectTrigger>
                 <SelectContent className="bg-bg-surface z-50">
@@ -480,7 +480,7 @@ const UserDashboardNew = () => {
 
             <div className="flex items-center gap-2">
               <Select value={selectedRegion} onValueChange={setSelectedRegion}>
-                <SelectTrigger className="w-full sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
+                <SelectTrigger className="w-[140px] sm:w-[200px] bg-bg-surface border-border-default touch-manipulation">
                   <SelectValue placeholder="Select Region" />
                 </SelectTrigger>
                 <SelectContent className="bg-bg-surface z-50">
