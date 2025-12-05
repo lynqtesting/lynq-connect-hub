@@ -5,6 +5,7 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { UserProfileModal } from '@/components/UserProfileModal';
+import { profileCache } from '@/lib/profileCache';
 
 interface UserProfileDropdownProps {
   user: {
@@ -69,6 +70,7 @@ export function UserProfileDropdown({ user, onProfileRefresh }: UserProfileDropd
 
   const handleLogout = async () => {
     try {
+      profileCache.clear(); // Clear cached profile data
       await supabase.auth.signOut();
       toast.success('Logged out successfully');
       navigate('/login');
