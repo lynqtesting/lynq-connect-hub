@@ -501,7 +501,6 @@ const UserDashboardNew = () => {
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
               info="Shows how accurately learners answered the objective quiz questions we can directly verify."
-              showDecoration
             />
           </motion.div>
 

@@ -343,7 +343,6 @@ const AdminDashboardNew = () => {
               value={stats.totalModules}
               trend={{ value: 8, direction: 'up' }}
               info="Total number of learning modules in the system"
-              showDecoration
             >
               <Layers className="h-8 w-8 text-brand opacity-40 absolute bottom-4 right-4" />
             </MetricCard>
