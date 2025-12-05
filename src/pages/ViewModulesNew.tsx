@@ -2,6 +2,8 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { DashboardLayout } from '@/components/layouts/DashboardLayout';
 import { SidePanel } from '@/components/dashboard/SidePanel';
+import { AddModulePanel } from '@/components/dashboard/AddModulePanel';
+import { CompactUploadZone } from '@/components/dashboard/CompactUploadZone';
 import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
 import { Button } from '@/components/ui/button';
@@ -9,7 +11,7 @@ import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, MoreVertical, Edit, Trash2, Users, Calendar } from 'lucide-react';
+import { Plus, Search, MoreVertical, Edit, Trash2, Users, FileJson, FileSpreadsheet } from 'lucide-react';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from '@/components/ui/dropdown-menu';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +28,7 @@ const ViewModulesNew = () => {
   const [sortBy, setSortBy] = useState('created');
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  const [addPanelOpen, setAddPanelOpen] = useState(false);
 
   useEffect(() => {
     fetchModules();
@@ -139,7 +142,7 @@ const ViewModulesNew = () => {
               Manage content, assign users, and track module status
             </p>
           </div>
-          <Button onClick={() => navigate('/upload-module')} className="gap-2 bg-brand hover:bg-brand-hover">
+          <Button onClick={() => setAddPanelOpen(true)} className="gap-2 bg-brand hover:bg-brand-hover">
             <Plus className="h-4 w-4" />
             Add Module
           </Button>
@@ -381,9 +384,114 @@ const ViewModulesNew = () => {
                 Assign Users
               </Button>
             </div>
+
+            {/* Data Uploads Section */}
+            <div className="border-t border-border-default pt-6 mt-6">
+              <h3 className="text-sm font-bold text-text-muted uppercase mb-4">Data Uploads</h3>
+              
+              {/* Deduction JSON Upload */}
+              <div className="mb-4">
+                <p className="text-xs text-text-muted mb-2">Deduction JSON</p>
+                <CompactUploadZone
+                  label="Upload Deduction JSON"
+                  accept={{ 'application/json': ['.json'] }}
+                  icon={<FileJson className="h-5 w-5" />}
+                  onUpload={async (file) => {
+                    const text = await file.text();
+                    const jsonData = JSON.parse(text);
+                    
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `deduction_${Date.now()}.${fileExt}`;
+                    const filePath = `deduction-data/${fileName}`;
+
+                    const { error: uploadError } = await supabase.storage
+                      .from('modules')
+                      .upload(filePath, file);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage
+                      .from('modules')
+                      .getPublicUrl(filePath);
+
+                    const { error: dbError } = await supabase
+                      .from('data_uploads')
+                      .insert({
+                        file_type: 'deduction_json',
+                        file_name: file.name,
+                        file_url: publicUrl,
+                        file_size: file.size,
+                        uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+                        metadata: jsonData,
+                        module_id: selectedModule.id,
+                      });
+
+                    if (dbError) throw dbError;
+
+                    toast({
+                      title: 'Success',
+                      description: 'Deduction data uploaded',
+                    });
+                  }}
+                />
+              </div>
+
+              {/* Response CSV Upload */}
+              <div>
+                <p className="text-xs text-text-muted mb-2">Response CSV</p>
+                <CompactUploadZone
+                  label="Upload Response CSV"
+                  accept={{ 'text/csv': ['.csv'] }}
+                  icon={<FileSpreadsheet className="h-5 w-5" />}
+                  onUpload={async (file) => {
+                    const fileExt = file.name.split('.').pop();
+                    const fileName = `response_${Date.now()}.${fileExt}`;
+                    const filePath = `response-data/${fileName}`;
+
+                    const { error: uploadError } = await supabase.storage
+                      .from('modules')
+                      .upload(filePath, file);
+
+                    if (uploadError) throw uploadError;
+
+                    const { data: { publicUrl } } = supabase.storage
+                      .from('modules')
+                      .getPublicUrl(filePath);
+
+                    const { error: dbError } = await supabase
+                      .from('data_uploads')
+                      .insert({
+                        file_type: 'response_csv',
+                        file_name: file.name,
+                        file_url: publicUrl,
+                        file_size: file.size,
+                        uploaded_by: (await supabase.auth.getUser()).data.user?.id,
+                        module_id: selectedModule.id,
+                      });
+
+                    if (dbError) throw dbError;
+
+                    toast({
+                      title: 'Success',
+                      description: 'Response data uploaded',
+                    });
+                  }}
+                />
+              </div>
+            </div>
           </div>
         )}
       </SidePanel>
+
+      {/* Add Module Panel */}
+      <AddModulePanel
+        isOpen={addPanelOpen}
+        onClose={() => setAddPanelOpen(false)}
+        onSuccess={() => {
+          setAddPanelOpen(false);
+          fetchModules();
+        }}
+      />
     </DashboardLayout>
   );
 };
