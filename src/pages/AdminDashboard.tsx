@@ -30,7 +30,6 @@ const AdminDashboard = () => {
   };
 
   const adminActions = [
-    { icon: Upload, label: 'Upload New Module', action: () => navigate('/upload-module') },
     { icon: Eye, label: 'View All Modules', action: () => navigate('/view-modules') },
     { icon: Users, label: 'Create New User', action: () => navigate('/create-user') },
     { icon: Eye, label: 'View All Users', action: () => navigate('/view-users') },
