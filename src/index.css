@@ -168,8 +168,8 @@ All colors MUST be HSL.
     -moz-osx-font-smoothing: grayscale;
     /* Smooth scrolling */
     scroll-behavior: smooth;
-    /* Prevent rubber band scrolling on iOS */
-    overscroll-behavior: none;
+    /* Prevent scroll chaining on iOS while allowing normal scroll */
+    overscroll-behavior-y: contain;
   }
 
   /* Enhanced mobile touch interactions */
