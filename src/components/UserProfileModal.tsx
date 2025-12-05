@@ -6,6 +6,7 @@ import { toast } from 'sonner';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
+import { profileCache } from '@/lib/profileCache';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -193,6 +194,11 @@ export function UserProfileModal({ isOpen, onClose, user, onProfileUpdate }: Use
           setIsSaving(false);
           return;
         }
+      }
+
+      // Update cache immediately for instant display on route changes
+      if (user.id) {
+        profileCache.set(user.id, username.trim(), newAvatarUrl || null);
       }
 
       toast.success('Profile updated successfully');

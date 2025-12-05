@@ -18,6 +18,7 @@ import Logo from '@/components/Logo';
 import { useTheme } from '@/context/ThemeContext';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { supabase } from '@/integrations/supabase/client';
+import { profileCache } from '@/lib/profileCache';
 
 interface SidebarProps {
   role: 'user' | 'admin';
@@ -57,8 +58,16 @@ const itemVariants = {
 
 export function Sidebar({ role, user }: SidebarProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [profileUsername, setProfileUsername] = useState<string | undefined>();
-  const [avatarUrl, setAvatarUrl] = useState<string | undefined>();
+  
+  // Initialize state from cache for instant display (prevents flicker)
+  const cachedProfile = user?.id ? profileCache.get(user.id) : null;
+  const [profileUsername, setProfileUsername] = useState<string | undefined>(
+    cachedProfile?.username || undefined
+  );
+  const [avatarUrl, setAvatarUrl] = useState<string | undefined>(
+    cachedProfile?.avatarUrl || undefined
+  );
+  
   const { theme, toggleTheme } = useTheme();
   const isMobile = useIsMobile();
   const navItems = NAV_ITEMS[role];
@@ -74,8 +83,14 @@ export function Sidebar({ role, user }: SidebarProps) {
       .single();
 
     if (!error && data) {
-      setProfileUsername(data.username || undefined);
-      setAvatarUrl(data.avatar_url || undefined);
+      const username = data.username || undefined;
+      const avatar = data.avatar_url || undefined;
+      
+      setProfileUsername(username);
+      setAvatarUrl(avatar);
+      
+      // Update cache for next mount (prevents flicker on route changes)
+      profileCache.set(user.id, data.username, data.avatar_url);
     }
   };
 
