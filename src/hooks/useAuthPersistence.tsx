@@ -70,26 +70,54 @@ export function EnhancedAuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
-  // Admin check with timeout to avoid blocking UI deadlocks
-  const checkAdminWithTimeout = async (userId: string): Promise<boolean> => {
-    try {
-      const timeout = new Promise((_, reject) => setTimeout(() => reject(new Error('Role check timeout')), 3000));
-      const query = supabase
-        .from('user_roles')
-        .select('role')
-        .eq('user_id', userId)
-        .eq('role', 'admin')
-        .maybeSingle();
-      const { data, error } = await Promise.race([query, timeout]) as any;
-      if (error) {
-        console.error('Admin status error:', error);
+  // Admin check with timeout and retry to avoid blocking UI deadlocks
+  const checkAdminWithTimeout = async (userId: string, retries: number = 2): Promise<boolean> => {
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const timeout = new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Role check timeout')), 3000)
+        );
+        const query = supabase
+          .from('user_roles')
+          .select('role')
+          .eq('user_id', userId)
+          .eq('role', 'admin')
+          .maybeSingle();
+        
+        const { data, error } = await Promise.race([query, timeout]) as any;
+        
+        if (error) {
+          // Check if it's a network error
+          const isNetworkError = error?.message === 'Failed to fetch' || 
+                                 error?.message?.includes('NetworkError');
+          
+          if (isNetworkError && attempt < retries) {
+            // Wait before retry with exponential backoff
+            await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+            continue;
+          }
+          
+          console.error('Admin status error:', error);
+          return false;
+        }
+        
+        return data?.role === 'admin';
+      } catch (e: any) {
+        const isNetworkError = e?.message === 'Failed to fetch' || 
+                               e?.message?.includes('NetworkError') ||
+                               e?.message === 'Role check timeout';
+        
+        if (isNetworkError && attempt < retries) {
+          // Wait before retry with exponential backoff
+          await new Promise(r => setTimeout(r, 1000 * (attempt + 1)));
+          continue;
+        }
+        
+        console.error('Admin status failed:', e);
         return false;
       }
-      return data?.role === 'admin';
-    } catch (e) {
-      console.error('Admin status failed:', e);
-      return false;
     }
+    return false;
   };
 
   useEffect(() => {

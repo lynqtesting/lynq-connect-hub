@@ -69,16 +69,30 @@ export function UserProfileDropdown({ user, onProfileRefresh }: UserProfileDropd
   }, [isOpen]);
 
   const handleLogout = async () => {
+    setIsOpen(false);
     try {
-      profileCache.clear(); // Clear cached profile data
-      await supabase.auth.signOut();
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      // Only clear cache after successful signOut
+      profileCache.clear();
       toast.success('Logged out successfully');
       navigate('/login');
-    } catch (error) {
+    } catch (error: any) {
       console.error('Logout error:', error);
-      toast.error('Failed to log out');
+      // Still clear local state on error to allow user to re-login
+      profileCache.clear();
+      
+      const isNetworkError = error?.message === 'Failed to fetch' || 
+                             error?.message?.includes('NetworkError');
+      
+      if (isNetworkError) {
+        toast.error('Network issue - logging out locally');
+      } else {
+        toast.error('Failed to log out');
+      }
+      navigate('/login');
     }
-    setIsOpen(false);
   };
 
   const handleViewProfile = () => {
