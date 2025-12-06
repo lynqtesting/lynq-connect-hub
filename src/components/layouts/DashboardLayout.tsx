@@ -25,7 +25,7 @@ export function DashboardLayout({ children, role = 'user' }: DashboardLayoutProp
           'flex-1 overflow-visible',
           'md:ml-64',
           isMobile ? 'pt-16' : 'pt-0',
-          'p-3 sm:p-4 md:p-6',
+          'px-2 py-3 sm:p-4 md:p-6',
           'min-h-screen'
         )}
         style={isMobile ? {
