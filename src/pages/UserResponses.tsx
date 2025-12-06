@@ -255,8 +255,8 @@ const UserResponses = () => {
         {/* Header */}
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
           <div>
-            <h1 className="text-2xl sm:text-3xl font-bold text-text-primary">My Responses</h1>
-            <p className="text-text-muted mt-1">
+            <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-text-primary">My Responses</h1>
+            <p className="text-xs sm:text-sm text-text-muted mt-1">
               View and preview uploaded response CSV files for your assigned modules
             </p>
           </div>
@@ -389,17 +389,17 @@ const UserResponses = () => {
                 key={response.id}
                 className="bg-bg-surface border border-border-default rounded-xl p-4 space-y-3"
               >
-                <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start justify-between gap-2">
                   <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <FileSpreadsheet className="h-4 w-4 text-emerald-500" />
-                      <p className="font-semibold text-text-primary truncate">
+                    <div className="flex items-start gap-2 mb-1">
+                      <FileSpreadsheet className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
+                      <p className="font-semibold text-sm text-text-primary break-words line-clamp-2">
                         {response.file_name}
                       </p>
                     </div>
-                    <p className="text-xs text-text-muted truncate">{response.module_title}</p>
+                    <p className="text-xs text-text-muted">{response.module_title}</p>
                   </div>
-                  <Badge className="bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
+                  <Badge className="shrink-0 bg-emerald-100 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400">
                     CSV
                   </Badge>
                 </div>
@@ -421,24 +421,23 @@ const UserResponses = () => {
                       <p className="text-text-secondary text-sm">{getMetricsSummary(response.metadata)}</p>
                     </div>
                   )}
-                  <div className="col-span-2 flex gap-2">
+                  <div className="col-span-2 flex gap-2 pt-1">
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="gap-1 flex-1"
+                      size="default" 
+                      className="gap-2 flex-1 h-10 touch-manipulation"
                       onClick={() => handlePreviewCSV(response.file_url, response.file_name)}
                     >
-                      <Eye className="h-3 w-3" />
+                      <Eye className="h-4 w-4" />
                       Preview
                     </Button>
                     <Button 
                       variant="outline" 
-                      size="sm" 
-                      className="gap-1 flex-1"
+                      size="icon"
+                      className="h-10 w-10 touch-manipulation shrink-0"
                       onClick={() => handleViewFile(response.file_url)}
                     >
-                      <Download className="h-3 w-3" />
-                      Download
+                      <Download className="h-4 w-4" />
                     </Button>
                   </div>
                 </div>
