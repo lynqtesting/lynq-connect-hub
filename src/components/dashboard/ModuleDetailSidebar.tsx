@@ -137,12 +137,12 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
   return (
     <div className="space-y-6">
       {/* Tab Navigation */}
-      <div className="flex border-b border-border-default">
+      <div className="flex border-b border-border-default overflow-x-auto scrollbar-hide">
         {tabs.map((tab) => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
-            className={`relative pb-3 px-4 text-sm font-medium transition-colors ${
+            className={`relative pb-3 px-2 sm:px-4 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap touch-manipulation ${
               activeTab === tab.id
                 ? 'text-text-primary'
                 : 'text-text-muted hover:text-text-primary'
@@ -213,7 +213,7 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
               <div className="flex flex-col sm:flex-row gap-3">
                 <Button
                   onClick={handleStartModule}
-                  className="flex-1 bg-brand hover:bg-brand/90 text-white shadow-lg shadow-brand/20"
+                  className="flex-1 h-11 bg-brand hover:bg-brand/90 text-white shadow-lg shadow-brand/20 touch-manipulation"
                 >
                   <Play className="h-4 w-4 mr-2" />
                   Start Module
@@ -221,7 +221,7 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                 <Button
                   variant="outline"
                   onClick={() => navigate(`/user-dashboard?module=${module.id}`)}
-                  className="flex-1"
+                  className="flex-1 h-11 touch-manipulation"
                 >
                   <BarChart3 className="h-4 w-4 mr-2" />
                   View Details
@@ -361,10 +361,10 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                       <FileText className="w-5 h-5 text-emerald-500" />
                     </div>
                     <div className="flex-1 min-w-0">
-                      <p className="text-text-primary text-sm font-medium truncate">
+                      <p className="text-text-primary text-sm font-medium break-words line-clamp-2">
                         {upload.file_name}
                       </p>
-                      <div className="flex items-center gap-3 mt-1">
+                      <div className="flex flex-wrap items-center gap-2 sm:gap-3 mt-1">
                         <span className="text-xs text-text-muted">
                           {upload.file_size ? `${(upload.file_size / 1024).toFixed(1)} KB` : 'Unknown size'}
                         </span>
@@ -379,8 +379,8 @@ export function ModuleDetailSidebar({ module, userId }: ModuleDetailSidebarProps
                       )}
                       <Button
                         variant="outline"
-                        size="sm"
-                        className="mt-3"
+                        size="default"
+                        className="mt-3 h-10 touch-manipulation"
                         onClick={() => window.open(upload.file_url, '_blank')}
                       >
                         Download CSV
