@@ -78,10 +78,10 @@ function CompactModuleCard({ module, onClick }: { module: Module; onClick: () =>
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="flex items-center gap-3 p-3 bg-bg-surface border border-border-default rounded-xl hover:bg-bg-surface-hover active:bg-bg-surface-hover transition-colors cursor-pointer touch-manipulation"
+      className="flex items-center gap-3 p-3.5 sm:p-3 bg-bg-surface border border-border-default rounded-xl hover:bg-bg-surface-hover active:bg-bg-surface-hover transition-colors cursor-pointer touch-manipulation"
     >
-      <div className={`w-9 h-9 rounded-lg bg-gradient-to-br ${categoryInfo?.bgGradient || 'from-primary/20 to-primary/5'} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-4 h-4 ${categoryInfo?.iconColor || 'text-primary'}`} />
+      <div className={`w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${categoryInfo?.bgGradient || 'from-primary/20 to-primary/5'} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-5 h-5 sm:w-4 sm:h-4 ${categoryInfo?.iconColor || 'text-primary'}`} />
       </div>
       <div className="flex-1 min-w-0">
         <p className="text-sm font-medium text-text-primary truncate">
@@ -299,7 +299,7 @@ export default function LynqLibrary() {
 
       {/* Search Bar */}
       <div className="mb-4 sm:mb-6">
-        <div className="relative max-w-md">
+        <div className="relative w-full sm:max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
             type="text"
@@ -323,7 +323,7 @@ export default function LynqLibrary() {
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-12">
+            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
               <Search className="h-10 w-10 text-muted-foreground/50 mb-3" />
               <p className="text-sm font-medium text-foreground mb-1">No modules found</p>
               <p className="text-xs text-muted-foreground">
