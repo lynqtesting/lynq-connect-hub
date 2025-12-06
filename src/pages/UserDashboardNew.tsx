@@ -509,7 +509,7 @@ const UserDashboardNew = () => {
               title="Objective Score"
               value={`${stats.objectiveScore}%`}
               trend={{ value: 12, direction: 'up' }}
-              info="How correct learners were on quiz items we can verify."
+              info="Measures learner accuracy on verifiable quiz questions and assessments."
             />
           </motion.div>
 
@@ -518,7 +518,7 @@ const UserDashboardNew = () => {
               title="STR Score"
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
-              info="Skill to Revenue Ratio – a predicted score defining the revenue impact the training can have on business output."
+              info="Skill to Revenue Ratio – a predicted score defining the revenue impact training can have on business output."
             />
           </motion.div>
 
@@ -527,7 +527,7 @@ const UserDashboardNew = () => {
               title="Engagement"
               value={`${stats.engagement}%`}
               trend={{ value: 5, direction: 'up' }}
-              info="How much of the module each learner actually touched. Available on 7taps."
+              info="Tracks how much of the module content each learner interacted with."
             />
           </motion.div>
 
@@ -536,7 +536,7 @@ const UserDashboardNew = () => {
               title="Completion"
               value={`${stats.completion}%`}
               trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
-              info="Who truly finished the module. Available on 7taps."
+              info="Percentage of learners who fully finished the module."
             />
           </motion.div>
 
@@ -546,7 +546,7 @@ const UserDashboardNew = () => {
               value={stats.avgRating}
               subtitle="of 5"
               trend={{ value: 0, direction: 'neutral' }}
-              info="Satisfaction with the learning. Available on 7taps."
+              info="Learner satisfaction score based on module feedback ratings."
             />
           </motion.div>
 
@@ -556,7 +556,7 @@ const UserDashboardNew = () => {
               value={stats.timeSaved}
               subtitle="this month"
               trend={{ value: 15, direction: 'up' }}
-              info="Average time each learner saves by applying the skills from this module."
+              info="Estimated hours saved per learner by applying skills from this module."
             />
           </motion.div>
 
