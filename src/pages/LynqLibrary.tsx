@@ -293,7 +293,7 @@ export default function LynqLibrary() {
       <div className="mb-4 sm:mb-6">
         <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">My Modules</h1>
         <p className="text-xs sm:text-sm text-muted-foreground">
-          {modules.length} modules assigned to you
+          {modules.length} {modules.length === 1 ? 'module' : 'modules'} assigned to you
         </p>
       </div>
 
