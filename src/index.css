@@ -269,3 +269,15 @@ All colors MUST be HSL.
     position: relative;
   }
 }
+
+/* Touch-friendly utilities */
+.touch-manipulation {
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+  user-select: none;
+}
+
+.min-touch-target {
+  min-width: 44px;
+  min-height: 44px;
+}

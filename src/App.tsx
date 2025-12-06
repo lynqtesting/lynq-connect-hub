@@ -39,7 +39,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <TooltipProvider delayDuration={100} skipDelayDuration={300}>
+    <TooltipProvider delayDuration={100} skipDelayDuration={300} disableHoverableContent>
       <Toaster />
       <Sonner />
       <BrowserRouter>

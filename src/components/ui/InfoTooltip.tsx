@@ -1,6 +1,8 @@
 import { Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MobileTooltip } from '@/components/ui/mobile-tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 interface InfoTooltipProps {
   label: string;
@@ -9,21 +11,43 @@ interface InfoTooltipProps {
 }
 
 /**
- * InfoTooltip - Uses Radix Tooltip with Portal for proper stacking
- * Renders tooltip to document.body to escape transformed parent contexts
+ * InfoTooltip - Uses Radix Tooltip on desktop, MobileTooltip on mobile
+ * 44x44px touch target for mobile accessibility
  */
 export function InfoTooltip({ label, description, className }: InfoTooltipProps) {
+  const isMobile = useIsMobile();
+
+  // Shared trigger with 44x44px touch target (negative margin keeps visual size)
+  const triggerContent = (
+    <button
+      type="button"
+      aria-label={`Info about ${label}`}
+      className="w-11 h-11 -m-3.5 flex items-center justify-center 
+                 text-text-muted hover:text-text-secondary 
+                 active:scale-95 active:bg-bg-surface-hover/50 
+                 rounded-lg transition-all touch-manipulation"
+    >
+      <Info className="w-4 h-4 flex-shrink-0" />
+    </button>
+  );
+
+  if (isMobile) {
+    return (
+      <div className={cn('relative inline-flex', className)}>
+        <MobileTooltip
+          trigger={triggerContent}
+          label={label}
+          description={description}
+        />
+      </div>
+    );
+  }
+
   return (
     <div className={cn('relative inline-flex', className)}>
       <Tooltip delayDuration={100}>
         <TooltipTrigger asChild>
-          <button
-            type="button"
-            aria-label={`Info about ${label}`}
-            className="w-4 h-4 text-text-muted hover:text-text-secondary cursor-pointer transition-colors focus:outline-none focus:ring-2 focus:ring-brand/50 rounded flex-shrink-0"
-          >
-            <Info className="w-4 h-4" />
-          </button>
+          {triggerContent}
         </TooltipTrigger>
         <TooltipContent 
           side="top" 
