@@ -518,7 +518,7 @@ const UserDashboardNew = () => {
               title="STR Score"
               value={stats.strScore}
               trend={{ value: 8, direction: 'up' }}
-              info="Single strength score linking skill to completion."
+              info="Skill to Revenue Ratio – a predicted score defining the revenue impact the training can have on business output."
             />
           </motion.div>
 
