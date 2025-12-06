@@ -61,12 +61,14 @@ export function DashboardChart({
               tickLine={false}
             />
             <Tooltip
+              wrapperStyle={{ zIndex: 99999 }}
               contentStyle={{
                 backgroundColor: 'hsl(var(--bg-surface))',
                 border: '1px solid hsl(var(--border-default))',
                 borderRadius: '8px',
                 fontSize: '12px',
                 color: 'hsl(var(--text-primary))',
+                boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
               }}
             />
             <Legend
@@ -106,12 +108,14 @@ export function DashboardChart({
             tickLine={false}
           />
           <Tooltip
+            wrapperStyle={{ zIndex: 99999 }}
             contentStyle={{
               backgroundColor: 'hsl(var(--bg-surface))',
               border: '1px solid hsl(var(--border-default))',
               borderRadius: '8px',
               fontSize: '12px',
               color: 'hsl(var(--text-primary))',
+              boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
             }}
           />
           <Legend
