@@ -25,7 +25,7 @@ import { cn } from '@/lib/utils';
 
 
 interface UserStats {
-  objectiveScore: number;
+  numberOfLearners: number;
   strScore: number;
   engagement: number;
   completion: number;
@@ -89,7 +89,7 @@ const UserDashboardNew = () => {
   };
 
   const [stats, setStats] = useState<UserStats>({
-    objectiveScore: 0,
+    numberOfLearners: 0,
     strScore: 0,
     engagement: 0,
     completion: 0,
@@ -157,7 +157,7 @@ const UserDashboardNew = () => {
         const { data: deductionData } = await deductionQuery;
         
         // Initialize values
-        let totalObjective = 0;
+        let totalLearners = 0;
         let totalSTR = 0;
         let totalEngagement = 0;
         let totalRating = 0;
@@ -181,11 +181,9 @@ const UserDashboardNew = () => {
 
           latestByModule.forEach((metadata: any) => {
             if (metadata) {
+              moduleCount++;
+              
               // Extract KPIs from deduction metadata
-              if (metadata.objective_score_overall !== undefined) {
-                totalObjective += Number(metadata.objective_score_overall) * 100;
-                moduleCount++;
-              }
               if (metadata.STR_overall !== undefined) {
                 totalSTR += Number(metadata.STR_overall) * 100;
               }
@@ -193,11 +191,14 @@ const UserDashboardNew = () => {
                 totalEngagement += Number(metadata.engagement_rate_overall) * 100;
               }
               
-              // Calculate completion from learning_progress_status
+              // Calculate total learners and completion from learning_progress_status
               if (metadata.learning_progress_status) {
                 const progressData = metadata.learning_progress_status;
                 const completedCount = progressData.Completed || 0;
-                const totalCount = (progressData.Completed || 0) + (progressData['In Progress'] || 0) + (progressData['Not Started'] || 0);
+                const inProgressCount = progressData['In Progress'] || 0;
+                const notStartedCount = progressData['Not Started'] || 0;
+                const totalCount = completedCount + inProgressCount + notStartedCount;
+                totalLearners += totalCount;
                 if (totalCount > 0) {
                   calculatedCompletion = Math.round((completedCount / totalCount) * 100);
                 }
@@ -282,7 +283,6 @@ const UserDashboardNew = () => {
         }
 
         // Calculate averages or use fallback
-        const avgObjective = moduleCount > 0 ? Math.round(totalObjective / moduleCount) : 0;
         const avgSTR = moduleCount > 0 ? Math.round(totalSTR / moduleCount) : 0;
         const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 0;
         const completionRate = calculatedCompletion > 0 ? calculatedCompletion : Math.round((completed / total) * 100);
@@ -328,7 +328,7 @@ const UserDashboardNew = () => {
         setDropoffRate(dropoffValue);
 
         setStats({
-          objectiveScore: avgObjective,
+          numberOfLearners: totalLearners,
           strScore: avgSTR,
           engagement: avgEngagement,
           completion: completionRate,
@@ -506,10 +506,10 @@ const UserDashboardNew = () => {
         >
           <motion.div variants={itemVariants}>
             <MetricCard
-              title="Objective Score"
-              value={`${stats.objectiveScore}%`}
+              title="Number of Learners"
+              value={stats.numberOfLearners}
               trend={{ value: 12, direction: 'up' }}
-              info="Measures learner accuracy on verifiable quiz questions and assessments."
+              info="Total number of learners enrolled across selected module(s)."
             />
           </motion.div>
 
@@ -573,7 +573,7 @@ const UserDashboardNew = () => {
           {/* AI Insights Panel */}
           <motion.div variants={itemVariants} className="col-span-2 sm:col-span-3 md:col-span-4 lg:col-span-6">
             <InsightsPanel metricsData={{
-              objectiveScore: stats.objectiveScore,
+              numberOfLearners: stats.numberOfLearners,
               strScore: stats.strScore,
               engagement: stats.engagement,
               completion: stats.completion,
