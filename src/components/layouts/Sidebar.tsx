@@ -183,7 +183,7 @@ export function Sidebar({ role, user }: SidebarProps) {
       </motion.nav>
 
       {/* Footer - User Profile Only */}
-      <div className="px-2 py-3">
+      <div className="px-2 py-3 pb-6 mb-safe">
         <UserProfileDropdown
           user={{
             id: user?.id,
@@ -237,7 +237,7 @@ export function Sidebar({ role, user }: SidebarProps) {
           <>
             {/* Backdrop */}
             <motion.div
-              className="fixed inset-0 bg-black/50 z-40"
+              className="fixed inset-0 bg-black/50 z-[60]"
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
               exit={{ opacity: 0 }}
@@ -246,7 +246,7 @@ export function Sidebar({ role, user }: SidebarProps) {
 
             {/* Drawer Panel */}
             <motion.aside
-              className="fixed inset-y-0 left-0 w-64 bg-bg-surface z-50 shadow-xl px-5 py-6"
+              className="fixed inset-y-0 left-0 w-64 bg-bg-surface z-[60] shadow-xl px-5 py-6 pb-safe"
               initial={{ x: '-100%' }}
               animate={{ x: 0 }}
               exit={{ x: '-100%' }}

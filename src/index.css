@@ -281,3 +281,12 @@ All colors MUST be HSL.
   min-width: 44px;
   min-height: 44px;
 }
+
+/* Safe area inset utilities */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.mb-safe {
+  margin-bottom: env(safe-area-inset-bottom, 0px);
+}
