@@ -50,7 +50,7 @@ export function CSRHotspotsCard({ items, selectedRegion = 'Global', onRegionChan
           </div>
           <InfoTooltip
             label="CSR Hotspots"
-            description="CSR — Conversion Stopping Ratio (theme share): Which confusion themes block conversions most. On an average."
+            description="Conversion Stopping Ratio – identifies content areas causing the most learner confusion or drop-offs."
           />
         </div>
       </div>

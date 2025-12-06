@@ -92,7 +92,7 @@ export function RegionalSTRCard({
 
           <InfoTooltip
             label="Regional STR"
-            description="STR% (region 'likely to sell more'): % learners who meet a high bar to be sales-ready."
+            description="Skill to Revenue Ratio by region – shows predicted revenue impact of training across different geographic areas."
           />
         </div>
       </div>
