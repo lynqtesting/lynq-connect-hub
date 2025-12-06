@@ -2,6 +2,8 @@ import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, Minus, Info } from 'lucide-react';
 import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
+import { MobileTooltip } from '@/components/ui/mobile-tooltip';
+import { useIsMobile } from '@/hooks/use-mobile';
 import { cardHoverVariants } from '@/lib/animations';
 
 interface TrendBadge {
@@ -32,6 +34,8 @@ export function MetricCard({
   children,
   className = '',
 }: MetricCardProps) {
+  const isMobile = useIsMobile();
+
   const getTrendColor = (direction: 'up' | 'down' | 'neutral') => {
     if (direction === 'up') return 'bg-emerald-50 text-emerald-700 dark:bg-emerald-900/20 dark:text-emerald-400';
     if (direction === 'down') return 'bg-rose-50 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400';
@@ -44,6 +48,20 @@ export function MetricCard({
     return <Minus className="h-3 w-3" />;
   };
 
+  // Info button with 44x44px touch target
+  const infoTrigger = (
+    <button 
+      type="button"
+      className="w-11 h-11 -m-4 flex items-center justify-center
+                 text-text-muted hover:text-text-secondary 
+                 active:scale-95 active:bg-bg-surface-hover/50
+                 rounded-lg transition-all touch-manipulation"
+      aria-label={`Info about ${title}`}
+    >
+      <Info className="h-3 w-3" />
+    </button>
+  );
+
   return (
     <motion.div
       variants={cardHoverVariants}
@@ -51,7 +69,7 @@ export function MetricCard({
       whileHover="hover"
       whileTap="tap"
       className={`relative h-full min-w-0 bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
-      style={{ isolation: 'auto' }} /* Prevent creating unnecessary stacking context */
+      style={{ isolation: 'auto' }}
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
@@ -60,25 +78,27 @@ export function MetricCard({
             {title}
           </p>
           {info && (
-            <Tooltip delayDuration={100}>
-              <TooltipTrigger asChild>
-                <button 
-                  type="button"
-                  className="text-text-muted hover:text-text-secondary transition-colors flex-shrink-0"
-                  aria-label={`Info about ${title}`}
+            isMobile ? (
+              <MobileTooltip
+                trigger={infoTrigger}
+                label={title}
+                description={info}
+              />
+            ) : (
+              <Tooltip delayDuration={100}>
+                <TooltipTrigger asChild>
+                  {infoTrigger}
+                </TooltipTrigger>
+                <TooltipContent 
+                  side="top" 
+                  align="center"
+                  className="max-w-xs"
+                  sideOffset={8}
                 >
-                  <Info className="h-3 w-3" />
-                </button>
-              </TooltipTrigger>
-              <TooltipContent 
-                side="top" 
-                align="center"
-                className="max-w-xs"
-                sideOffset={8}
-              >
-                <p className="text-xs">{info}</p>
-              </TooltipContent>
-            </Tooltip>
+                  <p className="text-xs">{info}</p>
+                </TooltipContent>
+              </Tooltip>
+            )
           )}
         </div>
         {headerAction && <div>{headerAction}</div>}
