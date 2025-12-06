@@ -222,7 +222,7 @@ export function Sidebar({ role, user }: SidebarProps) {
       {/* Desktop Sidebar */}
       {!isMobile && (
         <motion.aside
-          className="fixed inset-y-0 left-0 w-64 bg-bg-surface border-r border-border-default px-5 py-6 z-40"
+          className="fixed inset-y-0 left-0 w-64 bg-bg-surface border-r border-border-default px-5 py-6 z-30"
           initial={{ x: -20, opacity: 0 }}
           animate={{ x: 0, opacity: 1 }}
           transition={{ duration: 0.3, ease: 'easeOut' }}

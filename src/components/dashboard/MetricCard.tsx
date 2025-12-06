@@ -1,7 +1,7 @@
 import { ReactNode } from 'react';
 import { motion } from 'framer-motion';
 import { ArrowUpRight, ArrowDownRight, Minus, Info } from 'lucide-react';
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
+import { Tooltip, TooltipContent, TooltipTrigger } from '@/components/ui/tooltip';
 import { cardHoverVariants } from '@/lib/animations';
 
 interface TrendBadge {
@@ -50,7 +50,8 @@ export function MetricCard({
       initial="rest"
       whileHover="hover"
       whileTap="tap"
-      className={`relative z-0 h-full min-w-0 bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
+      className={`relative h-full min-w-0 bg-bg-surface border border-border-default rounded-3xl p-4 sm:p-5 md:p-6 shadow-xs hover:shadow-md transition-shadow duration-200 ${className}`}
+      style={{ isolation: 'auto' }} /* Prevent creating unnecessary stacking context */
     >
       {/* Header */}
       <div className="flex items-start justify-between mb-3 md:mb-4">
@@ -59,18 +60,25 @@ export function MetricCard({
             {title}
           </p>
           {info && (
-            <TooltipProvider>
-              <Tooltip>
-                <TooltipTrigger asChild>
-                  <button className="text-text-muted hover:text-text-secondary transition-colors">
-                    <Info className="h-3 w-3" />
-                  </button>
-                </TooltipTrigger>
-                <TooltipContent className="max-w-xs">
-                  <p className="text-xs">{info}</p>
-                </TooltipContent>
-              </Tooltip>
-            </TooltipProvider>
+            <Tooltip delayDuration={100}>
+              <TooltipTrigger asChild>
+                <button 
+                  type="button"
+                  className="text-text-muted hover:text-text-secondary transition-colors flex-shrink-0"
+                  aria-label={`Info about ${title}`}
+                >
+                  <Info className="h-3 w-3" />
+                </button>
+              </TooltipTrigger>
+              <TooltipContent 
+                side="top" 
+                align="center"
+                className="max-w-xs"
+                sideOffset={8}
+              >
+                <p className="text-xs">{info}</p>
+              </TooltipContent>
+            </Tooltip>
           )}
         </div>
         {headerAction && <div>{headerAction}</div>}
