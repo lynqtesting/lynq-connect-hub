@@ -56,13 +56,13 @@ const categoryData = {
 // Skeleton for compact mobile module card
 function CompactModuleCardSkeleton() {
   return (
-    <div className="flex items-center gap-3 p-3 bg-bg-surface border border-border-default rounded-xl">
-      <div className="w-9 h-9 rounded-lg bg-bg-surface-hover animate-pulse flex-shrink-0" />
-      <div className="flex-1 min-w-0 space-y-1.5">
-        <div className="h-4 w-3/4 bg-bg-surface-hover rounded animate-pulse" />
-        <div className="h-3 w-1/2 bg-bg-surface-hover rounded animate-pulse" />
+    <div className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-bg-surface border border-border-default rounded-xl">
+      <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-bg-surface-hover animate-pulse flex-shrink-0" />
+      <div className="flex-1 min-w-0 space-y-1">
+        <div className="h-3.5 w-3/4 bg-bg-surface-hover rounded animate-pulse" />
+        <div className="h-2.5 w-1/2 bg-bg-surface-hover rounded animate-pulse" />
       </div>
-      <div className="w-4 h-4 bg-bg-surface-hover rounded animate-pulse flex-shrink-0" />
+      <div className="w-3.5 h-3.5 bg-bg-surface-hover rounded animate-pulse flex-shrink-0" />
     </div>
   );
 }
@@ -78,20 +78,20 @@ function CompactModuleCard({ module, onClick }: { module: Module; onClick: () =>
       animate={{ opacity: 1, y: 0 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className="flex items-center gap-3 p-3.5 sm:p-3 bg-bg-surface border border-border-default rounded-xl hover:bg-bg-surface-hover active:bg-bg-surface-hover transition-colors cursor-pointer touch-manipulation"
+      className="flex items-center gap-2 sm:gap-3 p-2.5 sm:p-3 bg-bg-surface border border-border-default rounded-xl hover:bg-bg-surface-hover active:bg-bg-surface-hover transition-colors cursor-pointer touch-manipulation"
     >
-      <div className={`w-10 h-10 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${categoryInfo?.bgGradient || 'from-primary/20 to-primary/5'} flex items-center justify-center flex-shrink-0`}>
-        <Icon className={`w-5 h-5 sm:w-4 sm:h-4 ${categoryInfo?.iconColor || 'text-primary'}`} />
+      <div className={`w-8 h-8 sm:w-9 sm:h-9 rounded-lg bg-gradient-to-br ${categoryInfo?.bgGradient || 'from-primary/20 to-primary/5'} flex items-center justify-center flex-shrink-0`}>
+        <Icon className={`w-4 h-4 ${categoryInfo?.iconColor || 'text-primary'}`} />
       </div>
       <div className="flex-1 min-w-0">
-        <p className="text-sm font-medium text-text-primary truncate">
+        <p className="text-[13px] sm:text-sm font-medium text-text-primary truncate">
           {module.title}
         </p>
-        <p className="text-[11px] text-text-muted truncate">
+        <p className="text-[10px] sm:text-[11px] text-text-muted truncate">
           {module.category}
         </p>
       </div>
-      <ChevronRight className="w-4 h-4 text-text-muted flex-shrink-0" />
+      <ChevronRight className="w-3.5 h-3.5 sm:w-4 sm:h-4 text-text-muted flex-shrink-0" />
     </motion.div>
   );
 }
@@ -290,30 +290,30 @@ export default function LynqLibrary() {
   return (
     <DashboardLayout role="user">
       {/* Header */}
-      <div className="mb-4 sm:mb-6">
-        <h1 className="text-xl sm:text-2xl md:text-3xl font-bold text-foreground mb-1 sm:mb-2">My Modules</h1>
-        <p className="text-xs sm:text-sm text-muted-foreground">
+      <div className="mb-2 sm:mb-4 md:mb-6">
+        <h1 className="text-lg sm:text-xl md:text-2xl lg:text-3xl font-bold text-foreground mb-0.5 sm:mb-1 md:mb-2">My Modules</h1>
+        <p className="text-[11px] sm:text-xs md:text-sm text-muted-foreground">
           {modules.length} {modules.length === 1 ? 'module' : 'modules'} assigned to you
         </p>
       </div>
 
       {/* Search Bar */}
-      <div className="mb-4 sm:mb-6">
+      <div className="mb-3 sm:mb-6">
         <div className="relative w-full sm:max-w-md">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Search className="absolute left-2.5 top-1/2 -translate-y-1/2 h-3.5 w-3.5 sm:h-4 sm:w-4 text-muted-foreground" />
           <Input
             type="text"
             placeholder="Search modules..."
             value={searchTerm}
             onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10 h-10 touch-manipulation"
+            className="pl-8 sm:pl-10 h-9 sm:h-10 text-sm touch-manipulation"
           />
         </div>
       </div>
 
       {/* Mobile: Compact list view */}
       {isMobile ? (
-        <div className="space-y-2">
+        <div className="space-y-1.5 sm:space-y-2">
           {getAllFilteredModules().length > 0 ? (
             getAllFilteredModules().map((module) => (
               <CompactModuleCard
@@ -323,10 +323,10 @@ export default function LynqLibrary() {
               />
             ))
           ) : (
-            <div className="flex flex-col items-center justify-center py-8 sm:py-12">
-              <Search className="h-10 w-10 text-muted-foreground/50 mb-3" />
-              <p className="text-sm font-medium text-foreground mb-1">No modules found</p>
-              <p className="text-xs text-muted-foreground">
+            <div className="flex flex-col items-center justify-center py-6 sm:py-12">
+              <Search className="h-8 w-8 sm:h-10 sm:w-10 text-muted-foreground/50 mb-2 sm:mb-3" />
+              <p className="text-[13px] sm:text-sm font-medium text-foreground mb-0.5 sm:mb-1">No modules found</p>
+              <p className="text-[11px] sm:text-xs text-muted-foreground">
                 Try adjusting your search
               </p>
             </div>
