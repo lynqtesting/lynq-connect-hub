@@ -64,7 +64,21 @@ const ViewUsersNew = () => {
 
       if (assignmentsError) throw assignmentsError;
 
-      // Fetch auth user emails
+      // Fetch auth user emails via edge function
+      let emailMap: Record<string, string> = {};
+      try {
+        const userIds = profiles?.map((p) => p.user_id) || [];
+        const { data: emailData, error: emailError } = await supabase.functions.invoke(
+          'admin-get-user-emails',
+          { body: { userIds } }
+        );
+        if (!emailError && emailData?.emails) {
+          emailMap = emailData.emails;
+        }
+      } catch (emailErr) {
+        console.error('Failed to fetch user emails:', emailErr);
+      }
+
       const usersData = profiles?.map((profile) => {
         const userRole = userRoles?.find((r) => r.user_id === profile.user_id);
         const userAssignments = assignments?.filter((a) => a.user_id === profile.user_id) || [];
@@ -72,7 +86,7 @@ const ViewUsersNew = () => {
         return {
           id: profile.user_id,
           name: profile.username || 'User',
-          email: profile.user_id, // Will be updated with actual email if available
+          email: emailMap[profile.user_id] || 'Email unavailable',
           role: userRole?.role || 'user',
           department: 'N/A',
           lastActive: new Date(profile.updated_at).toLocaleDateString(),
