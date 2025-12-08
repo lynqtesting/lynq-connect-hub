@@ -53,39 +53,53 @@ serve(async (req: Request) => {
       );
     }
 
-    // Get target user from request body
-    const { userId, userEmail } = await req.json();
+    // Get target user and new password from request body
+    const { userId, newPassword } = await req.json();
     
-    if (!userId || !userEmail) {
+    if (!userId) {
       return new Response(
-        JSON.stringify({ error: "Missing userId or userEmail" }),
+        JSON.stringify({ error: "Missing userId" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log(`Admin ${caller.id} requesting password reset for user ${userId}`);
+    if (!newPassword) {
+      return new Response(
+        JSON.stringify({ error: "Missing newPassword" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
-    // Generate password reset link
-    const { data, error } = await adminClient.auth.admin.generateLink({
-      type: "recovery",
-      email: userEmail,
-    });
+    // Validate password length
+    if (newPassword.length < 8) {
+      return new Response(
+        JSON.stringify({ error: "Password must be at least 8 characters" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log(`Admin ${caller.id} setting new password for user ${userId}`);
+
+    // Directly update the user's password
+    const { data, error } = await adminClient.auth.admin.updateUserById(
+      userId,
+      { password: newPassword }
+    );
 
     if (error) {
-      console.error("Error generating reset link:", error.message);
+      console.error("Error updating password:", error.message);
       return new Response(
         JSON.stringify({ error: error.message }),
         { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
-    console.log("Password reset link generated successfully");
+    console.log("Password updated successfully");
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Password reset link generated",
-        resetLink: data.properties?.action_link 
+        message: "Password updated successfully"
       }),
       { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );

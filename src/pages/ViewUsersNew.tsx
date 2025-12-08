@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Label } from '@/components/ui/label';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -18,7 +19,15 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from '@/components/ui/alert-dialog';
-import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -36,6 +45,14 @@ const ViewUsersNew = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  
+  // Password dialog states
+  const [showPasswordDialog, setShowPasswordDialog] = useState(false);
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState('');
 
   useEffect(() => {
     fetchUsers();
@@ -109,10 +126,31 @@ const ViewUsersNew = () => {
     }
   };
 
+  const openPasswordDialog = () => {
+    setNewPassword('');
+    setConfirmPassword('');
+    setPasswordError('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
+    setShowPasswordDialog(true);
+  };
+
   const handleResetPassword = async () => {
     if (!selectedUser) return;
 
+    // Validate passwords
+    if (newPassword.length < 8) {
+      setPasswordError('Password must be at least 8 characters');
+      return;
+    }
+    if (newPassword !== confirmPassword) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+
     setResettingPassword(true);
+    setPasswordError('');
+    
     try {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session?.access_token) {
@@ -122,32 +160,23 @@ const ViewUsersNew = () => {
       const { data, error } = await supabase.functions.invoke('admin-reset-password', {
         body: {
           userId: selectedUser.id,
-          userEmail: selectedUser.email,
+          newPassword: newPassword,
         },
       });
 
       if (error) throw error;
 
-      if (data?.resetLink) {
-        // Copy link to clipboard
-        await navigator.clipboard.writeText(data.resetLink);
-        toast({
-          title: 'Password Reset Link Generated',
-          description: 'The reset link has been copied to your clipboard. Share it with the user.',
-        });
-      } else {
-        toast({
-          title: 'Password Reset',
-          description: 'Password reset initiated successfully.',
-        });
-      }
+      toast({
+        title: 'Password Updated',
+        description: `Password for ${selectedUser.name} has been changed successfully.`,
+      });
+      
+      setShowPasswordDialog(false);
+      setNewPassword('');
+      setConfirmPassword('');
     } catch (error: any) {
       console.error('Reset password error:', error);
-      toast({
-        title: 'Error',
-        description: error?.message || 'Failed to reset password',
-        variant: 'destructive',
-      });
+      setPasswordError(error?.message || 'Failed to update password');
     } finally {
       setResettingPassword(false);
     }
@@ -403,15 +432,10 @@ const ViewUsersNew = () => {
                   <Button 
                     variant="outline" 
                     className="w-full justify-start gap-2"
-                    onClick={handleResetPassword}
-                    disabled={resettingPassword}
+                    onClick={openPasswordDialog}
                   >
-                    {resettingPassword ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <KeyRound className="h-4 w-4" />
-                    )}
-                    {resettingPassword ? 'Generating Link...' : 'Reset Password'}
+                    <KeyRound className="h-4 w-4" />
+                    Reset Password
                   </Button>
                   <Button 
                     variant="outline" 
@@ -462,6 +486,83 @@ const ViewUsersNew = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      {/* Password Reset Dialog */}
+      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Set New Password</DialogTitle>
+            <DialogDescription>
+              Enter a new password for <span className="font-semibold">{selectedUser?.name}</span>
+            </DialogDescription>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <Label htmlFor="new-password">New Password</Label>
+              <div className="relative">
+                <Input
+                  id="new-password"
+                  type={showNewPassword ? 'text' : 'password'}
+                  value={newPassword}
+                  onChange={(e) => setNewPassword(e.target.value)}
+                  placeholder="Enter new password"
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowNewPassword(!showNewPassword)}
+                >
+                  {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="confirm-password">Confirm Password</Label>
+              <div className="relative">
+                <Input
+                  id="confirm-password"
+                  type={showConfirmPassword ? 'text' : 'password'}
+                  value={confirmPassword}
+                  onChange={(e) => setConfirmPassword(e.target.value)}
+                  placeholder="Confirm new password"
+                  className="pr-10"
+                />
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="icon"
+                  className="absolute right-0 top-0 h-full px-3 hover:bg-transparent"
+                  onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                >
+                  {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                </Button>
+              </div>
+            </div>
+            {passwordError && (
+              <p className="text-sm text-destructive">{passwordError}</p>
+            )}
+            <p className="text-xs text-text-muted">Password must be at least 8 characters</p>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowPasswordDialog(false)} disabled={resettingPassword}>
+              Cancel
+            </Button>
+            <Button onClick={handleResetPassword} disabled={resettingPassword}>
+              {resettingPassword ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Updating...
+                </>
+              ) : (
+                'Update Password'
+              )}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </DashboardLayout>
   );
 };
