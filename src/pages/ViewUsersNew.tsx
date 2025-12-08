@@ -8,7 +8,17 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { Plus, Search, UserPlus, X } from 'lucide-react';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog';
+import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,6 +31,11 @@ const ViewUsersNew = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState<any>(null);
   const [panelOpen, setPanelOpen] = useState(false);
+  
+  // Action states
+  const [resettingPassword, setResettingPassword] = useState(false);
+  const [deactivating, setDeactivating] = useState(false);
+  const [confirmDeactivate, setConfirmDeactivate] = useState(false);
 
   useEffect(() => {
     fetchUsers();
@@ -49,6 +64,7 @@ const ViewUsersNew = () => {
 
       if (assignmentsError) throw assignmentsError;
 
+      // Fetch auth user emails
       const usersData = profiles?.map((profile) => {
         const userRole = userRoles?.find((r) => r.user_id === profile.user_id);
         const userAssignments = assignments?.filter((a) => a.user_id === profile.user_id) || [];
@@ -56,7 +72,7 @@ const ViewUsersNew = () => {
         return {
           id: profile.user_id,
           name: profile.username || 'User',
-          email: profile.user_id,
+          email: profile.user_id, // Will be updated with actual email if available
           role: userRole?.role || 'user',
           department: 'N/A',
           lastActive: new Date(profile.updated_at).toLocaleDateString(),
@@ -76,6 +92,90 @@ const ViewUsersNew = () => {
       });
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleResetPassword = async () => {
+    if (!selectedUser) return;
+
+    setResettingPassword(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('admin-reset-password', {
+        body: {
+          userId: selectedUser.id,
+          userEmail: selectedUser.email,
+        },
+      });
+
+      if (error) throw error;
+
+      if (data?.resetLink) {
+        // Copy link to clipboard
+        await navigator.clipboard.writeText(data.resetLink);
+        toast({
+          title: 'Password Reset Link Generated',
+          description: 'The reset link has been copied to your clipboard. Share it with the user.',
+        });
+      } else {
+        toast({
+          title: 'Password Reset',
+          description: 'Password reset initiated successfully.',
+        });
+      }
+    } catch (error: any) {
+      console.error('Reset password error:', error);
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to reset password',
+        variant: 'destructive',
+      });
+    } finally {
+      setResettingPassword(false);
+    }
+  };
+
+  const handleDeactivateAccount = async () => {
+    if (!selectedUser) return;
+
+    setDeactivating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('admin-deactivate-user', {
+        body: {
+          userId: selectedUser.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Account Deactivated',
+        description: `${selectedUser.name}'s account has been deactivated.`,
+      });
+
+      // Close dialogs and refresh
+      setConfirmDeactivate(false);
+      setPanelOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Deactivate error:', error);
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to deactivate account',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeactivating(false);
     }
   };
 
@@ -286,11 +386,31 @@ const ViewUsersNew = () => {
               <div>
                 <h3 className="text-sm font-bold text-text-muted uppercase mb-3">Account Actions</h3>
                 <div className="space-y-2">
-                  <Button variant="outline" className="w-full justify-start">
-                    Reset Password
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2"
+                    onClick={handleResetPassword}
+                    disabled={resettingPassword}
+                  >
+                    {resettingPassword ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <KeyRound className="h-4 w-4" />
+                    )}
+                    {resettingPassword ? 'Generating Link...' : 'Reset Password'}
                   </Button>
-                  <Button variant="outline" className="w-full justify-start text-destructive hover:text-destructive">
-                    Deactivate Account
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                    onClick={() => setConfirmDeactivate(true)}
+                    disabled={deactivating}
+                  >
+                    {deactivating ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <UserX className="h-4 w-4" />
+                    )}
+                    {deactivating ? 'Deactivating...' : 'Deactivate Account'}
                   </Button>
                 </div>
               </div>
@@ -298,6 +418,36 @@ const ViewUsersNew = () => {
           </div>
         )}
       </SidePanel>
+
+      {/* Deactivate Confirmation Dialog */}
+      <AlertDialog open={confirmDeactivate} onOpenChange={setConfirmDeactivate}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Deactivate Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will prevent <span className="font-semibold">{selectedUser?.name}</span> from logging in to the platform. 
+              This action can be reversed later by an administrator.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deactivating}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeactivateAccount}
+              disabled={deactivating}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deactivating ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deactivating...
+                </>
+              ) : (
+                'Deactivate'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DashboardLayout>
   );
 };
