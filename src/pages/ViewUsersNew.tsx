@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX, UserCheck, Eye, EyeOff } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -44,6 +44,7 @@ const ViewUsersNew = () => {
   // Action states
   const [resettingPassword, setResettingPassword] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
+  const [reactivating, setReactivating] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
   
   // Password dialog states
@@ -81,8 +82,10 @@ const ViewUsersNew = () => {
 
       if (assignmentsError) throw assignmentsError;
 
-      // Fetch auth user emails via edge function
+      // Fetch auth user emails and status via edge function
       let emailMap: Record<string, string> = {};
+      let userStatusMap: Record<string, { banned_until: string | null; is_deactivated: boolean }> = {};
+      
       try {
         const userIds = profiles?.map((p) => p.user_id) || [];
         const { data: emailData, error: emailError } = await supabase.functions.invoke(
@@ -91,14 +94,27 @@ const ViewUsersNew = () => {
         );
         if (!emailError && emailData?.emails) {
           emailMap = emailData.emails;
+          userStatusMap = emailData.userStatus || {};
+        } else if (emailError) {
+          toast({
+            title: 'Warning',
+            description: 'Could not fetch user emails. Some data may be incomplete.',
+            variant: 'destructive',
+          });
         }
       } catch (emailErr) {
         console.error('Failed to fetch user emails:', emailErr);
+        toast({
+          title: 'Warning',
+          description: 'Could not fetch user emails. Some data may be incomplete.',
+          variant: 'destructive',
+        });
       }
 
       const usersData = profiles?.map((profile) => {
         const userRole = userRoles?.find((r) => r.user_id === profile.user_id);
         const userAssignments = assignments?.filter((a) => a.user_id === profile.user_id) || [];
+        const userStatus = userStatusMap[profile.user_id];
 
         return {
           id: profile.user_id,
@@ -109,6 +125,8 @@ const ViewUsersNew = () => {
           lastActive: new Date(profile.updated_at).toLocaleDateString(),
           assignedModules: userAssignments.length,
           modulesList: userAssignments,
+          isDeactivated: userStatus?.is_deactivated || false,
+          bannedUntil: userStatus?.banned_until || null,
         };
       });
 
@@ -126,13 +144,22 @@ const ViewUsersNew = () => {
     }
   };
 
-  const openPasswordDialog = () => {
+  const clearPasswordDialogState = () => {
     setNewPassword('');
     setConfirmPassword('');
-    setPasswordError('');
     setShowNewPassword(false);
     setShowConfirmPassword(false);
+    setPasswordError('');
+  };
+
+  const openPasswordDialog = () => {
+    clearPasswordDialogState();
     setShowPasswordDialog(true);
+  };
+
+  const closePasswordDialog = () => {
+    clearPasswordDialogState();
+    setShowPasswordDialog(false);
   };
 
   const handleResetPassword = async () => {
@@ -171,9 +198,7 @@ const ViewUsersNew = () => {
         description: `Password for ${selectedUser.name} has been changed successfully.`,
       });
       
-      setShowPasswordDialog(false);
-      setNewPassword('');
-      setConfirmPassword('');
+      closePasswordDialog();
     } catch (error: any) {
       console.error('Reset password error:', error);
       setPasswordError(error?.message || 'Failed to update password');
@@ -219,6 +244,45 @@ const ViewUsersNew = () => {
       });
     } finally {
       setDeactivating(false);
+    }
+  };
+
+  const handleReactivateAccount = async () => {
+    if (!selectedUser) return;
+
+    setReactivating(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('admin-reactivate-user', {
+        body: {
+          userId: selectedUser.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Account Reactivated',
+        description: `${selectedUser.name}'s account has been reactivated.`,
+      });
+
+      // Close panel and refresh
+      setPanelOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Reactivate error:', error);
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to reactivate account',
+        variant: 'destructive',
+      });
+    } finally {
+      setReactivating(false);
     }
   };
 
@@ -308,11 +372,17 @@ const ViewUsersNew = () => {
             <div
               key={user.id}
               onClick={() => handleUserClick(user)}
-              className="bg-bg-surface border border-border-default rounded-xl p-4 sm:p-6 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer touch-manipulation"
+              className={`bg-bg-surface border rounded-xl p-4 sm:p-6 hover:shadow-md hover:scale-[1.02] transition-all cursor-pointer touch-manipulation ${
+                user.isDeactivated ? 'border-destructive/50 opacity-75' : 'border-border-default'
+              }`}
             >
               <div className="flex items-start justify-between mb-3 sm:mb-4">
                 <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
-                  <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-full bg-gradient-to-br from-brand to-brand-glow text-white flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0">
+                  <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-full text-white flex items-center justify-center text-base sm:text-lg font-bold flex-shrink-0 ${
+                    user.isDeactivated 
+                      ? 'bg-gradient-to-br from-gray-400 to-gray-500' 
+                      : 'bg-gradient-to-br from-brand to-brand-glow'
+                  }`}>
                     {user.name[0]}
                   </div>
                   <div className="min-w-0 flex-1">
@@ -320,15 +390,22 @@ const ViewUsersNew = () => {
                     <p className="text-xs text-text-muted truncate">{user.email}</p>
                   </div>
                 </div>
-                <Badge
-                  className={
-                    user.role === 'admin'
-                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
-                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                  }
-                >
-                  {user.role}
-                </Badge>
+                <div className="flex flex-col items-end gap-1">
+                  <Badge
+                    className={
+                      user.role === 'admin'
+                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                    }
+                  >
+                    {user.role}
+                  </Badge>
+                  {user.isDeactivated && (
+                    <Badge className="bg-destructive/10 text-destructive text-xs">
+                      Deactivated
+                    </Badge>
+                  )}
+                </div>
               </div>
               <div className="space-y-2 text-sm">
                 <div className="flex items-center justify-between">
@@ -358,21 +435,32 @@ const ViewUsersNew = () => {
         {selectedUser && (
           <div className="space-y-6">
             <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-gradient-to-br from-brand to-brand-glow text-white flex items-center justify-center text-2xl font-bold">
+              <div className={`w-16 h-16 rounded-full text-white flex items-center justify-center text-2xl font-bold ${
+                selectedUser.isDeactivated 
+                  ? 'bg-gradient-to-br from-gray-400 to-gray-500' 
+                  : 'bg-gradient-to-br from-brand to-brand-glow'
+              }`}>
                 {selectedUser.name[0]}
               </div>
               <div className="flex-1">
                 <h3 className="text-lg font-bold text-text-primary">{selectedUser.name}</h3>
                 <p className="text-sm text-text-muted">{selectedUser.email}</p>
-                <Badge
-                  className={`mt-2 ${
-                    selectedUser.role === 'admin'
-                      ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
-                      : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
-                  }`}
-                >
-                  {selectedUser.role}
-                </Badge>
+                <div className="flex items-center gap-2 mt-2">
+                  <Badge
+                    className={
+                      selectedUser.role === 'admin'
+                        ? 'bg-rose-100 text-rose-700 dark:bg-rose-900/20 dark:text-rose-400'
+                        : 'bg-blue-100 text-blue-700 dark:bg-blue-900/20 dark:text-blue-400'
+                    }
+                  >
+                    {selectedUser.role}
+                  </Badge>
+                  {selectedUser.isDeactivated && (
+                    <Badge className="bg-destructive/10 text-destructive">
+                      Deactivated
+                    </Badge>
+                  )}
+                </div>
               </div>
             </div>
 
@@ -388,9 +476,15 @@ const ViewUsersNew = () => {
                     <span className="text-text-muted">Last Active:</span>
                     <span className="text-text-secondary font-medium">{selectedUser.lastActive}</span>
                   </div>
-                  <div className="flex items-center justify-between py-2">
+                  <div className="flex items-center justify-between py-2 border-b border-border-subtle">
                     <span className="text-text-muted">Role:</span>
                     <span className="text-text-secondary font-medium capitalize">{selectedUser.role}</span>
+                  </div>
+                  <div className="flex items-center justify-between py-2">
+                    <span className="text-text-muted">Status:</span>
+                    <span className={`font-medium ${selectedUser.isDeactivated ? 'text-destructive' : 'text-emerald-600 dark:text-emerald-400'}`}>
+                      {selectedUser.isDeactivated ? 'Deactivated' : 'Active'}
+                    </span>
                   </div>
                 </div>
               </div>
@@ -437,19 +531,36 @@ const ViewUsersNew = () => {
                     <KeyRound className="h-4 w-4" />
                     Reset Password
                   </Button>
-                  <Button 
-                    variant="outline" 
-                    className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
-                    onClick={() => setConfirmDeactivate(true)}
-                    disabled={deactivating}
-                  >
-                    {deactivating ? (
-                      <Loader2 className="h-4 w-4 animate-spin" />
-                    ) : (
-                      <UserX className="h-4 w-4" />
-                    )}
-                    {deactivating ? 'Deactivating...' : 'Deactivate Account'}
-                  </Button>
+                  
+                  {selectedUser.isDeactivated ? (
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                      onClick={handleReactivateAccount}
+                      disabled={reactivating}
+                    >
+                      {reactivating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserCheck className="h-4 w-4" />
+                      )}
+                      {reactivating ? 'Reactivating...' : 'Reactivate Account'}
+                    </Button>
+                  ) : (
+                    <Button 
+                      variant="outline" 
+                      className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                      onClick={() => setConfirmDeactivate(true)}
+                      disabled={deactivating}
+                    >
+                      {deactivating ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <UserX className="h-4 w-4" />
+                      )}
+                      {deactivating ? 'Deactivating...' : 'Deactivate Account'}
+                    </Button>
+                  )}
                 </div>
               </div>
             </div>
@@ -488,7 +599,7 @@ const ViewUsersNew = () => {
       </AlertDialog>
 
       {/* Password Reset Dialog */}
-      <Dialog open={showPasswordDialog} onOpenChange={setShowPasswordDialog}>
+      <Dialog open={showPasswordDialog} onOpenChange={(open) => !open && closePasswordDialog()}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
             <DialogTitle>Set New Password</DialogTitle>
@@ -547,7 +658,7 @@ const ViewUsersNew = () => {
             <p className="text-xs text-text-muted">Password must be at least 8 characters</p>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setShowPasswordDialog(false)} disabled={resettingPassword}>
+            <Button variant="outline" onClick={closePasswordDialog} disabled={resettingPassword}>
               Cancel
             </Button>
             <Button onClick={handleResetPassword} disabled={resettingPassword}>

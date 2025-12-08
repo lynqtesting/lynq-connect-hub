@@ -54,50 +54,34 @@ serve(async (req) => {
       );
     }
 
-    // Parse request body for optional userIds filter
-    let userIds: string[] = [];
-    try {
-      const body = await req.json();
-      userIds = body.userIds || [];
-    } catch {
-      // No body or invalid JSON - fetch all users
+    // Parse request body
+    const { userId } = await req.json();
+
+    if (!userId) {
+      return new Response(
+        JSON.stringify({ error: 'User ID is required' }),
+        { status: 400, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
     }
 
-    // Fetch all auth users
-    const { data: { users }, error: listError } = await adminClient.auth.admin.listUsers();
+    // Reactivate user by removing ban
+    const { data, error: updateError } = await adminClient.auth.admin.updateUserById(
+      userId,
+      { ban_duration: 'none' }
+    );
 
-    if (listError) {
-      console.error('Error listing users:', listError);
+    if (updateError) {
+      console.error('Error reactivating user:', updateError);
       return new Response(
-        JSON.stringify({ error: 'Failed to fetch users' }),
+        JSON.stringify({ error: 'Failed to reactivate user' }),
         { status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
       );
     }
 
-    // Build email map and user status map
-    const emailMap: Record<string, string> = {};
-    const userStatusMap: Record<string, { banned_until: string | null; is_deactivated: boolean }> = {};
-    
-    for (const user of users) {
-      // If userIds provided, filter; otherwise include all
-      if (userIds.length === 0 || userIds.includes(user.id)) {
-        emailMap[user.id] = user.email || '';
-        
-        // Check if user is banned/deactivated
-        const bannedUntil = user.banned_until;
-        const isDeactivated = bannedUntil ? new Date(bannedUntil) > new Date() : false;
-        
-        userStatusMap[user.id] = {
-          banned_until: bannedUntil || null,
-          is_deactivated: isDeactivated,
-        };
-      }
-    }
-
-    console.log(`Fetched data for ${Object.keys(emailMap).length} users`);
+    console.log(`User ${userId} reactivated successfully`);
 
     return new Response(
-      JSON.stringify({ emails: emailMap, userStatus: userStatusMap }),
+      JSON.stringify({ success: true, message: 'User reactivated successfully' }),
       { status: 200, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
