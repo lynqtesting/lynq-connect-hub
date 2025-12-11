@@ -516,7 +516,11 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
     engagement: kpis.engagement || 0,
     opening: kpis.opening || 0,
     avgRating: kpis.avgRating || kpis.rating || 0,
-    learners: kpis.learners || 0
+    learners: kpis.learners || 0,
+    str: kpis.str || 0,
+    objectiveScore: kpis.objective_score || 0,
+    dropoffRate: kpis.dropoff_rate || 0,
+    timeSaved: kpis.time_saved || 0,
   };
 
   return (
@@ -638,7 +642,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
         <CardHeader>
           <CardTitle>Performance Metrics</CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-4">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
             <MetricField
               label="Completion Rate"
@@ -666,6 +670,29 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
               value={ensureKPIs.learners}
               onChange={(value) => sendPatch({ kpis: { ...kpis, learners: value } })}
               suffix=""
+            />
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricField
+              label="STR Score"
+              value={ensureKPIs.str}
+              onChange={(value) => sendPatch({ kpis: { ...kpis, str: value } })}
+            />
+            <MetricField
+              label="Objective Score"
+              value={ensureKPIs.objectiveScore}
+              onChange={(value) => sendPatch({ kpis: { ...kpis, objective_score: value } })}
+            />
+            <MetricField
+              label="Dropoff Rate"
+              value={ensureKPIs.dropoffRate}
+              onChange={(value) => sendPatch({ kpis: { ...kpis, dropoff_rate: value } })}
+            />
+            <MetricField
+              label="Time Saved"
+              value={ensureKPIs.timeSaved}
+              onChange={(value) => sendPatch({ kpis: { ...kpis, time_saved: value } })}
+              suffix="h"
             />
           </div>
         </CardContent>

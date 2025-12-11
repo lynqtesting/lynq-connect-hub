@@ -282,6 +282,10 @@ const UserDashboardNew = () => {
           });
         } else {
           // FALLBACK: Process data directly from modules table when no deduction JSON exists
+          let fallbackTimeSaved = 0;
+          let fallbackDropoff = 0;
+          let fallbackObjectiveScore = 0;
+          
           assignments.forEach((assignment: any) => {
             const module = assignment.modules;
             if (module) {
@@ -296,14 +300,24 @@ const UserDashboardNew = () => {
                 if (kpis.completion !== undefined) {
                   calculatedCompletion = Number(kpis.completion);
                 }
-                if (kpis.rating !== undefined) {
-                  totalRating += Number(kpis.rating);
+                if (kpis.rating !== undefined || kpis.avgRating !== undefined) {
+                  totalRating += Number(kpis.rating || kpis.avgRating || 0);
                 }
                 if (kpis.learners !== undefined) {
                   totalLearners += Number(kpis.learners);
                 }
                 if (kpis.str !== undefined) {
                   totalSTR += Number(kpis.str);
+                }
+                // New fields
+                if (kpis.objective_score !== undefined) {
+                  fallbackObjectiveScore = Number(kpis.objective_score);
+                }
+                if (kpis.dropoff_rate !== undefined) {
+                  fallbackDropoff = Number(kpis.dropoff_rate);
+                }
+                if (kpis.time_saved !== undefined) {
+                  fallbackTimeSaved = Number(kpis.time_saved);
                 }
               }
               
@@ -339,6 +353,13 @@ const UserDashboardNew = () => {
               }
             }
           });
+          
+          // Store fallback values for use later
+          (window as any).__fallbackKPIs = { 
+            timeSaved: fallbackTimeSaved, 
+            dropoff: fallbackDropoff,
+            objectiveScore: fallbackObjectiveScore 
+          };
         }
 
         // Calculate averages or use fallback
@@ -355,7 +376,7 @@ const UserDashboardNew = () => {
         // Sort CSR Hotspots by percentage descending, take top 4
         allCsrHotspots.sort((a, b) => b.percentage - a.percentage);
 
-        // Extract time saved and dropoff rate from latest metadata
+        // Extract time saved and dropoff rate from latest metadata or fallback
         let timeSavedValue = 0;
         let dropoffValue = 0;
         let progressData = { completed: 0, inProgress: 0, notStarted: 0 };
@@ -380,6 +401,20 @@ const UserDashboardNew = () => {
                 notStarted: lps['Not Started'] || lps['Not_Started'] || lps.notStarted || 0,
               };
             }
+          }
+        } else {
+          // Use fallback values from module.kpis
+          const fallback = (window as any).__fallbackKPIs || {};
+          timeSavedValue = fallback.timeSaved || 0;
+          dropoffValue = fallback.dropoff || 0;
+          // Set progress data from learners count if available
+          if (totalLearners > 0) {
+            const completedCount = Math.round(totalLearners * (calculatedCompletion / 100));
+            progressData = {
+              completed: completedCount,
+              inProgress: Math.round((totalLearners - completedCount) * 0.6),
+              notStarted: Math.round((totalLearners - completedCount) * 0.4),
+            };
           }
         }
 
