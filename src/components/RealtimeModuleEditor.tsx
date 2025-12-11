@@ -677,6 +677,7 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
               label="STR Score"
               value={ensureKPIs.str}
               onChange={(value) => sendPatch({ kpis: { ...kpis, str: value } })}
+              suffix=""
             />
             <MetricField
               label="Objective Score"
