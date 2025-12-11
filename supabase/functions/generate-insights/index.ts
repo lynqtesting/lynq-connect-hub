@@ -1,10 +1,15 @@
 import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
+
+// Rate limiting configuration
+const DAILY_LIMIT = 10;
+const ENDPOINT_NAME = 'generate-insights';
 
 const INSIGHTS_SYSTEM_PROMPT = `
 You are a Senior Data Analyst AI for a Learning Management System (LMS) analytics platform.
@@ -166,6 +171,54 @@ function handleError(error: any): InsightOutput {
   };
 }
 
+async function checkRateLimit(
+  adminClient: any,
+  userId: string
+): Promise<{ allowed: boolean; currentCount: number; limit: number }> {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { data: rateData, error } = await adminClient
+    .from('api_rate_limits')
+    .select('request_count')
+    .eq('user_id', userId)
+    .eq('endpoint', ENDPOINT_NAME)
+    .eq('request_date', today)
+    .single();
+
+  if (error && error.code !== 'PGRST116') {
+    // PGRST116 = no rows returned, which is fine
+    console.error('Rate limit check error:', error);
+  }
+
+  const currentCount = rateData?.request_count ?? 0;
+  
+  return {
+    allowed: currentCount < DAILY_LIMIT,
+    currentCount,
+    limit: DAILY_LIMIT
+  };
+}
+
+async function incrementRateLimit(adminClient: any, userId: string, currentCount: number): Promise<void> {
+  const today = new Date().toISOString().split('T')[0];
+  
+  const { error } = await adminClient
+    .from('api_rate_limits')
+    .upsert({
+      user_id: userId,
+      endpoint: ENDPOINT_NAME,
+      request_date: today,
+      request_count: currentCount + 1,
+      updated_at: new Date().toISOString()
+    }, {
+      onConflict: 'user_id,endpoint,request_date'
+    });
+
+  if (error) {
+    console.error('Failed to increment rate limit:', error);
+  }
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -173,24 +226,70 @@ serve(async (req) => {
   }
 
   try {
+    // 1. Extract and validate JWT token
+    const authHeader = req.headers.get("Authorization") ?? "";
+    const token = authHeader.replace("Bearer ", "");
+    
+    if (!token) {
+      return new Response(
+        JSON.stringify({ error: "Authentication required" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 2. Initialize Supabase admin client
+    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+    const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+    const adminClient = createClient(supabaseUrl, supabaseServiceKey);
+    
+    // 3. Validate user token
+    const { data: { user }, error: authError } = await adminClient.auth.getUser(token);
+    
+    if (authError || !user) {
+      console.error('Auth validation failed:', authError?.message);
+      return new Response(
+        JSON.stringify({ error: "Invalid authentication token" }),
+        { status: 401, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 4. Check rate limit
+    const rateLimit = await checkRateLimit(adminClient, user.id);
+    
+    if (!rateLimit.allowed) {
+      console.log(`Rate limit exceeded for user ${user.id}: ${rateLimit.currentCount}/${rateLimit.limit}`);
+      return new Response(
+        JSON.stringify({
+          error: "Rate limit exceeded",
+          message: `You have reached your daily limit of ${rateLimit.limit} AI insight requests. Please try again tomorrow.`,
+          limit: rateLimit.limit,
+          used: rateLimit.currentCount,
+          resetsAt: "midnight UTC"
+        }),
+        { status: 429, headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
+      );
+    }
+
+    // 5. Parse request body
     const { metricsData } = await req.json();
     
-    console.log('Generating insights for metrics data');
+    console.log(`Generating insights for user ${user.id} (${rateLimit.currentCount + 1}/${rateLimit.limit} requests today)`);
     
+    // 6. Validate OpenAI API key
     const openAIApiKey = Deno.env.get('OPENAI_API_KEY');
     
     if (!openAIApiKey) {
       throw new Error('OpenAI API key not configured. Please set OPENAI_API_KEY in Supabase secrets.');
     }
     
-    // Convert data to string if needed
+    // 7. Convert data to string if needed
     const metricsString = typeof metricsData === 'string' 
       ? metricsData 
       : JSON.stringify(metricsData, null, 2);
 
     console.log('Calling OpenAI API...');
     
-    // Call OpenAI API
+    // 8. Call OpenAI API
     const response = await fetch('https://api.openai.com/v1/chat/completions', {
       method: 'POST',
       headers: {
@@ -230,9 +329,12 @@ serve(async (req) => {
 
     console.log('OpenAI response received, parsing...');
     
-    // Parse and validate
+    // 9. Parse and validate
     const parsed = JSON.parse(content);
     const result = validateAndNormalizeOutput(parsed);
+    
+    // 10. Increment rate limit counter AFTER successful response
+    await incrementRateLimit(adminClient, user.id, rateLimit.currentCount);
     
     console.log('Insights generated successfully');
 
@@ -245,7 +347,7 @@ serve(async (req) => {
     const errorResult = handleError(error);
     
     return new Response(JSON.stringify(errorResult), {
-      status: error.message?.includes('API key') ? 500 : 500,
+      status: 500,
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   }

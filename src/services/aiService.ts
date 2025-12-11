@@ -19,19 +19,75 @@ export interface InsightOutput {
   confidence: number;
 }
 
+export interface RateLimitInfo {
+  isRateLimited: boolean;
+  limit?: number;
+  used?: number;
+  resetsAt?: string;
+}
+
 /**
  * Generates AI-powered insights from metrics data using OpenAI via Supabase Edge Function
  */
-export async function generateAIInsights(metricsData: unknown): Promise<InsightOutput> {
+export async function generateAIInsights(metricsData: unknown): Promise<InsightOutput & { rateLimitInfo?: RateLimitInfo }> {
   try {
-    console.log('Calling generate-insights edge function...');
-    
     const { data, error } = await supabase.functions.invoke('generate-insights', {
       body: { metricsData },
     });
 
     if (error) {
-      console.error('Edge function error:', error);
+      // Check for rate limit error (429)
+      const errorContext = error.context as { status?: number; body?: string } | undefined;
+      
+      if (errorContext?.status === 429) {
+        let rateLimitDetails = { limit: 10, used: 10, resetsAt: 'midnight UTC' };
+        
+        try {
+          if (errorContext?.body) {
+            const parsed = JSON.parse(errorContext.body);
+            rateLimitDetails = {
+              limit: parsed.limit || 10,
+              used: parsed.used || 10,
+              resetsAt: parsed.resetsAt || 'midnight UTC'
+            };
+          }
+        } catch {
+          // Use defaults if parsing fails
+        }
+        
+        return {
+          dataQuality: { isValid: false, issues: ['Rate limit exceeded'] },
+          trends: [],
+          insights: [
+            `You have reached your daily limit of ${rateLimitDetails.limit} AI insight requests.`,
+            'Your limit will reset at midnight UTC.',
+            'Please try again tomorrow.'
+          ],
+          callToAction: 'Wait until tomorrow to generate more insights.',
+          confidence: 0,
+          rateLimitInfo: {
+            isRateLimited: true,
+            limit: rateLimitDetails.limit,
+            used: rateLimitDetails.used,
+            resetsAt: rateLimitDetails.resetsAt
+          }
+        };
+      }
+
+      // Check for authentication error (401)
+      if (errorContext?.status === 401) {
+        return {
+          dataQuality: { isValid: false, issues: ['Authentication required'] },
+          trends: [],
+          insights: [
+            'You must be logged in to generate AI insights.',
+            'Please sign in and try again.'
+          ],
+          callToAction: 'Sign in to use AI insights.',
+          confidence: 0
+        };
+      }
+
       throw new Error(error.message || 'Failed to generate insights');
     }
 
@@ -39,12 +95,9 @@ export async function generateAIInsights(metricsData: unknown): Promise<InsightO
       throw new Error('No data returned from edge function');
     }
 
-    console.log('Insights generated successfully');
     return data as InsightOutput;
     
   } catch (error) {
-    console.error('AI service error:', error);
-    
     // Return user-friendly error structure
     return {
       dataQuality: {
@@ -116,7 +169,6 @@ export function validateMetricsData(data: any): { isValid: boolean; issues: stri
     return { isValid: false, issues };
   }
 
-  // Check if data has meaningful content
   if (typeof data === 'object') {
     const keys = Object.keys(data);
     if (keys.length === 0) {
