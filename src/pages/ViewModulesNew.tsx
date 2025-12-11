@@ -6,6 +6,7 @@ import { AddModulePanel } from '@/components/dashboard/AddModulePanel';
 import { CompactUploadZone } from '@/components/dashboard/CompactUploadZone';
 import { TableSkeleton } from '@/components/dashboard/skeletons/TableSkeleton';
 import { ErrorState } from '@/components/dashboard/ErrorState';
+import { DeleteModuleDialog } from '@/components/DeleteModuleDialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
@@ -29,6 +30,16 @@ const ViewModulesNew = () => {
   const [selectedModule, setSelectedModule] = useState<any>(null);
   const [panelOpen, setPanelOpen] = useState(false);
   const [addPanelOpen, setAddPanelOpen] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<{
+    open: boolean;
+    moduleId: string;
+    moduleTitle: string;
+  }>({
+    open: false,
+    moduleId: '',
+    moduleTitle: ''
+  });
+  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     fetchModules();
@@ -89,6 +100,45 @@ const ViewModulesNew = () => {
   const handleModuleClick = (module: any) => {
     setSelectedModule(module);
     setPanelOpen(true);
+  };
+
+  const handleDeleteClick = (moduleId: string, moduleTitle: string) => {
+    setDeleteDialog({
+      open: true,
+      moduleId,
+      moduleTitle
+    });
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteDialog.moduleId) return;
+    
+    setIsDeleting(true);
+    try {
+      const { error } = await supabase
+        .from('modules')
+        .delete()
+        .eq('id', deleteDialog.moduleId);
+      
+      if (error) throw error;
+      
+      setModules(prev => prev.filter(m => m.id !== deleteDialog.moduleId));
+      
+      toast({
+        title: "Module Deleted",
+        description: "The module has been successfully deleted.",
+      });
+      
+      setDeleteDialog({ open: false, moduleId: '', moduleTitle: '' });
+    } catch (error: any) {
+      toast({
+        title: "Delete Failed",
+        description: error.message || "Failed to delete the module",
+        variant: "destructive"
+      });
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   if (loading) {
@@ -257,7 +307,13 @@ const ViewModulesNew = () => {
                             <Edit className="mr-2 h-4 w-4" />
                             Edit
                           </DropdownMenuItem>
-                          <DropdownMenuItem onClick={(e) => { e.stopPropagation(); /* delete logic */ }}>
+                          <DropdownMenuItem 
+                            onClick={(e) => { 
+                              e.stopPropagation(); 
+                              handleDeleteClick(module.id, module.title); 
+                            }}
+                            className="text-destructive focus:text-destructive"
+                          >
                             <Trash2 className="mr-2 h-4 w-4" />
                             Delete
                           </DropdownMenuItem>
@@ -491,6 +547,15 @@ const ViewModulesNew = () => {
           setAddPanelOpen(false);
           fetchModules();
         }}
+      />
+
+      {/* Delete Module Dialog */}
+      <DeleteModuleDialog
+        open={deleteDialog.open}
+        onOpenChange={(open) => setDeleteDialog(prev => ({ ...prev, open }))}
+        onConfirm={handleDeleteConfirm}
+        moduleTitle={deleteDialog.moduleTitle}
+        isDeleting={isDeleting}
       />
     </DashboardLayout>
   );
