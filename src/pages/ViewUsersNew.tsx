@@ -27,7 +27,7 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@/components/ui/dialog';
-import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX, UserCheck, Eye, EyeOff } from 'lucide-react';
+import { Plus, Search, UserPlus, X, Loader2, KeyRound, UserX, UserCheck, Eye, EyeOff, Trash2 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -45,7 +45,9 @@ const ViewUsersNew = () => {
   const [resettingPassword, setResettingPassword] = useState(false);
   const [deactivating, setDeactivating] = useState(false);
   const [reactivating, setReactivating] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [confirmDeactivate, setConfirmDeactivate] = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(false);
   
   // Password dialog states
   const [showPasswordDialog, setShowPasswordDialog] = useState(false);
@@ -283,6 +285,49 @@ const ViewUsersNew = () => {
       });
     } finally {
       setReactivating(false);
+    }
+  };
+
+  const handleDeleteAccount = async (e?: React.MouseEvent) => {
+    // Prevent AlertDialog from auto-closing
+    if (e) e.preventDefault();
+    
+    if (!selectedUser) return;
+
+    setDeleting(true);
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.access_token) {
+        throw new Error('No active session');
+      }
+
+      const { data, error } = await supabase.functions.invoke('admin-delete-user', {
+        body: {
+          userId: selectedUser.id,
+        },
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: 'Account Deleted',
+        description: `${selectedUser.name}'s account has been permanently deleted.`,
+      });
+
+      // Close dialogs and refresh
+      setConfirmDelete(false);
+      setPanelOpen(false);
+      setSelectedUser(null);
+      fetchUsers();
+    } catch (error: any) {
+      console.error('Delete error:', error);
+      toast({
+        title: 'Error',
+        description: error?.message || 'Failed to delete account',
+        variant: 'destructive',
+      });
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -533,19 +578,34 @@ const ViewUsersNew = () => {
                   </Button>
                   
                   {selectedUser.isDeactivated ? (
-                    <Button 
-                      variant="outline" 
-                      className="w-full justify-start gap-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
-                      onClick={handleReactivateAccount}
-                      disabled={reactivating}
-                    >
-                      {reactivating ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <UserCheck className="h-4 w-4" />
-                      )}
-                      {reactivating ? 'Reactivating...' : 'Reactivate Account'}
-                    </Button>
+                    <>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start gap-2 text-emerald-600 hover:text-emerald-600 hover:bg-emerald-50 dark:text-emerald-400 dark:hover:bg-emerald-900/20"
+                        onClick={handleReactivateAccount}
+                        disabled={reactivating}
+                      >
+                        {reactivating ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <UserCheck className="h-4 w-4" />
+                        )}
+                        {reactivating ? 'Reactivating...' : 'Reactivate Account'}
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        className="w-full justify-start gap-2 text-destructive hover:text-destructive hover:bg-destructive/10"
+                        onClick={() => setConfirmDelete(true)}
+                        disabled={deleting}
+                      >
+                        {deleting ? (
+                          <Loader2 className="h-4 w-4 animate-spin" />
+                        ) : (
+                          <Trash2 className="h-4 w-4" />
+                        )}
+                        {deleting ? 'Deleting...' : 'Delete Account'}
+                      </Button>
+                    </>
                   ) : (
                     <Button 
                       variant="outline" 
@@ -592,6 +652,37 @@ const ViewUsersNew = () => {
                 </>
               ) : (
                 'Deactivate'
+              )}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={confirmDelete} onOpenChange={setConfirmDelete}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-destructive">Permanently Delete Account?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete <span className="font-semibold">{selectedUser?.name}</span>'s account and all associated data. 
+              <br /><br />
+              <span className="font-semibold text-destructive">This action CANNOT be undone.</span>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={handleDeleteAccount}
+              disabled={deleting}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              {deleting ? (
+                <>
+                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                  Deleting...
+                </>
+              ) : (
+                'Delete Permanently'
               )}
             </AlertDialogAction>
           </AlertDialogFooter>
