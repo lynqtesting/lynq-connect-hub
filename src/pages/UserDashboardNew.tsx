@@ -169,18 +169,6 @@ const UserDashboardNew = () => {
         const allConfusion: ConfusionItem[] = [];
         const allCsrHotspots: CSRHotspotItem[] = [];
 
-        // For "All Modules", get unique learner count from database
-        if (selectedModule === 'all' && moduleIds.length > 0) {
-          const { count } = await supabase
-            .from('user_module_assignments')
-            .select('user_id', { count: 'exact', head: true })
-            .in('module_id', moduleIds);
-          
-          if (count !== null) {
-            totalLearners = count;
-          }
-        }
-
         // Process deduction data from uploads
         if (deductionData && deductionData.length > 0) {
           // Use the most recent deduction data per module
@@ -204,7 +192,6 @@ const UserDashboardNew = () => {
               }
               
               // Calculate total learners and completion from learning_progress_status
-              // Only use this for single module selection (not "All Modules")
               if (metadata.learning_progress_status) {
                 const progressData = metadata.learning_progress_status;
                 const completedCount = progressData.Completed || 0;
@@ -212,10 +199,8 @@ const UserDashboardNew = () => {
                 const notStartedCount = progressData['Not Started'] || progressData['Not_Started'] || 0;
                 const totalCount = completedCount + inProgressCount + notStartedCount;
                 
-                // Only set totalLearners from deduction data for single module
-                if (selectedModule !== 'all') {
-                  totalLearners = totalCount;
-                }
+                // Sum up learners from all modules
+                totalLearners += totalCount;
                 
                 if (totalCount > 0) {
                   calculatedCompletion = Math.round((completedCount / totalCount) * 100);
