@@ -288,17 +288,74 @@ const UserDashboardNew = () => {
             }
           });
 
-          // Fallback: Add learner counts from module KPIs for modules without deduction data
+          // Fallback: Add data from module KPIs for modules without deduction data
           const modulesWithoutLearnerData = moduleIds.filter(id => !modulesWithLearnerData.has(id));
           if (modulesWithoutLearnerData.length > 0) {
             assignments.forEach((assignment: any) => {
               const module = assignment.modules;
               if (module && modulesWithoutLearnerData.includes(module.id)) {
+                // Count this module for averaging
+                moduleCount++;
+                
+                // Extract KPIs from module.kpis
                 if (module.kpis && typeof module.kpis === 'object') {
                   const kpis = module.kpis as any;
+                  
+                  // Learners
                   if (kpis.learners !== undefined) {
                     totalLearners += Number(kpis.learners);
                   }
+                  
+                  // STR
+                  if (kpis.str !== undefined) {
+                    totalSTR += Number(kpis.str);
+                  }
+                  
+                  // Engagement
+                  if (kpis.engagement !== undefined) {
+                    totalEngagement += Number(kpis.engagement);
+                  }
+                  
+                  // Completion
+                  if (kpis.completion !== undefined) {
+                    calculatedCompletion = Math.max(calculatedCompletion, Number(kpis.completion));
+                  }
+                  
+                  // Rating
+                  if (kpis.rating !== undefined || kpis.avgRating !== undefined) {
+                    totalRating += Number(kpis.rating || kpis.avgRating || 0);
+                  }
+                }
+                
+                // Extract confusion areas from module.confusion_data
+                if (module.confusion_data && Array.isArray(module.confusion_data)) {
+                  (module.confusion_data as any[]).forEach((item: any, index: number) => {
+                    allConfusion.push({
+                      label: item.label || item.name || item.area || 'Unknown',
+                      metricLabel: `${item.percent || item.percentage || item.value || 0}%`,
+                      severity: index === 0 ? 'high' : index === 1 ? 'medium' : 'low',
+                    });
+                  });
+                }
+                
+                // Extract objections from module.objections
+                if (module.objections && Array.isArray(module.objections)) {
+                  (module.objections as any[]).forEach((item: any) => {
+                    allObjections.push({
+                      label: item.label || item.name || item.objection || 'Unknown',
+                      count: item.count || item.percent || item.value || 0,
+                    });
+                  });
+                }
+                
+                // Extract perception data for CSR hotspots
+                if (module.perception && Array.isArray(module.perception)) {
+                  (module.perception as any[]).forEach((item: any) => {
+                    allCsrHotspots.push({
+                      label: item.label || item.name || 'Unknown',
+                      percentage: item.percent || item.percentage || item.value || 0,
+                    });
+                  });
                 }
               }
             });
