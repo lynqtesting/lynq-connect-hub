@@ -169,17 +169,20 @@ const UserDashboardNew = () => {
         const allConfusion: ConfusionItem[] = [];
         const allCsrHotspots: CSRHotspotItem[] = [];
 
+        // Track modules that have deduction data with learner counts
+        const modulesWithLearnerData = new Set<string>();
+
         // Process deduction data from uploads
         if (deductionData && deductionData.length > 0) {
           // Use the most recent deduction data per module
           const latestByModule = new Map();
           deductionData.forEach((upload: any) => {
             if (!latestByModule.has(upload.module_id)) {
-              latestByModule.set(upload.module_id, upload.metadata);
+              latestByModule.set(upload.module_id, { metadata: upload.metadata, moduleId: upload.module_id });
             }
           });
 
-          latestByModule.forEach((metadata: any) => {
+          latestByModule.forEach(({ metadata, moduleId }: { metadata: any; moduleId: string }) => {
             if (metadata) {
               moduleCount++;
               
@@ -201,6 +204,7 @@ const UserDashboardNew = () => {
                 
                 // Sum up learners from all modules
                 totalLearners += totalCount;
+                modulesWithLearnerData.add(moduleId);
                 
                 if (totalCount > 0) {
                   calculatedCompletion = Math.round((completedCount / totalCount) * 100);
@@ -283,6 +287,19 @@ const UserDashboardNew = () => {
               }
             }
           });
+
+          // Fallback: Add learner counts for modules without deduction data
+          const modulesWithoutLearnerData = moduleIds.filter(id => !modulesWithLearnerData.has(id));
+          if (modulesWithoutLearnerData.length > 0) {
+            const { count } = await supabase
+              .from('user_module_assignments')
+              .select('*', { count: 'exact', head: true })
+              .in('module_id', modulesWithoutLearnerData);
+            
+            if (count !== null) {
+              totalLearners += count;
+            }
+          }
         } else {
           // FALLBACK: Process data directly from modules table when no deduction JSON exists
           let fallbackTimeSaved = 0;
