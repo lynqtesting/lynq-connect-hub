@@ -288,17 +288,20 @@ const UserDashboardNew = () => {
             }
           });
 
-          // Fallback: Add learner counts for modules without deduction data
+          // Fallback: Add learner counts from module KPIs for modules without deduction data
           const modulesWithoutLearnerData = moduleIds.filter(id => !modulesWithLearnerData.has(id));
           if (modulesWithoutLearnerData.length > 0) {
-            const { count } = await supabase
-              .from('user_module_assignments')
-              .select('*', { count: 'exact', head: true })
-              .in('module_id', modulesWithoutLearnerData);
-            
-            if (count !== null) {
-              totalLearners += count;
-            }
+            assignments.forEach((assignment: any) => {
+              const module = assignment.modules;
+              if (module && modulesWithoutLearnerData.includes(module.id)) {
+                if (module.kpis && typeof module.kpis === 'object') {
+                  const kpis = module.kpis as any;
+                  if (kpis.learners !== undefined) {
+                    totalLearners += Number(kpis.learners);
+                  }
+                }
+              }
+            });
           }
         } else {
           // FALLBACK: Process data directly from modules table when no deduction JSON exists
