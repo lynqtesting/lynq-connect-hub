@@ -124,7 +124,7 @@ const UserDashboardNew = () => {
       // Fetch user's assigned modules with their data (filtered by selected module)
       let assignmentsQuery = supabase
         .from('user_module_assignments')
-        .select('*, modules!user_module_assignments_module_id_fkey(*)')
+        .select('*, modules!fk_user_module_assignments_module(*)')
         .eq('user_id', user?.id);
       
       if (selectedModule !== 'all') {
