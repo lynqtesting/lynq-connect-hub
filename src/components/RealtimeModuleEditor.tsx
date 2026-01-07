@@ -16,15 +16,31 @@ import { useDebouncedInput } from '@/hooks/useDebouncedInput';
 import { DebouncedTextInput } from '@/components/DebouncedTextInput';
 import { ModuleDataSection } from '@/components/dashboard/ModuleDataSection';
 import { supabase } from '@/integrations/supabase/client';
+import { cn } from '@/lib/utils';
 
 interface MetricFieldProps {
   label: string;
   value: number;
   onChange: (value: number) => void;
   suffix?: string;
+  min?: number;
+  max?: number;
 }
 
-function MetricField({ label, value, onChange, suffix = "%" }: MetricFieldProps) {
+function MetricField({ label, value, onChange, suffix = "%", min = 0, max }: MetricFieldProps) {
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    let newValue = Number(e.target.value) || 0;
+    
+    // Clamp value within valid range
+    if (min !== undefined) newValue = Math.max(min, newValue);
+    if (max !== undefined) newValue = Math.min(max, newValue);
+    
+    onChange(newValue);
+  };
+
+  // Show validation error for out-of-range values
+  const isInvalid = (max !== undefined && value > max) || (min !== undefined && value < min);
+
   return (
     <div className="space-y-2">
       <Label className="text-sm font-medium">{label}</Label>
@@ -32,10 +48,10 @@ function MetricField({ label, value, onChange, suffix = "%" }: MetricFieldProps)
         <Input
           type="number"
           value={value || 0}
-          onChange={(e) => onChange(Number(e.target.value) || 0)}
-          min={0}
-          max={suffix === "%" ? 100 : undefined}
-          className="pr-8"
+          onChange={handleChange}
+          min={min}
+          max={max}
+          className={cn("pr-8", isInvalid && "border-destructive")}
         />
         {suffix && (
           <span className="absolute right-3 top-1/2 -translate-y-1/2 text-sm text-muted-foreground">
@@ -43,6 +59,11 @@ function MetricField({ label, value, onChange, suffix = "%" }: MetricFieldProps)
           </span>
         )}
       </div>
+      {isInvalid && (
+        <p className="text-xs text-destructive mt-1">
+          Value must be between {min} and {max ?? '∞'}
+        </p>
+      )}
     </div>
   );
 }
@@ -648,22 +669,26 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
               label="Completion Rate"
               value={ensureKPIs.completion}
               onChange={(value) => sendPatch({ kpis: { ...kpis, completion: value } })}
+              max={100}
             />
             <MetricField
               label="Engagement Rate"
               value={ensureKPIs.engagement}
               onChange={(value) => sendPatch({ kpis: { ...kpis, engagement: value } })}
+              max={100}
             />
             <MetricField
               label="Opening Rate"
               value={ensureKPIs.opening}
               onChange={(value) => sendPatch({ kpis: { ...kpis, opening: value } })}
+              max={100}
             />
             <MetricField
               label="Average Rating"
               value={ensureKPIs.avgRating}
               onChange={(value) => sendPatch({ kpis: { ...kpis, avgRating: value } })}
               suffix="/5"
+              max={5}
             />
             <MetricField
               label="Learners Count"
@@ -678,16 +703,19 @@ export function RealtimeModuleEditor({ moduleId }: RealtimeModuleEditorProps) {
               value={ensureKPIs.str}
               onChange={(value) => sendPatch({ kpis: { ...kpis, str: value } })}
               suffix=""
+              max={100}
             />
             <MetricField
               label="Objective Score"
               value={ensureKPIs.objectiveScore}
               onChange={(value) => sendPatch({ kpis: { ...kpis, objective_score: value } })}
+              max={100}
             />
             <MetricField
               label="Dropoff Rate"
               value={ensureKPIs.dropoffRate}
               onChange={(value) => sendPatch({ kpis: { ...kpis, dropoff_rate: value } })}
+              max={100}
             />
             <MetricField
               label="Time Saved"

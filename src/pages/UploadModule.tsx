@@ -422,11 +422,26 @@ const UploadModule = () => {
                   <Textarea value={summaryText} onChange={(e)=>setSummaryText(e.target.value)} placeholder="Short summary shown to users" />
                 </div>
                 <div className="grid grid-cols-2 gap-3">
-                  <div><Label>Completion %</Label><Input type="number" value={kpis.completion} onChange={(e)=>setKpis(s=>({...s, completion: +e.target.value||0}))} /></div>
-                  <div><Label>Engagement %</Label><Input type="number" value={kpis.engagement} onChange={(e)=>setKpis(s=>({...s, engagement: +e.target.value||0}))} /></div>
-                  <div><Label>Opening %</Label><Input type="number" value={kpis.opening} onChange={(e)=>setKpis(s=>({...s, opening: +e.target.value||0}))} /></div>
-                  <div><Label>Average Rating</Label><Input type="number" step="0.1" value={kpis.rating} onChange={(e)=>setKpis(s=>({...s, rating: +e.target.value||0}))} /></div>
-                  <div className="col-span-2"><Label>Employees Engaged</Label><Input type="number" value={kpis.learners} onChange={(e)=>setKpis(s=>({...s, learners: +e.target.value||0}))} /></div>
+                  <div>
+                    <Label>Completion %</Label>
+                    <Input type="number" min={0} max={100} value={kpis.completion} onChange={(e)=>setKpis(s=>({...s, completion: Math.min(100, Math.max(0, +e.target.value||0))}))} />
+                  </div>
+                  <div>
+                    <Label>Engagement %</Label>
+                    <Input type="number" min={0} max={100} value={kpis.engagement} onChange={(e)=>setKpis(s=>({...s, engagement: Math.min(100, Math.max(0, +e.target.value||0))}))} />
+                  </div>
+                  <div>
+                    <Label>Opening %</Label>
+                    <Input type="number" min={0} max={100} value={kpis.opening} onChange={(e)=>setKpis(s=>({...s, opening: Math.min(100, Math.max(0, +e.target.value||0))}))} />
+                  </div>
+                  <div>
+                    <Label>Average Rating</Label>
+                    <Input type="number" min={0} max={5} step="0.1" value={kpis.rating} onChange={(e)=>setKpis(s=>({...s, rating: Math.min(5, Math.max(0, +e.target.value||0))}))} />
+                  </div>
+                  <div className="col-span-2">
+                    <Label>Employees Engaged</Label>
+                    <Input type="number" min={0} value={kpis.learners} onChange={(e)=>setKpis(s=>({...s, learners: Math.max(0, +e.target.value||0)}))} />
+                  </div>
                 </div>
                 <div>
                   <div className="flex items-center justify-between">

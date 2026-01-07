@@ -162,7 +162,20 @@ const UserDashboardNew = () => {
         let totalEngagement = 0;
         let totalRating = 0;
         let moduleCount = 0;
-        let calculatedCompletion = 0;
+        
+        // Track for weighted completion average
+        let totalCompletedLearners = 0;
+        let totalAllLearners = 0;
+        
+        // Aggregated learning progress across all modules
+        let aggregatedProgress = { completed: 0, inProgress: 0, notStarted: 0 };
+        
+        // Helper to normalize STR to 0-100 percentage scale
+        const normalizeSTR = (value: number): number => {
+          if (value <= 1) return Math.round(value * 100); // Decimal like 0.7 → 70
+          if (value > 100) return 100; // Cap at 100%
+          return Math.round(value);
+        };
 
         const allObjections: ObjectionItem[] = [];
         const allRegionalSTR: RegionalSTRItem[] = [];
@@ -188,7 +201,7 @@ const UserDashboardNew = () => {
               
               // Extract KPIs from deduction metadata
               if (metadata.STR_overall !== undefined) {
-                totalSTR += Number(metadata.STR_overall) * 100;
+                totalSTR += normalizeSTR(Number(metadata.STR_overall));
               }
               if (metadata.engagement_rate_overall !== undefined) {
                 totalEngagement += Number(metadata.engagement_rate_overall) * 100;
@@ -197,29 +210,40 @@ const UserDashboardNew = () => {
               // Calculate total learners and completion from learning_progress_status
               if (metadata.learning_progress_status) {
                 const progressData = metadata.learning_progress_status;
-                const completedCount = progressData.Completed || 0;
-                const inProgressCount = progressData['In Progress'] || progressData['In-Progress'] || 0;
-                const notStartedCount = progressData['Not Started'] || progressData['Not_Started'] || 0;
+                const completedCount = progressData.Completed || progressData.completed || 0;
+                const inProgressCount = progressData['In Progress'] || progressData['In-Progress'] || progressData.inProgress || 0;
+                const notStartedCount = progressData['Not Started'] || progressData['Not_Started'] || progressData.notStarted || 0;
                 const totalCount = completedCount + inProgressCount + notStartedCount;
                 
                 // Sum up learners from all modules
                 totalLearners += totalCount;
                 modulesWithLearnerData.add(moduleId);
                 
+                // Aggregate for weighted completion average
                 if (totalCount > 0) {
-                  calculatedCompletion = Math.round((completedCount / totalCount) * 100);
+                  totalCompletedLearners += completedCount;
+                  totalAllLearners += totalCount;
                 }
+                
+                // Aggregate learning progress across all modules
+                aggregatedProgress.completed += completedCount;
+                aggregatedProgress.inProgress += inProgressCount;
+                aggregatedProgress.notStarted += notStartedCount;
               }
 
-              // Process regional STR data
+              // Process regional STR data (values are amounts, not percentages)
               if (metadata.region_wise_STR) {
                 Object.entries(metadata.region_wise_STR).forEach(([region, value]: [string, any]) => {
+                  const numValue = Number(value);
                   const existingRegion = allRegionalSTR.find(r => r.region === region);
-                  if (!existingRegion) {
+                  if (existingRegion) {
+                    // Aggregate values for the same region
+                    existingRegion.value += Math.round(numValue);
+                  } else {
                     allRegionalSTR.push({
                       region,
-                      value: Math.round(Number(value) * 100),
-                      trend: Number(value) > 0.5 ? 'up' : Number(value) < 0.3 ? 'down' : 'stable',
+                      value: Math.round(numValue), // Use value as-is (it's already an amount)
+                      trend: numValue > 50000 ? 'up' : numValue < 30000 ? 'down' : 'stable',
                     });
                   }
                 });
@@ -306,9 +330,9 @@ const UserDashboardNew = () => {
                     totalLearners += Number(kpis.learners);
                   }
                   
-                  // STR
+                  // STR (normalize to percentage scale)
                   if (kpis.str !== undefined) {
-                    totalSTR += Number(kpis.str);
+                    totalSTR += normalizeSTR(Number(kpis.str));
                   }
                   
                   // Engagement
@@ -316,9 +340,12 @@ const UserDashboardNew = () => {
                     totalEngagement += Number(kpis.engagement);
                   }
                   
-                  // Completion
-                  if (kpis.completion !== undefined) {
-                    calculatedCompletion = Math.max(calculatedCompletion, Number(kpis.completion));
+                  // Completion (accumulate for weighted average)
+                  if (kpis.completion !== undefined && kpis.learners !== undefined) {
+                    const learnerCount = Number(kpis.learners);
+                    const completionPercent = Number(kpis.completion);
+                    totalCompletedLearners += Math.round(learnerCount * (completionPercent / 100));
+                    totalAllLearners += learnerCount;
                   }
                   
                   // Rating
@@ -377,8 +404,12 @@ const UserDashboardNew = () => {
                 if (kpis.engagement !== undefined) {
                   totalEngagement += Number(kpis.engagement);
                 }
-                if (kpis.completion !== undefined) {
-                  calculatedCompletion = Number(kpis.completion);
+                // Track completion for weighted average
+                if (kpis.completion !== undefined && kpis.learners !== undefined) {
+                  const learnerCount = Number(kpis.learners);
+                  const completionPercent = Number(kpis.completion);
+                  totalCompletedLearners += Math.round(learnerCount * (completionPercent / 100));
+                  totalAllLearners += learnerCount;
                 }
                 if (kpis.rating !== undefined || kpis.avgRating !== undefined) {
                   totalRating += Number(kpis.rating || kpis.avgRating || 0);
@@ -387,7 +418,7 @@ const UserDashboardNew = () => {
                   totalLearners += Number(kpis.learners);
                 }
                 if (kpis.str !== undefined) {
-                  totalSTR += Number(kpis.str);
+                  totalSTR += normalizeSTR(Number(kpis.str));
                 }
                 // New fields
                 if (kpis.objective_score !== undefined) {
@@ -445,7 +476,10 @@ const UserDashboardNew = () => {
         // Calculate averages or use fallback
         const avgSTR = moduleCount > 0 ? Math.round(totalSTR / moduleCount) : 0;
         const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 0;
-        const completionRate = calculatedCompletion > 0 ? calculatedCompletion : Math.round((completed / total) * 100);
+        // Use weighted average for completion rate
+        const completionRate = totalAllLearners > 0 
+          ? Math.round((totalCompletedLearners / totalAllLearners) * 100) 
+          : Math.round((completed / total) * 100);
 
         // Sort objections by count and add priority
         allObjections.sort((a, b) => b.count - a.count);
@@ -459,7 +493,8 @@ const UserDashboardNew = () => {
         // Extract time saved and dropoff rate from latest metadata or fallback
         let timeSavedValue = 0;
         let dropoffValue = 0;
-        let progressData = { completed: 0, inProgress: 0, notStarted: 0 };
+        // Use aggregated progress data from all modules
+        let progressData = aggregatedProgress;
 
         if (deductionData && deductionData.length > 0) {
           const latestMetadata = deductionData[0].metadata as any;
@@ -472,28 +507,19 @@ const UserDashboardNew = () => {
             if (latestMetadata['dropoff_rate_%'] !== undefined) {
               dropoffValue = Number(latestMetadata['dropoff_rate_%']);
             }
-            // Extract learning_progress_status
-            if (latestMetadata.learning_progress_status) {
-              const lps = latestMetadata.learning_progress_status;
-              progressData = {
-                completed: lps.Completed || lps.completed || 0,
-                inProgress: lps['In-Progress'] || lps['In Progress'] || lps.inProgress || 0,
-                notStarted: lps['Not Started'] || lps['Not_Started'] || lps.notStarted || 0,
-              };
-            }
           }
         } else {
           // Use fallback values from module.kpis
           const fallback = (window as any).__fallbackKPIs || {};
           timeSavedValue = fallback.timeSaved || 0;
           dropoffValue = fallback.dropoff || 0;
-          // Set progress data from learners count if available
-          if (totalLearners > 0) {
-            const completedCount = Math.round(totalLearners * (calculatedCompletion / 100));
+          // Set progress data from learners count if available (only if no aggregated data)
+          if (progressData.completed === 0 && progressData.inProgress === 0 && totalLearners > 0) {
+            const completedLearners = Math.round(totalLearners * (completionRate / 100));
             progressData = {
-              completed: completedCount,
-              inProgress: Math.round((totalLearners - completedCount) * 0.6),
-              notStarted: Math.round((totalLearners - completedCount) * 0.4),
+              completed: completedLearners,
+              inProgress: Math.round((totalLearners - completedLearners) * 0.6),
+              notStarted: Math.round((totalLearners - completedLearners) * 0.4),
             };
           }
         }
