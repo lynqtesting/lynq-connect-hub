@@ -33,42 +33,46 @@ export function TweakLynqForm({ moduleId, userId, onSubmitSuccess }: TweakLynqFo
   const [description, setDescription] = useState('');
   const [cardOptions, setCardOptions] = useState<string[]>([]);
   const [loadingCards, setLoadingCards] = useState(false);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [attachment, setAttachment] = useState<{ file: File; name: string } | null>(null);
   const [uploading, setUploading] = useState(false);
 
-  // Fetch deduction JSON columns for card options
+  // Fetch tweakable questions for card options
   useEffect(() => {
-    const fetchDeductionColumns = async () => {
+    const fetchTweakableQuestions = async () => {
       setLoadingCards(true);
+      setFetchError(null);
       try {
         const { data, error } = await supabase
-          .from('data_uploads')
-          .select('metadata')
+          .from('tweakable_questions')
+          .select('id, title')
           .eq('module_id', moduleId)
-          .eq('file_type', 'deduction_json')
-          .order('created_at', { ascending: false })
-          .limit(1)
-          .maybeSingle();
+          .eq('is_active', true)
+          .order('created_at', { ascending: true });
 
         if (error) throw error;
 
-        const metadata = data?.metadata as Record<string, unknown> | null;
-        if (metadata?.columns && Array.isArray(metadata.columns)) {
-          const columns = metadata.columns as string[];
-          setCardOptions(columns);
-          if (columns.length > 0) {
-            setSelectedCard(columns[0]);
-          }
+        if (data && data.length > 0) {
+          const questionTitles = data.map(q => q.title);
+          setCardOptions(questionTitles);
+          setSelectedCard(questionTitles[0]);
+        } else {
+          setCardOptions([]);
+          setSelectedCard('');
         }
       } catch (error) {
-        console.error('Error fetching deduction columns:', error);
+        console.error('Error fetching tweakable questions:', error);
+        setFetchError('Unable to load questions. You can still submit a general request.');
+        toast.error('Failed to load question options');
       } finally {
         setLoadingCards(false);
       }
     };
 
-    fetchDeductionColumns();
+    if (moduleId) {
+      fetchTweakableQuestions();
+    }
   }, [moduleId]);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -218,27 +222,38 @@ export function TweakLynqForm({ moduleId, userId, onSubmitSuccess }: TweakLynqFo
         <label className="block text-[10px] uppercase tracking-wider text-text-muted mb-2 font-medium">
           Select Question / Card
         </label>
-        <div className="relative">
-          <select
-            value={selectedCard}
-            onChange={(e) => setSelectedCard(e.target.value)}
-            disabled={loadingCards || cardOptions.length === 0}
-            className="appearance-none w-full bg-bg-surface border border-border-default text-text-primary rounded-lg px-3 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none pr-10 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loadingCards ? (
-              <option>Loading cards...</option>
-            ) : cardOptions.length === 0 ? (
-              <option>No cards available</option>
-            ) : (
-              cardOptions.map((card) => (
+        
+        {loadingCards ? (
+          <div className="animate-pulse bg-bg-surface-hover h-10 rounded-lg" />
+        ) : fetchError ? (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <p className="text-sm text-amber-800 dark:text-amber-200">{fetchError}</p>
+          </div>
+        ) : cardOptions.length === 0 ? (
+          <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-lg p-3">
+            <p className="text-sm text-amber-800 dark:text-amber-200">
+              No specific questions configured for this module yet.
+            </p>
+            <p className="text-xs text-amber-600 dark:text-amber-300 mt-1">
+              You can still describe what you want to change below.
+            </p>
+          </div>
+        ) : (
+          <div className="relative">
+            <select
+              value={selectedCard}
+              onChange={(e) => setSelectedCard(e.target.value)}
+              className="appearance-none w-full bg-bg-surface border border-border-default text-text-primary rounded-lg px-3 py-2.5 text-sm focus:border-brand focus:ring-1 focus:ring-brand outline-none pr-10 cursor-pointer"
+            >
+              {cardOptions.map((card) => (
                 <option key={card} value={card}>
                   {formatCardName(card)}
                 </option>
-              ))
-            )}
-          </select>
-          <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none h-4 w-4" />
-        </div>
+              ))}
+            </select>
+            <ChevronDown className="absolute right-3 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none h-4 w-4" />
+          </div>
+        )}
       </div>
 
       {/* Description */}
