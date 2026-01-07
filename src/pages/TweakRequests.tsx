@@ -68,7 +68,7 @@ export default function TweakRequests() {
         .from('tweak_requests')
         .select(`
           *,
-          modules!tweak_requests_module_id_fkey (title)
+          modules!fk_tweak_requests_module (title)
         `)
         .order('created_at', { ascending: false });
 

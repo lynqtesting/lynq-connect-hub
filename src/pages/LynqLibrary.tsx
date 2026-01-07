@@ -146,7 +146,7 @@ export default function LynqLibrary() {
         .from('user_module_assignments')
         .select(`
           module_id,
-          modules!user_module_assignments_module_id_fkey (
+          modules!fk_user_module_assignments_module (
             id,
             title,
             description,
