@@ -42,7 +42,15 @@ export type Database = {
           updated_at?: string
           version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_adaptive_ideas_module"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       api_rate_limits: {
         Row: {
@@ -116,7 +124,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "data_uploads_module_id_fkey"
+            foreignKeyName: "fk_data_uploads_module"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
@@ -297,7 +305,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "recommendations_module_id_fkey"
+            foreignKeyName: "fk_recommendations_module"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
@@ -347,7 +355,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "requests_module_id_fkey"
+            foreignKeyName: "fk_requests_module"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
@@ -397,7 +405,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "tweak_requests_module_id_fkey"
+            foreignKeyName: "fk_tweak_requests_module"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
@@ -440,7 +448,15 @@ export type Database = {
           updated_at?: string
           version?: number | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_tweakable_questions_module"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       user_module_assignments: {
         Row: {
@@ -466,14 +482,7 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "fk_user_module_assignments_module_id"
-            columns: ["module_id"]
-            isOneToOne: false
-            referencedRelation: "modules"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "user_module_assignments_module_id_fkey"
+            foreignKeyName: "fk_user_module_assignments_module"
             columns: ["module_id"]
             isOneToOne: false
             referencedRelation: "modules"
