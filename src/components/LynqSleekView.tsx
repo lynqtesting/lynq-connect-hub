@@ -123,7 +123,7 @@ export default function LynqSleekView({
         .select('id')
         .eq('user_id', user.id)
         .eq('module_id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (!assignment) {
         setAdaptiveIdeas([]);
@@ -157,7 +157,7 @@ export default function LynqSleekView({
         .select('id')
         .eq('user_id', user.id)
         .eq('module_id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (!assignment) {
         setTweakingQuestions([]);

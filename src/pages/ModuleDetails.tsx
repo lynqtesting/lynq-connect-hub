@@ -35,7 +35,7 @@ const ModuleDetails = () => {
         .from('modules')
         .select('*')
         .eq('id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('ModuleDetails: Supabase error:', error);

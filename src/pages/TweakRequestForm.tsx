@@ -36,7 +36,7 @@ const TweakRequestForm = () => {
         .from('modules')
         .select('id, title')
         .eq('id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (moduleError) throw moduleError;
       setModule(moduleData);
@@ -47,7 +47,7 @@ const TweakRequestForm = () => {
           .from('tweakable_questions')
           .select('id, title')
           .eq('id', questionId)
-          .single();
+          .maybeSingle();
 
         if (questionError) throw questionError;
         setQuestion(questionData);
