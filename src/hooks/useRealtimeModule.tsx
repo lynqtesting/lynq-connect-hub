@@ -53,7 +53,7 @@ export function useRealtimeModule(moduleId: string) {
         .from('modules')
         .select('*')
         .eq('id', moduleId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       
@@ -114,7 +114,7 @@ export function useRealtimeModule(moduleId: string) {
           })
           .eq('id', moduleId)
           .select()
-          .single();
+          .maybeSingle();
 
         if (error) {
           throw error;

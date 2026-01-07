@@ -49,6 +49,8 @@ const ViewModulesNew = () => {
     try {
       setLoading(true);
       setError(null);
+      
+      // Fetch modules
       const { data, error: modulesError } = await supabase
         .from('modules')
         .select('*')
@@ -56,17 +58,41 @@ const ViewModulesNew = () => {
 
       if (modulesError) throw modulesError;
 
-      const transformedData = (data || []).map((module) => ({
-        id: module.id,
-        title: module.title,
-        description: module.description || '',
-        status: 'Active',
-        created: new Date(module.created_at).toLocaleDateString(),
-        author: 'Admin',
-        assigned: 0,
-        completion: Math.floor(Math.random() * 100),
-        screenshot_url: module.screenshot_url,
-      }));
+      // Fetch all assignments with completion status
+      const { data: assignments } = await supabase
+        .from('user_module_assignments')
+        .select('module_id, completed_at');
+
+      // Calculate completion stats per module
+      const moduleStats: Record<string, { assigned: number; completed: number }> = {};
+      (assignments || []).forEach((a) => {
+        if (!moduleStats[a.module_id]) {
+          moduleStats[a.module_id] = { assigned: 0, completed: 0 };
+        }
+        moduleStats[a.module_id].assigned++;
+        if (a.completed_at) {
+          moduleStats[a.module_id].completed++;
+        }
+      });
+
+      const transformedData = (data || []).map((module) => {
+        const stats = moduleStats[module.id] || { assigned: 0, completed: 0 };
+        const completion = stats.assigned > 0 
+          ? Math.round((stats.completed / stats.assigned) * 100) 
+          : 0;
+        
+        return {
+          id: module.id,
+          title: module.title,
+          description: module.description || '',
+          status: 'Active',
+          created: new Date(module.created_at).toLocaleDateString(),
+          author: 'Admin',
+          assigned: stats.assigned,
+          completion,
+          screenshot_url: module.screenshot_url,
+        };
+      });
 
       setModules(transformedData);
     } catch (error: any) {

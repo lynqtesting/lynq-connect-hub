@@ -19,19 +19,39 @@ const AdaptiveRequests = () => {
 
   const fetchAdaptiveRequests = async () => {
     try {
-      const { data, error } = await supabase
+      // Fetch requests first
+      const { data: requestsData, error: requestsError } = await supabase
         .from('requests')
-        .select(`
-          *,
-          profiles!requests_user_id_fkey (
-            username
-          )
-        `)
+        .select('*')
         .eq('request_type', 'adaptive')
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setRequests(data || []);
+      if (requestsError) throw requestsError;
+
+      // Get unique user IDs
+      const userIds = [...new Set((requestsData || []).map(r => r.user_id))];
+      
+      // Fetch profiles for those users
+      let profilesMap: Record<string, string> = {};
+      if (userIds.length > 0) {
+        const { data: profilesData } = await supabase
+          .from('profiles')
+          .select('user_id, username')
+          .in('user_id', userIds);
+        
+        profilesMap = (profilesData || []).reduce((acc, p) => {
+          acc[p.user_id] = p.username;
+          return acc;
+        }, {} as Record<string, string>);
+      }
+
+      // Combine data
+      const combinedData = (requestsData || []).map(request => ({
+        ...request,
+        profiles: { username: profilesMap[request.user_id] || null }
+      }));
+
+      setRequests(combinedData);
     } catch (error) {
       console.error('Error fetching adaptive requests:', error);
       toast({
