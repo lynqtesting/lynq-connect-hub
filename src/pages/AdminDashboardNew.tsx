@@ -92,20 +92,7 @@ const AdminDashboardNew = () => {
 
       if (requestsError) throw requestsError;
 
-      // Fetch completion rate from user_module_assignments (filtered by module if selected)
-      let assignmentsQuery = supabase.from('user_module_assignments').select('completed_at');
-      if (selectedModule !== 'all') {
-        assignmentsQuery = assignmentsQuery.eq('module_id', selectedModule);
-      }
-      const { data: assignments, error: assignmentsError } = await assignmentsQuery;
-
-      if (assignmentsError) throw assignmentsError;
-
-      const completed = assignments?.filter(a => a.completed_at).length || 0;
-      const total = assignments?.length || 1;
-      const completionRate = Math.round((completed / total) * 100);
-
-      // Fetch engagement from data_uploads deduction data
+      // Fetch deduction data for completion rate AND engagement calculations
       let deductionQuery = supabase
         .from('data_uploads')
         .select('metadata, module_id')
@@ -118,6 +105,9 @@ const AdminDashboardNew = () => {
       
       const { data: deductionData } = await deductionQuery;
 
+      // Calculate completion rate and engagement from deduction data
+      let totalCompleted = 0;
+      let totalLearners = 0;
       let totalEngagement = 0;
       let moduleCount = 0;
       
@@ -131,6 +121,18 @@ const AdminDashboardNew = () => {
         });
 
         latestByModule.forEach((metadata: any) => {
+          // Calculate completion from learning_progress_status
+          if (metadata?.learning_progress_status) {
+            const progress = metadata.learning_progress_status;
+            const completed = Number(progress.Completed || progress.completed || 0);
+            const inProgress = Number(progress['In Progress'] || progress['In-Progress'] || progress.InProgress || progress.in_progress || 0);
+            const notStarted = Number(progress['Not Started'] || progress['Not-Started'] || progress.NotStarted || progress.not_started || 0);
+            
+            totalCompleted += completed;
+            totalLearners += completed + inProgress + notStarted;
+          }
+          
+          // Calculate engagement
           if (metadata && metadata.engagement_rate_overall !== undefined) {
             totalEngagement += Number(metadata.engagement_rate_overall) * 100;
             moduleCount++;
@@ -138,6 +140,7 @@ const AdminDashboardNew = () => {
         });
       }
       
+      const completionRate = totalLearners > 0 ? Math.round((totalCompleted / totalLearners) * 100) : 0;
       const avgEngagement = moduleCount > 0 ? Math.round(totalEngagement / moduleCount) : 0;
 
       // Calculate date range based on chartTimeRange
