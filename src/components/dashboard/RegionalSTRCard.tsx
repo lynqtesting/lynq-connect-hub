@@ -1,12 +1,10 @@
 import { motion } from 'framer-motion';
-import { TrendingUp, TrendingDown, Minus } from 'lucide-react';
 import { InfoTooltip } from '@/components/ui/InfoTooltip';
 import { cn } from '@/lib/utils';
 
 interface RegionalSTRItem {
   region: string;
   value: number;
-  trend: 'up' | 'down' | 'stable';
 }
 
 interface RegionalSTRCardProps {
@@ -15,21 +13,6 @@ interface RegionalSTRCardProps {
   onRegionChange?: (region: string) => void;
   className?: string;
 }
-
-const trendConfig = {
-  up: {
-    icon: TrendingUp,
-    color: 'text-emerald-500',
-  },
-  down: {
-    icon: TrendingDown,
-    color: 'text-rose-500',
-  },
-  stable: {
-    icon: Minus,
-    color: 'text-slate-500',
-  },
-};
 
 const formatValue = (value: number): string => {
   if (value >= 1000000) return `$${(value / 1000000).toFixed(1)}M`;
@@ -100,8 +83,6 @@ export function RegionalSTRCard({
       {/* Content */}
       <div className="flex flex-col gap-1">
         {filteredData.map((item, index) => {
-          const config = trendConfig[item.trend];
-          const TrendIcon = config.icon;
           const barWidth = (item.value / maxValue) * 100;
 
           return (
@@ -128,12 +109,11 @@ export function RegionalSTRCard({
                 </div>
               </div>
 
-              {/* Right - Value + trend */}
-              <div className="flex items-center gap-2">
+              {/* Right - Value only (no trend) */}
+              <div className="flex items-center">
                 <span className="text-sm md:text-base font-bold text-text-primary">
                   {formatValue(item.value)}
                 </span>
-                <TrendIcon className={cn('w-4 h-4', config.color)} />
               </div>
             </motion.div>
           );

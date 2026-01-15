@@ -335,7 +335,6 @@ const AdminDashboardNew = () => {
             <MetricCard
               title="Total Modules"
               value={stats.totalModules}
-              trend={{ value: 8, direction: 'up' }}
               info="Total number of learning modules in the system"
             >
               <Layers className="h-8 w-8 text-brand opacity-40 absolute bottom-4 right-4" />
@@ -346,7 +345,6 @@ const AdminDashboardNew = () => {
             <MetricCard
               title="Active Users"
               value={stats.activeUsers}
-              trend={{ value: 12, direction: 'up' }}
               info="Users with active role assignments"
             >
               <Users className="h-8 w-8 text-brand opacity-40 absolute bottom-4 right-4" />
@@ -357,7 +355,6 @@ const AdminDashboardNew = () => {
             <MetricCard
               title="Pending Requests"
               value={stats.pendingRequests}
-              trend={{ value: 5, direction: 'down' }}
               info="Requests awaiting review or action"
             >
               <Clock className="h-8 w-8 text-amber-500 opacity-40 absolute bottom-4 right-4" />
@@ -368,7 +365,6 @@ const AdminDashboardNew = () => {
             <MetricCard
               title="Completion Rate"
               value={`${stats.completionRate}%`}
-              trend={{ value: 3, direction: 'up' }}
               info="Average module completion rate across all users"
             >
               <CheckCircle className="h-8 w-8 text-emerald-500 opacity-40 absolute bottom-4 right-4" />
