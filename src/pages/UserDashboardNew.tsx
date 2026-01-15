@@ -60,7 +60,6 @@ interface ConfusionItem {
 interface RegionalSTRItem {
   region: string;
   value: number;
-  trend: 'up' | 'down' | 'stable';
 }
 
 const UserDashboardNew = () => {
@@ -242,8 +241,7 @@ const UserDashboardNew = () => {
                   } else {
                     allRegionalSTR.push({
                       region,
-                      value: Math.round(numValue), // Use value as-is (it's already an amount)
-                      trend: numValue > 50000 ? 'up' : numValue < 30000 ? 'down' : 'stable',
+                      value: Math.round(numValue),
                     });
                   }
                 });
@@ -546,7 +544,7 @@ const UserDashboardNew = () => {
           { label: 'No conversion data', metricLabel: '0%', severity: 'low' }
         ]);
         setRegionalSTR(allRegionalSTR.length > 0 ? allRegionalSTR : [
-          { region: 'No data', value: 0, trend: 'stable' }
+          { region: 'No data', value: 0 }
         ]);
         setAvailableModules(assignments.map((a: any) => ({
           id: a.modules?.id,
@@ -708,7 +706,6 @@ const UserDashboardNew = () => {
             <MetricCard
               title="Number of Learners"
               value={stats.numberOfLearners}
-              trend={{ value: 12, direction: 'up' }}
               info="Total number of learners enrolled across selected module(s)."
             />
           </motion.div>
@@ -717,7 +714,6 @@ const UserDashboardNew = () => {
             <MetricCard
               title="STR Score"
               value={stats.strScore}
-              trend={{ value: 8, direction: 'up' }}
               info="Skill to Revenue Ratio – a predicted score defining the revenue impact training can have on business output."
             />
           </motion.div>
@@ -726,7 +722,6 @@ const UserDashboardNew = () => {
             <MetricCard
               title="Engagement"
               value={`${stats.engagement}%`}
-              trend={{ value: 5, direction: 'up' }}
               info="Tracks how much of the module content each learner interacted with."
             />
           </motion.div>
@@ -735,7 +730,6 @@ const UserDashboardNew = () => {
             <MetricCard
               title="Completion"
               value={`${stats.completion}%`}
-              trend={{ value: 3, direction: stats.completion > 80 ? 'up' : 'down' }}
               info="Percentage of learners who fully finished the module."
             />
           </motion.div>
@@ -745,7 +739,6 @@ const UserDashboardNew = () => {
               title="Avg Rating"
               value={stats.avgRating}
               subtitle="of 5"
-              trend={{ value: 0, direction: 'neutral' }}
               info="Learner satisfaction score based on module feedback ratings."
             />
           </motion.div>
@@ -755,7 +748,6 @@ const UserDashboardNew = () => {
               title="Time Saved"
               value={stats.timeSaved}
               subtitle="this month"
-              trend={{ value: 15, direction: 'up' }}
               info="Estimated hours saved per learner by applying skills from this module."
             />
           </motion.div>

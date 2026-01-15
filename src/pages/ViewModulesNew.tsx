@@ -63,7 +63,7 @@ const ViewModulesNew = () => {
         .from('user_module_assignments')
         .select('module_id, completed_at');
 
-      // Calculate completion stats per module
+      // Calculate assignment stats per module (for assigned count)
       const moduleStats: Record<string, { assigned: number; completed: number }> = {};
       (assignments || []).forEach((a) => {
         if (!moduleStats[a.module_id]) {
@@ -75,11 +75,55 @@ const ViewModulesNew = () => {
         }
       });
 
+      // Fetch deduction JSON data for actual completion rates
+      const { data: deductionData } = await supabase
+        .from('data_uploads')
+        .select('module_id, metadata')
+        .eq('file_type', 'deduction_json')
+        .order('created_at', { ascending: false });
+
+      // Create a map of latest deduction per module
+      const deductionByModule = new Map<string, any>();
+      (deductionData || []).forEach((upload: any) => {
+        if (upload.module_id && !deductionByModule.has(upload.module_id)) {
+          deductionByModule.set(upload.module_id, upload.metadata);
+        }
+      });
+
       const transformedData = (data || []).map((module) => {
         const stats = moduleStats[module.id] || { assigned: 0, completed: 0 };
-        const completion = stats.assigned > 0 
-          ? Math.round((stats.completed / stats.assigned) * 100) 
-          : 0;
+        let completion = 0;
+        let assigned = stats.assigned;
+        
+        // Try to get completion from deduction JSON first
+        const metadata = deductionByModule.get(module.id);
+        if (metadata?.learning_progress_status) {
+          const progress = metadata.learning_progress_status;
+          const completedCount = progress.Completed || progress.completed || 0;
+          const inProgressCount = progress['In Progress'] || progress['In-Progress'] || progress.inProgress || 0;
+          const notStartedCount = progress['Not Started'] || progress['Not_Started'] || progress.notStarted || 0;
+          const totalFromDeduction = completedCount + inProgressCount + notStartedCount;
+          
+          if (totalFromDeduction > 0) {
+            // Use deduction data for completion calculation
+            assigned = totalFromDeduction;
+            completion = Math.round((completedCount / totalFromDeduction) * 100);
+          }
+        } else if (module.kpis && typeof module.kpis === 'object') {
+          // Fallback to module KPIs if available
+          const kpis = module.kpis as any;
+          if (kpis.completion !== undefined) {
+            completion = Math.round(Number(kpis.completion));
+          }
+          if (kpis.learners !== undefined) {
+            assigned = Number(kpis.learners);
+          }
+        }
+        
+        // Final fallback to assignment-based calculation
+        if (completion === 0 && stats.assigned > 0 && stats.completed > 0) {
+          completion = Math.round((stats.completed / stats.assigned) * 100);
+        }
         
         return {
           id: module.id,
@@ -88,7 +132,7 @@ const ViewModulesNew = () => {
           status: 'Active',
           created: new Date(module.created_at).toLocaleDateString(),
           author: 'Admin',
-          assigned: stats.assigned,
+          assigned,
           completion,
           screenshot_url: module.screenshot_url,
         };
