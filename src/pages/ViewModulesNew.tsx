@@ -105,19 +105,16 @@ const ViewModulesNew = () => {
           const totalFromDeduction = completedCount + inProgressCount + notStartedCount;
           
           if (totalFromDeduction > 0) {
-            // Use deduction data for completion calculation
-            assigned = totalFromDeduction;
+            // Use deduction data for completion calculation only, keep assigned from user_module_assignments
             completion = Math.round((completedCount / totalFromDeduction) * 100);
           }
         } else if (module.kpis && typeof module.kpis === 'object') {
-          // Fallback to module KPIs if available
+          // Fallback to module KPIs for completion only
           const kpis = module.kpis as any;
           if (kpis.completion !== undefined) {
             completion = Math.round(Number(kpis.completion));
           }
-          if (kpis.learners !== undefined) {
-            assigned = Number(kpis.learners);
-          }
+          // Don't override assigned - keep the actual user assignment count from user_module_assignments
         }
         
         // Final fallback to assignment-based calculation
