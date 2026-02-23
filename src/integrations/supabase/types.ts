@@ -159,6 +159,12 @@ export type Database = {
           tweak_content_request: string | null
           updated_at: string
           version: number | null
+          xapi_client_id: string | null
+          xapi_confusion_threshold_pct: number
+          xapi_course_title: string | null
+          xapi_enabled: boolean
+          xapi_endpoint: string | null
+          xapi_source_type: string | null
         }
         Insert: {
           adapted_module_name?: string | null
@@ -186,6 +192,12 @@ export type Database = {
           tweak_content_request?: string | null
           updated_at?: string
           version?: number | null
+          xapi_client_id?: string | null
+          xapi_confusion_threshold_pct?: number
+          xapi_course_title?: string | null
+          xapi_enabled?: boolean
+          xapi_endpoint?: string | null
+          xapi_source_type?: string | null
         }
         Update: {
           adapted_module_name?: string | null
@@ -213,8 +225,135 @@ export type Database = {
           tweak_content_request?: string | null
           updated_at?: string
           version?: number | null
+          xapi_client_id?: string | null
+          xapi_confusion_threshold_pct?: number
+          xapi_course_title?: string | null
+          xapi_enabled?: boolean
+          xapi_endpoint?: string | null
+          xapi_source_type?: string | null
         }
         Relationships: []
+      }
+      risk_snapshots: {
+        Row: {
+          computed_from_end: string | null
+          computed_from_start: string | null
+          created_at: string
+          dropoff_rate_pct: number | null
+          engagement_rate_overall: number | null
+          id: string
+          module_id: string
+          num_rows: number
+          objective_score_overall: number | null
+          snapshot_json: Json
+          status: string
+          str_overall: number | null
+        }
+        Insert: {
+          computed_from_end?: string | null
+          computed_from_start?: string | null
+          created_at?: string
+          dropoff_rate_pct?: number | null
+          engagement_rate_overall?: number | null
+          id?: string
+          module_id: string
+          num_rows?: number
+          objective_score_overall?: number | null
+          snapshot_json: Json
+          status?: string
+          str_overall?: number | null
+        }
+        Update: {
+          computed_from_end?: string | null
+          computed_from_start?: string | null
+          created_at?: string
+          dropoff_rate_pct?: number | null
+          engagement_rate_overall?: number | null
+          id?: string
+          module_id?: string
+          num_rows?: number
+          objective_score_overall?: number | null
+          snapshot_json?: Json
+          status?: string
+          str_overall?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "risk_snapshots_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      xapi_raw_statements: {
+        Row: {
+          actor_mbox: string | null
+          actor_name: string | null
+          assigned_client_id: string | null
+          completion: boolean | null
+          created_at: string
+          id: string
+          ingestion_batch_id: string
+          module_id: string
+          object_id: string | null
+          object_name: string | null
+          raw_statement: Json
+          region_tag: string | null
+          score_raw: number | null
+          score_scaled: number | null
+          statement_timestamp: string | null
+          success: boolean | null
+          verb_id: string | null
+        }
+        Insert: {
+          actor_mbox?: string | null
+          actor_name?: string | null
+          assigned_client_id?: string | null
+          completion?: boolean | null
+          created_at?: string
+          id?: string
+          ingestion_batch_id?: string
+          module_id: string
+          object_id?: string | null
+          object_name?: string | null
+          raw_statement: Json
+          region_tag?: string | null
+          score_raw?: number | null
+          score_scaled?: number | null
+          statement_timestamp?: string | null
+          success?: boolean | null
+          verb_id?: string | null
+        }
+        Update: {
+          actor_mbox?: string | null
+          actor_name?: string | null
+          assigned_client_id?: string | null
+          completion?: boolean | null
+          created_at?: string
+          id?: string
+          ingestion_batch_id?: string
+          module_id?: string
+          object_id?: string | null
+          object_name?: string | null
+          raw_statement?: Json
+          region_tag?: string | null
+          score_raw?: number | null
+          score_scaled?: number | null
+          statement_timestamp?: string | null
+          success?: boolean | null
+          verb_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "xapi_raw_statements_module_id_fkey"
+            columns: ["module_id"]
+            isOneToOne: false
+            referencedRelation: "modules"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
