@@ -1,15 +1,17 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
 import { useNavigate } from 'react-router-dom';
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { ArrowLeft, Upload, Plus, Minus } from 'lucide-react';
+import { ArrowLeft, Upload, Plus, Minus, FileJson, CheckCircle2, AlertCircle, X } from 'lucide-react';
 import { z } from 'zod';
+import { parseXAPIFile, convertXAPIToRiskIntelligence, RiskIntelligenceJSON } from '@/lib/xapiParser';
 
 // Validation schema
 const uploadModuleSchema = z.object({
@@ -48,6 +50,13 @@ const UploadModule = () => {
   const [perceptionParameters, setPerceptionParameters] = useState([{ label: '', percent: 0 }]);
   const [objectionParameters, setObjectionParameters] = useState([{ label: '', percent: 0 }]);
   
+  // xAPI upload state
+  const [xapiFile, setXapiFile] = useState<File | null>(null);
+  const [xapiDragOver, setXapiDragOver] = useState(false);
+  const [xapiParsing, setXapiParsing] = useState(false);
+  const [xapiError, setXapiError] = useState<string | null>(null);
+  const [xapiRiskData, setXapiRiskData] = useState<RiskIntelligenceJSON | null>(null);
+
   const [newModuleType, setNewModuleType] = useState('');
   const [newModuleDescription, setNewModuleDescription] = useState('');
   const [tweakTopics, setTweakTopics] = useState([{ topic: '', description: '' }]);
@@ -71,6 +80,57 @@ const UploadModule = () => {
       setSelectedAudioFile(file);
       setFormData(prev => ({ ...prev, audioOverview: file }));
     }
+  };
+
+  const processXAPIFile = useCallback(async (file: File) => {
+    setXapiFile(file);
+    setXapiError(null);
+    setXapiRiskData(null);
+    setXapiParsing(true);
+    try {
+      const text = await file.text();
+      const statements = parseXAPIFile(text);
+      const riskData = convertXAPIToRiskIntelligence(statements);
+      setXapiRiskData(riskData);
+
+      // Auto-populate manual KPI fields from parsed xAPI data
+      const completionPct = Math.round(riskData.STR_overall * 100);
+      const engagementPct = Math.round(riskData.engagement_rate_overall * 100);
+      setKpis(prev => ({
+        ...prev,
+        completion: completionPct,
+        engagement: engagementPct,
+        learners: riskData._meta?.uniqueLearners ?? prev.learners,
+      }));
+
+      // Auto-populate confusion parameters
+      if (riskData.confusion_areas.length > 0) {
+        setConfusionParameters(
+          riskData.confusion_areas.map(a => ({ label: a.label, percent: a.percentage }))
+        );
+      }
+
+      toast({
+        title: "xAPI File Parsed",
+        description: `${statements.length} statement(s) converted to Risk Intelligence data.`,
+      });
+    } catch (err) {
+      setXapiError(err instanceof Error ? err.message : 'Failed to parse xAPI file');
+    } finally {
+      setXapiParsing(false);
+    }
+  }, [toast]);
+
+  const handleXAPIFileInput = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) processXAPIFile(file);
+  };
+
+  const handleXAPIDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    setXapiDragOver(false);
+    const file = e.dataTransfer.files?.[0];
+    if (file) processXAPIFile(file);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -172,7 +232,9 @@ const UploadModule = () => {
           
           // Store legacy format for compatibility but use dedicated tables as primary
           adaptive_modules: adaptiveModules.filter(m => m.added),
-          kpis: kpis,
+          kpis: xapiRiskData
+            ? { ...kpis, risk_intelligence: xapiRiskData }
+            : kpis,
           
           confusion_data: confusionParameters,
           perception: perceptionParameters,
@@ -413,6 +475,99 @@ const UploadModule = () => {
                     </div>
                   </div>
                 ))}
+              </div>
+
+              {/* ── xAPI / Risk Intelligence Upload ── */}
+              <div className="border rounded-lg p-4 bg-muted/30 space-y-3">
+                <div className="flex items-center gap-2">
+                  <FileJson className="h-5 w-5 text-primary" />
+                  <Label className="text-base font-semibold">xAPI Learning Data Upload</Label>
+                  <Badge variant="secondary" className="text-xs">Optional</Badge>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  Upload an xAPI JSON file from 7taps or any LRS. The system will automatically convert learning
+                  statements into the Risk Intelligence dashboard format.
+                </p>
+
+                {/* Drag-drop zone */}
+                <div
+                  className={`border-2 border-dashed rounded-lg p-6 text-center transition-colors cursor-pointer ${
+                    xapiDragOver
+                      ? 'border-primary bg-primary/5'
+                      : 'border-muted-foreground/30 hover:border-primary/50'
+                  }`}
+                  onDragOver={(e) => { e.preventDefault(); setXapiDragOver(true); }}
+                  onDragLeave={() => setXapiDragOver(false)}
+                  onDrop={handleXAPIDrop}
+                  onClick={() => document.getElementById('xapi-file-input')?.click()}
+                >
+                  <input
+                    id="xapi-file-input"
+                    type="file"
+                    accept=".json,.zip,.xml"
+                    className="hidden"
+                    onChange={handleXAPIFileInput}
+                  />
+                  {xapiParsing ? (
+                    <p className="text-sm text-muted-foreground animate-pulse">Parsing xAPI data...</p>
+                  ) : xapiFile ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <FileJson className="h-4 w-4 text-primary" />
+                      <span className="text-sm font-medium">{xapiFile.name}</span>
+                      <button
+                        type="button"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          setXapiFile(null);
+                          setXapiRiskData(null);
+                          setXapiError(null);
+                        }}
+                        className="text-muted-foreground hover:text-destructive"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+                  ) : (
+                    <>
+                      <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground/50" />
+                      <p className="text-sm text-muted-foreground">
+                        Drag &amp; drop an xAPI JSON file here, or click to browse
+                      </p>
+                      <p className="text-xs text-muted-foreground mt-1">Accepts .json files</p>
+                    </>
+                  )}
+                </div>
+
+                {/* Error */}
+                {xapiError && (
+                  <div className="flex items-start gap-2 text-destructive text-sm bg-destructive/10 rounded p-3">
+                    <AlertCircle className="h-4 w-4 mt-0.5 flex-shrink-0" />
+                    <span>{xapiError}</span>
+                  </div>
+                )}
+
+                {/* Parsed preview */}
+                {xapiRiskData && (
+                  <div className="bg-green-50 dark:bg-green-950/20 border border-green-200 dark:border-green-800 rounded-lg p-3 space-y-2">
+                    <div className="flex items-center gap-2 text-green-700 dark:text-green-400 font-medium text-sm">
+                      <CheckCircle2 className="h-4 w-4" />
+                      Risk Intelligence data converted successfully
+                    </div>
+                    <div className="grid grid-cols-2 gap-x-4 gap-y-1 text-xs text-muted-foreground">
+                      <span>Module: <strong className="text-foreground">{xapiRiskData._meta?.moduleTitle}</strong></span>
+                      <span>Statements: <strong className="text-foreground">{xapiRiskData._meta?.totalStatements}</strong></span>
+                      <span>Unique Learners: <strong className="text-foreground">{xapiRiskData._meta?.uniqueLearners}</strong></span>
+                      <span>STR Overall: <strong className="text-foreground">{(xapiRiskData.STR_overall * 100).toFixed(0)}%</strong></span>
+                      <span>Engagement: <strong className="text-foreground">{(xapiRiskData.engagement_rate_overall * 100).toFixed(0)}%</strong></span>
+                      <span>Dropoff Rate: <strong className="text-foreground">{xapiRiskData['dropoff_rate_%']}%</strong></span>
+                      <span>Completed: <strong className="text-foreground">{xapiRiskData.learning_progress_status.Completed}</strong></span>
+                      <span>In Progress: <strong className="text-foreground">{xapiRiskData.learning_progress_status['In Progress']}</strong></span>
+                    </div>
+                    <p className="text-xs text-muted-foreground">
+                      KPI fields below have been auto-filled. You can still adjust them before saving.
+                    </p>
+                  </div>
+                )}
               </div>
 
               {/* Analytics inputs for dashboard linkage */}
