@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
+import { Switch } from '@/components/ui/switch';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { FileUploadZone } from './FileUploadZone';
 import { useToast } from '@/hooks/use-toast';
@@ -29,6 +30,12 @@ export function AddModulePanel({ isOpen, onClose, onSuccess }: AddModulePanelPro
   const [category, setCategory] = useState('');
   const [moduleFile, setModuleFile] = useState<File | null>(null);
   const [screenshotFile, setScreenshotFile] = useState<File | null>(null);
+  const [xapiEnabled, setXapiEnabled] = useState(false);
+  const [xapiSourceType, setXapiSourceType] = useState<'upload_zip' | 'stream_endpoint'>('upload_zip');
+  const [xapiEndpoint, setXapiEndpoint] = useState('');
+  const [xapiClientId, setXapiClientId] = useState('');
+  const [xapiCourseTitle, setXapiCourseTitle] = useState('');
+  const [confusionThresholdPct, setConfusionThresholdPct] = useState('25');
 
   const resetForm = () => {
     setTitle('');
@@ -38,6 +45,12 @@ export function AddModulePanel({ isOpen, onClose, onSuccess }: AddModulePanelPro
     setCategory('');
     setModuleFile(null);
     setScreenshotFile(null);
+    setXapiEnabled(false);
+    setXapiSourceType('upload_zip');
+    setXapiEndpoint('');
+    setXapiClientId('');
+    setXapiCourseTitle('');
+    setConfusionThresholdPct('25');
   };
 
   const handleSubmit = async () => {
@@ -103,6 +116,14 @@ export function AddModulePanel({ isOpen, onClose, onSuccess }: AddModulePanelPro
           category: category || null,
           file_url: fileUrl,
           screenshot_url: screenshotUrl,
+          xapi_enabled: xapiEnabled,
+          xapi_source_type: xapiEnabled ? xapiSourceType : null,
+          xapi_endpoint: xapiEnabled && xapiEndpoint.trim() ? xapiEndpoint.trim() : null,
+          xapi_client_id: xapiEnabled && xapiClientId.trim() ? xapiClientId.trim() : null,
+          xapi_course_title: xapiEnabled && xapiCourseTitle.trim() ? xapiCourseTitle.trim() : null,
+          xapi_confusion_threshold_pct: xapiEnabled
+            ? Number.parseFloat(confusionThresholdPct || '25') || 25
+            : 25,
         });
 
       if (dbError) throw dbError;
@@ -141,6 +162,73 @@ export function AddModulePanel({ isOpen, onClose, onSuccess }: AddModulePanelPro
             placeholder="Enter module title"
             className="bg-bg-canvas border-border-default"
           />
+        </div>
+
+        <div className="space-y-4 rounded-lg border border-border-default p-4">
+          <div className="flex items-center justify-between">
+            <Label className="text-sm font-medium text-text-primary">Enable xAPI Risk Ingestion</Label>
+            <Switch checked={xapiEnabled} onCheckedChange={setXapiEnabled} />
+          </div>
+
+          {xapiEnabled && (
+            <>
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-text-primary">xAPI Source Type</Label>
+                <Select value={xapiSourceType} onValueChange={(v) => setXapiSourceType(v as 'upload_zip' | 'stream_endpoint')}>
+                  <SelectTrigger className="bg-bg-canvas border-border-default">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="upload_zip">SCORM ZIP Upload</SelectItem>
+                    <SelectItem value="stream_endpoint">xAPI Stream Endpoint</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-text-primary">xAPI Endpoint (optional)</Label>
+                <Input
+                  value={xapiEndpoint}
+                  onChange={(e) => setXapiEndpoint(e.target.value)}
+                  placeholder="https://example.com/xapi"
+                  className="bg-bg-canvas border-border-default"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-text-primary">Client ID</Label>
+                  <Input
+                    value={xapiClientId}
+                    onChange={(e) => setXapiClientId(e.target.value)}
+                    placeholder="ipru"
+                    className="bg-bg-canvas border-border-default"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label className="text-sm font-medium text-text-primary">Course Title</Label>
+                  <Input
+                    value={xapiCourseTitle}
+                    onChange={(e) => setXapiCourseTitle(e.target.value)}
+                    placeholder="SWAG PAR VO3 Part 1"
+                    className="bg-bg-canvas border-border-default"
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <Label className="text-sm font-medium text-text-primary">Confusion Threshold (%)</Label>
+                <Input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={confusionThresholdPct}
+                  onChange={(e) => setConfusionThresholdPct(e.target.value)}
+                  className="bg-bg-canvas border-border-default"
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Description */}
